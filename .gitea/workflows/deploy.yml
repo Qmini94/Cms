@@ -1,0 +1,17 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Server
+        run: |
+          ssh cms.itid "cd /data/egovframe-cms && git pull origin main && ./gradlew clean build"
