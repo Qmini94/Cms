@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인</title>
+</head>
+<body>
+<h2>로그인 페이지</h2>
+<form action="/login" method="post">
+    <div>
+        <label for="username">사용자명</label>
+        <input type="text" id="username" name="username" required />
+    </div>
+    <div>
+        <label for="password">비밀번호</label>
+        <input type="password" id="password" name="password" required />
+    </div>
+    <div>
+        <button type="submit">로그인</button>
+    </div>
+</form>
+<div>
+    <span>계정이 없으신가요? <a href="/signup">회원가입</a></span>
+</div>
+</body>
+</html>

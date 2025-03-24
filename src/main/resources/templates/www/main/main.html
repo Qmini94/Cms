@@ -1,0 +1,21 @@
+<div th:fragment="main">
+    <div class="user-info">
+        <p>로그인한 사용자: <span th:text="${username}">사용자</span></p>
+        <p>권한: <span th:text="${role}">권한</span></p>
+        <p>이메일: <span th:text="${data.email}">이메일</span></p>
+        <p>주소: <span th:text="${data.address}">주소</span></p>
+        <p>부서: <span th:text="${data.departmentId}">부서</span></p>
+    </div>
+
+    <div th:if="${role.contains('ADMIN')}">
+        <p>관리자 권한을 가진 사용자만 볼 수 있는 내용</p>
+    </div>
+
+    <div th:if="${role.contains('USER')}">
+        <p>일반 사용자 권한을 가진 사용자만 볼 수 있는 내용</p>
+    </div>
+
+    <div th:if="${role.contains('STAFF')}">
+        <p>직원 권한을 가진 사용자만 볼 수 있는 내용</p>
+    </div>
+</div>

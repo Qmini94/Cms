@@ -1,14 +1,7 @@
 plugins {
-    id "java"
+    id 'java'
     id "org.springframework.boot" version "2.7.12"
-    id "io.spring.dependency-management" version "1.1.4"
-}
-
-configurations {
-    all {
-        exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
-        exclude group: "org.springframework.boot", module: "org.springframework.boot:spring-boot-starter-logging"
-    }
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = "kr.co.itid"
@@ -16,74 +9,38 @@ version = "1.0.0-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
     }
 }
 
 repositories {
     mavenCentral()
     maven {
-        url "https://maven.egovframe.go.kr/maven"
+        url 'https://maven.egovframe.go.kr/maven'
     }
-}
-
-ext {
-    set("egovFrameVersion", "4.2.0")
-    set("springVersion", "5.3.27")
-    set("springBootVersion", "2.7.12")
 }
 
 dependencies {
-    // Spring Boot Starter
-    implementation "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
-    implementation "org.springframework.boot:spring-boot-starter-validation:$springBootVersion"
-
-    // Spring Core
-    implementation "org.springframework:spring-core:$springVersion"
-    implementation "org.springframework:spring-context:$springVersion"
-    implementation "org.springframework:spring-web:$springVersion"
-
-    // Spring
-//    implementation "org.springframework.security:spring-security-core:5.8.3"
-//    implementation "org.springframework.security:spring-security-web:5.8.3"
-//    implementation "org.springframework.security:spring-security-config:5.8.3"
-
-    // Thymeleaf
-    implementation "org.springframework.boot:spring-boot-starter-thymeleaf:$springBootVersion"
-    implementation "nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect"
-
-    // 전자정부프레임워크(eGovFrame)
-    implementation ("org.egovframe.rte:org.egovframe.rte.ptl.mvc:$egovFrameVersion") {
-        exclude group: "commons-logging", module: "commons-logging"
-    }
-    implementation "org.egovframe.rte:org.egovframe.rte.fdl.cmmn:$egovFrameVersion"
-    implementation "org.egovframe.rte:org.egovframe.rte.psl.dataaccess:$egovFrameVersion"
-    implementation "org.egovframe.rte:org.egovframe.rte.fdl.logging:$egovFrameVersion"
-    implementation "org.egovframe.rte:org.egovframe.rte.fdl.idgnr:$egovFrameVersion"
-    implementation "org.egovframe.rte:org.egovframe.rte.fdl.property:$egovFrameVersion"
-
-    // JWT
-    implementation "io.jsonwebtoken:jjwt-api:0.12.3"
-    runtimeOnly "io.jsonwebtoken:jjwt-impl:0.12.3"
-    runtimeOnly "io.jsonwebtoken:jjwt-jackson:0.12.3"
-
-    // 데이터베이스 (R2DBC & JPA)
-//    implementation "org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion" // JDBC
-//    implementation "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion" // JPA
-//    implementation "org.mariadb.jdbc:mariadb-java-client:3.1.4" // MariaDB JDBC 드라이버
-
-    // 파일 업로드 (Spring + Apache Commons IO)
-    implementation "commons-io:commons-io:2.15.0"
-
-    // API 문서화 (Swagger)
-//    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0"
-
-    compileOnly "org.projectlombok:lombok:1.18.28"
-    annotationProcessor "org.projectlombok:lombok:1.18.28"
-
-    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.egovframe.rte:org.egovframe.rte.ptl.mvc:4.2.0'
+    implementation 'org.egovframe.rte:org.egovframe.rte.fdl.property:4.2.0'
+    implementation 'org.egovframe.rte:org.egovframe.rte.fdl.security:4.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-test {
+tasks.named('test') {
     useJUnitPlatform()
 }
