@@ -27,12 +27,12 @@ public class EgovSecurityConfig {
 
         // 인증에 사용되는 쿼리 (사용자 정보)
         securityConfig.setJdbcUsersByUsernameQuery(
-                "SELECT user_id, password, 'Y' AS enabled, email, address, department_id FROM member WHERE user_id = ? AND is_deleted = 'N'"
+                "SELECT user_id, user_password AS password, 'Y' AS enabled, user_name, tel, dept_id FROM egov_member WHERE user_id = ?"
         );
 
         // 인증된 사용자의 권한 조회 쿼리
         securityConfig.setJdbcAuthoritiesByUsernameQuery(
-                "SELECT level FROM member WHERE user_id = ? AND is_deleted = 'N'"
+                "SELECT user_level FROM egov_member WHERE user_id = ? "
         );
 
         // 사용자 정보 mapping 처리 class 설정 (선택 사항)

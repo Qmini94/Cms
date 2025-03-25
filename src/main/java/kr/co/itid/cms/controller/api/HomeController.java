@@ -16,11 +16,9 @@ public class HomeController {
     @GetMapping("/www/index")
     public String index(Authentication authentication, Model model) {
         if (authentication != null) {
-            String username = authentication.getName();
             String role = authentication.getAuthorities().toString();
             Object data = authentication.getPrincipal();
 
-            model.addAttribute("username", username);
             model.addAttribute("role", role);
             model.addAttribute("data", data);
             model.addAttribute("content", "www/main/main");

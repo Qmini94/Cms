@@ -8,17 +8,17 @@ import java.util.Collection;
 
 @Getter
 public class UserWithAdditionalInfo extends User {
-    private String email;
-    private String address;
-    private String departmentId;
+    private String name;
+    private String tel;
+    private String deptId;
 
     public UserWithAdditionalInfo(String username, String password, boolean enabled,
                                   Collection<? extends GrantedAuthority> authorities,
-                                  String email, String address, String departmentId) {
+                                  String name, String tel, String deptId) {
         super(username, password, enabled, true, true, true, authorities);
-        this.email = email;
-        this.address = address;
-        this.departmentId = departmentId;
+        this.name = name;
+        this.tel = tel;
+        this.deptId = deptId;
     }
 }
 

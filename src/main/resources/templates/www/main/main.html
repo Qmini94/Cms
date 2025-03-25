@@ -1,10 +1,10 @@
 <div th:fragment="main">
     <div class="user-info">
-        <p>로그인한 사용자: <span th:text="${username}">사용자</span></p>
+        <p>아이디: <span th:text="${data.username}">아이디</span></p>
+        <p>이름: <span th:text="${data.name}">이름</span></p>
         <p>권한: <span th:text="${role}">권한</span></p>
-        <p>이메일: <span th:text="${data.email}">이메일</span></p>
-        <p>주소: <span th:text="${data.address}">주소</span></p>
-        <p>부서: <span th:text="${data.departmentId}">부서</span></p>
+        <p>전화번호: <span th:text="${data.tel}">전화번호</span></p>
+        <p>부서: <span th:text="${data.deptId}">부서</span></p>
     </div>
 
     <div th:if="${role.contains('ADMIN')}">

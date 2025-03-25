@@ -32,9 +32,9 @@ public class CustomJdbcUserDetailsManager extends JdbcUserDetailsManager {
                         rs.getString("password"),
                         rs.getString("enabled").equals("Y"),
                         new ArrayList<>(), // 권한은 나중에 설정
-                        rs.getString("email"),
-                        rs.getString("address"),
-                        rs.getString("department_id")
+                        rs.getString("user_name"),
+                        rs.getString("tel"),
+                        rs.getString("dept_id")
                 )
         );
 
@@ -63,9 +63,9 @@ public class CustomJdbcUserDetailsManager extends JdbcUserDetailsManager {
                 userDetails.getPassword(),
                 userDetails.isEnabled(),
                 authorities,
-                ((UserWithAdditionalInfo) userDetails).getEmail(),
-                ((UserWithAdditionalInfo) userDetails).getAddress(),
-                ((UserWithAdditionalInfo) userDetails).getDepartmentId()
+                ((UserWithAdditionalInfo) userDetails).getName(),
+                ((UserWithAdditionalInfo) userDetails).getTel(),
+                ((UserWithAdditionalInfo) userDetails).getDeptId()
         );
     }
 }
