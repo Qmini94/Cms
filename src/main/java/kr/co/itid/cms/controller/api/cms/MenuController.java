@@ -17,20 +17,14 @@ public class MenuController {
     private final MenuService menuService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllMenus() {
-        List<MenuResponse> menus = menuService.getAllMenus();
+    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllDrives() {
+        List<MenuResponse> menus = menuService.getAllDrives();
         return ResponseEntity.ok(ApiResponse.success(menus));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> getMenuTitle(@PathVariable Long id) {
-        String title = menuService.getMenuTitleById(id);
-        return ResponseEntity.ok(ApiResponse.success(title));
-    }
-
-    @GetMapping("/{id}/children")
-    public ResponseEntity<ApiResponse<List<MenuResponse>>> getChildren(@PathVariable Long id) {
-        List<MenuResponse> children = menuService.getChildrenByParentId(id);
+    @GetMapping("/{drive}")
+    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllMenusByDrive(@PathVariable String drive) {
+        List<MenuResponse> children = menuService.getAllMenusByDrive(drive);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
 }

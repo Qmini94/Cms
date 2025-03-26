@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -14,5 +17,20 @@ public class MenuResponse {
     private String type;
     private String value;
     private String display;
-    private String url;
+    private String pathUrl;
+    @Setter
+    private List<MenuResponse> children;
+
+    public MenuResponse(Long id, Long parentId, String title, String type, String value,
+                        String display, String pathUrl) {
+        this.id = id;
+        this.parentId = parentId;
+        this.title = title;
+        this.type = type;
+        this.value = value;
+        this.display = display;
+        this.pathUrl = pathUrl;
+        this.children = new ArrayList<>();
+    }
 }
+
