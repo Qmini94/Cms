@@ -1,5 +1,7 @@
 package kr.co.itid.cms.config.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.co.itid.cms.dto.common.ApiResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -25,21 +27,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        try {
+            String token = resolveToken(request);
 
-        String token = resolveToken(request);
+            if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
+                String userId = jwtTokenProvider.getUserId(token);
 
-        if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
-            String userId = jwtTokenProvider.getUserId(token);
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userId, null, List.of());
 
-            // 여기에 roles도 넣고 싶다면 클레임에서 꺼내서 설정 가능
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, List.of());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
 
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            filterChain.doFilter(request, response);
+
+        } catch (Exception e) {
+            setErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "토큰이 유효하지 않거나 만료되었습니다.");
         }
-
-        filterChain.doFilter(request, response);
     }
 
     private String resolveToken(HttpServletRequest request) {
@@ -48,6 +53,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearer.substring(7);
         }
         return null;
+    }
+
+    private void setErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+
+        ApiResponse<Void> error = ApiResponse.error(status, message);
+        String json = new ObjectMapper().writeValueAsString(error);
+
+        response.getWriter().write(json);
     }
 
 }
