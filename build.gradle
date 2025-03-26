@@ -27,11 +27,23 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Egov
     implementation 'org.egovframe.rte:org.egovframe.rte.ptl.mvc:4.2.0'
     implementation 'org.egovframe.rte:org.egovframe.rte.fdl.property:4.2.0'
-    implementation 'org.egovframe.rte:org.egovframe.rte.fdl.security:4.2.0'
+
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -39,6 +51,10 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+configurations.all {
+    exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
 }
 
 tasks.named('test') {
