@@ -9,7 +9,6 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -39,12 +38,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(403, "권한이 없습니다."));
     }
 
-    // 404 - 존재하지 않는 URL 또는 리소스
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotFound(NoHandlerFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(404, "리소스를 찾을 수 없습니다."));
-    }
+    // 404 - 존재하지 않는 URL 또는 리소스 스프링에서 /error 보내버리기 때문에 따로 컨트롤러로 처리
+//    @ExceptionHandler(NoHandlerFoundException.class)
+//    public ResponseEntity<ApiResponse<Void>> handleNotFound(NoHandlerFoundException e) {
+//        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                .body(ApiResponse.error(404, "리소스를 찾을 수 없습니다."));
+//    }
 
     // 405 - 지원하지 않는 메서드
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
