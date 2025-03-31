@@ -11,8 +11,8 @@ import java.util.Optional;
 public interface MenuRepository extends JpaRepository<Menu, Long> {
     List<Menu> findByType(String type);
 
-    // 특정 title과 type이 일치하는 메뉴 조회
-    Optional<Menu> findByTitleAndType(String title, String type);
+    // 특정 id가 일치하는 메뉴 조회
+    Optional<Menu> findById(Long id);
 
     // 부모 ID로 하위 메뉴 조회
     List<Menu> findByParentIdOrderByLevelAscLeftAsc(Long parentId);

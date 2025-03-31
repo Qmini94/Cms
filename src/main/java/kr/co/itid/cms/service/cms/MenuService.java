@@ -30,10 +30,10 @@ public class MenuService {
                 .toList();
     }
 
-    public List<MenuResponse> getAllMenusByDrive(String driveTitle) {
+    public List<MenuResponse> getAllChildById(Long menuId) {
         // 1. 드라이브 루트 메뉴 조회
-        Menu rootMenu = menuRepository.findByTitleAndType(driveTitle, "drive")
-                .orElseThrow(() -> new RuntimeException("Drive not found: " + driveTitle));
+        Menu rootMenu = menuRepository.findById(menuId)
+                .orElseThrow(() -> new RuntimeException("Drive not found: " + menuId));
 
         // 2. 하위 메뉴 트리 구성
         return buildMenuTree(rootMenu.getId());

@@ -22,9 +22,9 @@ public class MenuController {
         return ResponseEntity.ok(ApiResponse.success(menus));
     }
 
-    @GetMapping("/{drive}")
-    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllMenusByDrive(@PathVariable String drive) {
-        List<MenuResponse> children = menuService.getAllMenusByDrive(drive);
+    @GetMapping("/{menuId}")
+    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllChildById(@PathVariable Long menuId) {
+        List<MenuResponse> children = menuService.getAllChildById(menuId);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
 }
