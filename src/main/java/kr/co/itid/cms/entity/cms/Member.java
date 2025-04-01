@@ -96,13 +96,13 @@ public class Member {
     private String lastLoginIp;
 
     @Column(name = "recv_sms", nullable = false)
-    private Boolean recvSms;
+    private String recvSms;
 
     @Column(name = "recv_mail", nullable = false)
-    private Boolean recvMail;
+    private String recvMail;
 
     @Column(name = "foreigner")
-    private Boolean foreigner;
+    private String foreigner;
 
     @Column(name = "staff_id")
     private String staffId;

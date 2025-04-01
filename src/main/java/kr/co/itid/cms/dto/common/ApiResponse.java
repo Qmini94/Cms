@@ -1,10 +1,12 @@
 package kr.co.itid.cms.dto.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
     private int code;
     private String message;
@@ -24,7 +26,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(201, "리소스 생성 성공", data);
     }
 
-    public static ApiResponse<Void> error(int code, String message) {
+    public static <T> ApiResponse<T> error(int code, String message) {
         return new ApiResponse<>(code, message, null);
     }
 

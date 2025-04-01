@@ -43,7 +43,7 @@ public class AuthService {
 
         // 로그인 시간 갱신
         member.setLastLoginDate(LocalDateTime.now());
-        memberRepository.save(member);
+         memberRepository.save(member);
 
         return new TokenResponse(accessToken, refreshToken);
     }
