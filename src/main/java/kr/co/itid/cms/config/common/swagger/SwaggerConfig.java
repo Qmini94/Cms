@@ -19,7 +19,7 @@ public class SwaggerConfig {
                 .apis(RequestHandlerSelectors.basePackage("kr.co.itid.cms.controller"))
                 .paths(PathSelectors.any())
                 .build()
-                .host("49.254.140.62:58322")
+                .host("127.0.0.1:8080")
                 .pathMapping("/swagger-ui.html");
     }
 }
