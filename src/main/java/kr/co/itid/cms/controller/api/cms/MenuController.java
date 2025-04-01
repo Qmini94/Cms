@@ -23,8 +23,8 @@ public class MenuController {
     }
 
     @GetMapping("/{name}")
-    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllChildById(@PathVariable String name) {
-        List<MenuResponse> children = menuService.getAllChildByName(name);
+    public ResponseEntity<ApiResponse<List<MenuResponse>>> getChildrenByName(@PathVariable String name) {
+        List<MenuResponse> children = menuService.getAllChildrenByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
 }

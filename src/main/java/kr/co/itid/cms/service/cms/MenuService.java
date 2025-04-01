@@ -30,7 +30,7 @@ public class MenuService {
                 .toList();
     }
 
-    public List<MenuResponse> getAllChildByName(String name) {
+    public List<MenuResponse> getAllChildrenByName(String name) {
         // 1. 드라이브 루트 메뉴 조회
         Menu rootMenu = menuRepository.findByNameOrderByLeftAsc(name)
                 .orElseThrow(() -> new RuntimeException("Drive not found: " + name));

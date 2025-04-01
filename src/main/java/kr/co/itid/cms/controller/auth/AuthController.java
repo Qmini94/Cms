@@ -2,6 +2,7 @@ package kr.co.itid.cms.controller.auth;
 
 import kr.co.itid.cms.dto.auth.LoginRequest;
 import kr.co.itid.cms.dto.auth.TokenResponse;
+import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,22 +18,21 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<TokenResponse>> login(@RequestBody LoginRequest request) {
         TokenResponse tokenResponse = authService.login(request.getUserId(), request.getPassword());
-        return ResponseEntity.ok(tokenResponse);
+        return ResponseEntity.ok(ApiResponse.success(tokenResponse));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String token) {
         authService.logout(token.replace("Bearer ", ""));
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> refreshToken(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
         TokenResponse tokenResponse = authService.refreshAccessToken(refreshToken);
-        return ResponseEntity.ok(tokenResponse);
+        return ResponseEntity.ok(ApiResponse.success(tokenResponse));
     }
 }
-

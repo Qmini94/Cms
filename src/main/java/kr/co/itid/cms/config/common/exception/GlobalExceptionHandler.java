@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
     public ResponseEntity<ApiResponse<Void>> handleUnauthorized(Exception e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error(401, "인증이 필요합니다."));
+                .body(ApiResponse.error(401, "인증에 실패하였습니다."));
     }
 
     // 403 - 인가 실패
