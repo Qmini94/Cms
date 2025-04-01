@@ -42,17 +42,8 @@ public class AuthController {
                     .sameSite("Strict")
                     .build();
 
-            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.getRefreshToken())
-                    .httpOnly(true)
-                    .secure(true)
-                    .path("/")
-                    .maxAge(Duration.ofDays(refreshTokenValidity))
-                    .sameSite("Strict")
-                    .build();
-
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                     .body(ApiResponse.success(tokenResponse));
         } catch (Exception e) {
             e.printStackTrace();
