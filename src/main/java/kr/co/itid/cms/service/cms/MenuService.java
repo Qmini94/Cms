@@ -15,7 +15,7 @@ public class MenuService {
     private final MenuRepository menuRepository;
 
     public List<MenuResponse> getAllDrives() {
-        List<Menu> menus = menuRepository.findByType("drive");
+        List<Menu> menus = menuRepository.findParentIdIsNull();
 
         return menus.stream()
                 .map(menu -> new MenuResponse(
@@ -30,10 +30,10 @@ public class MenuService {
                 .toList();
     }
 
-    public List<MenuResponse> getAllChildById(Long menuId) {
+    public List<MenuResponse> getAllChildByName(String name) {
         // 1. 드라이브 루트 메뉴 조회
-        Menu rootMenu = menuRepository.findById(menuId)
-                .orElseThrow(() -> new RuntimeException("Drive not found: " + menuId));
+        Menu rootMenu = menuRepository.findByNameOrderByLeftAsc(name)
+                .orElseThrow(() -> new RuntimeException("Drive not found: " + name));
 
         // 2. 하위 메뉴 트리 구성
         return buildMenuTree(rootMenu.getId());

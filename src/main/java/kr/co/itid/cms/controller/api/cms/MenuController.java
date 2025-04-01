@@ -16,15 +16,15 @@ public class MenuController {
 
     private final MenuService menuService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllDrives() {
         List<MenuResponse> menus = menuService.getAllDrives();
         return ResponseEntity.ok(ApiResponse.success(menus));
     }
 
-    @GetMapping("/{menuId}")
-    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllChildById(@PathVariable Long menuId) {
-        List<MenuResponse> children = menuService.getAllChildById(menuId);
+    @GetMapping("/{name}")
+    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllChildById(@PathVariable String name) {
+        List<MenuResponse> children = menuService.getAllChildByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
 }
