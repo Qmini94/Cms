@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface MenuRepository extends JpaRepository<Menu, Long> {
-    List<Menu> findParentIdIsNull();
+    List<Menu> findByParentIdIsNull();
 
     Optional<Menu> findByNameOrderByLeftAsc(String name);
 

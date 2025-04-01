@@ -15,7 +15,7 @@ public class MenuService {
     private final MenuRepository menuRepository;
 
     public List<MenuResponse> getAllDrives() {
-        List<Menu> menus = menuRepository.findParentIdIsNull();
+        List<Menu> menus = menuRepository.findByParentIdIsNull();
 
         return menus.stream()
                 .map(menu -> new MenuResponse(
