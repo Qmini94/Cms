@@ -36,8 +36,6 @@ spring:
     active: production
 
 server:
-  url: https://cms.itid.co.kr
-  description: Production server
   error:
     whitelabel:
       enabled: false
