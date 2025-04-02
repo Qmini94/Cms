@@ -37,8 +37,7 @@ public class Site {
     private Integer sessionTimeout;
 
     @Column(name = "session_layer", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private SessionOption sessionLayer;
+    private String sessionLayer;
 
     @Column(name = "company")
     private String company;
@@ -50,12 +49,10 @@ public class Site {
     private String tel;
 
     @Column(name = "session_dup_login", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private SessionOption sessionDupLogin;
+    private String sessionDupLogin;
 
     @Column(name = "ssl_mode", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private SessionOption sslMode;
+    private String sslMode;
 
     @Column(name = "siren24_id")
     private String siren24Id;
@@ -79,8 +76,7 @@ public class Site {
     private String badText;
 
     @Column(name = "badtext_option", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private BadTextOption badTextOption;
+    private String badTextOption;
 
     @Column(name = "naver_api_key")
     private String naverApiKey;
@@ -108,26 +104,4 @@ public class Site {
 
     @Column(name = "digitomi_return_url")
     private String digitomiReturnUrl;
-
-    // enum 정의
-    public enum SessionOption {
-        off, on
-    }
-
-    public enum BadTextOption {
-        TRUE("true"),
-        FALSE("false"),
-        REPLACE("replace");
-
-        private final String value;
-
-        BadTextOption(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value;
-        }
-    }
 }

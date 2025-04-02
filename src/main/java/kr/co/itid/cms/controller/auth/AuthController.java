@@ -25,9 +25,6 @@ public class AuthController {
     @Value("${jwt.access-token-validity}")
     private long accessTokenValidity;
 
-    @Value("${jwt.refresh-token-validity}")
-    private long refreshTokenValidity;
-
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenResponse>> login(@RequestBody LoginRequest request) {
         try {
