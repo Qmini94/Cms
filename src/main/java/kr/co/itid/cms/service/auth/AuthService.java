@@ -30,7 +30,7 @@ public class AuthService {
             throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
         }
 
-        Map<String, String> claims = jwtTokenProvider.getClaims(member);
+        Map<String, Object> claims = jwtTokenProvider.getClaims(member);
         String accessToken = jwtTokenProvider.generateToken(userId, claims, false);
         String refreshToken = jwtTokenProvider.generateToken(userId, claims, true);
 
@@ -63,7 +63,7 @@ public class AuthService {
             }
 
             // 3. 사용자 정보로 새로운 Access Token 발급
-            Map<String, String> claims = jwtTokenProvider.getClaims(member);
+            Map<String, Object> claims = jwtTokenProvider.getClaims(member);
             String accessToken = jwtTokenProvider.generateToken(userId, claims, false);
 
             return new TokenResponse(accessToken, null);
