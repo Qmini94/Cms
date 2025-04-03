@@ -18,17 +18,15 @@ public class MenuController {
 
     private final MenuService menuService;
 
-    @PreAuthorize("@permService.hasAccess(authentication, #request.menuId, 'READ')")
-    @PostMapping("/all")
-    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllDrives(@RequestBody MenuRequest request) {
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllDrives() {
         List<MenuResponse> menus = menuService.getAllDrives();
         return ResponseEntity.ok(ApiResponse.success(menus));
     }
 
-    @PreAuthorize("@permService.hasAccess(authentication, #request.menuId, 'READ')")
-    @PostMapping("/{name}")
-    public ResponseEntity<ApiResponse<List<MenuResponse>>> getChildrenByName(
-            @PathVariable String name, @RequestBody MenuRequest request) {
+//    @PreAuthorize("@permService.hasAccess(authentication, #request.menuId, 'READ')")
+    @GetMapping("/{name}")
+    public ResponseEntity<ApiResponse<List<MenuResponse>>> getChildrenByName(@PathVariable String name) {
         List<MenuResponse> children = menuService.getAllChildrenByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
