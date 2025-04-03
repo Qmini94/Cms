@@ -3,14 +3,14 @@ spring:
     name: cms
 
   datasource:
-    #url: jdbc:mysql://127.0.0.1:3306/EGOV_CSERVER?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    url: jdbc:mysql://49.254.140.62:3306/EGOV_CSERVER?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://127.0.0.1:3306/EGOV_CSERVER?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    #url: jdbc:mysql://49.254.140.62:3306/EGOV_CSERVER?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: itid
     password: Yubi2025!
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   redis:
-    host: 49.254.140.62
+    host: 127.0.0.1
     port: 6379
     password: Yubi!!@@##5630
 
