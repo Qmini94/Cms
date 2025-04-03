@@ -24,12 +24,10 @@ public class JwtSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ 인증이 필요한 경로만 지정 (ex: /api/secure/**)
-                        .antMatchers("/api/secure/**").authenticated()
-
-                        // ✅ 나머지는 모두 허용
+                        // 모든 요청을 인증 없이 허용
                         .anyRequest().permitAll()
                 )
+                // JWT 인증 필터 추가 - "누구인지"만 처리
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

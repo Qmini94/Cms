@@ -5,16 +5,13 @@ import kr.co.itid.cms.dto.auth.TokenResponse;
 import kr.co.itid.cms.entity.cms.Member;
 import kr.co.itid.cms.repository.cms.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +20,6 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
-    private final StringRedisTemplate redisTemplate;
     private final PasswordEncoder passwordEncoder;
 
     public TokenResponse login(String userId, String password) {
@@ -34,24 +30,18 @@ public class AuthService {
             throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
         }
 
-        List<String> roles = resolveRoles(member.getUserLevel());
-        String accessToken = jwtTokenProvider.generateToken(userId, roles, false);
-        String refreshToken = jwtTokenProvider.generateToken(userId, roles, true);
+        Map<String, String> claims = jwtTokenProvider.getClaims(member);
+        String accessToken = jwtTokenProvider.generateToken(userId, claims, false);
+        String refreshToken = jwtTokenProvider.generateToken(userId, claims, true);
 
-        // Redis에 Refresh Token 저장 (1일)
-        redisTemplate.opsForValue().set("refresh:" + userId, refreshToken, 1, TimeUnit.DAYS);
+        // Redis에 Refresh Token 저장
+        jwtTokenProvider.storeRefreshToken(userId, refreshToken);
 
         // 로그인 시간 갱신
         member.setLastLoginDate(LocalDateTime.now());
-         memberRepository.save(member);
+        memberRepository.save(member);
 
         return new TokenResponse(accessToken, refreshToken);
-    }
-
-    private List<String> resolveRoles(Integer level) {
-        if (level == 1) return List.of("ROLE_ADMIN");
-        else if (level == 6) return List.of("ROLE_STAFF");
-        else return List.of("ROLE_USER");
     }
 
     public void logout(String token) {
@@ -61,26 +51,25 @@ public class AuthService {
     }
 
     public TokenResponse refreshAccessToken(String refreshToken) {
-        if (!jwtTokenProvider.isRefreshTokenValid(refreshToken)) {
-            throw new BadCredentialsException("유효하지 않은 리프레시 토큰입니다.");
+        try {
+            // 1. 토큰에서 userId 추출 후 해당 member 조회
+            String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+            Member member = memberRepository.findByUserId(userId)
+                    .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));
+
+            // 2. Redis에서 Refresh Token 유효성 검사
+            if (!jwtTokenProvider.validateRefreshToken(userId, refreshToken)) {
+                throw new BadCredentialsException("유효하지 않은 리프레시 토큰입니다.");
+            }
+
+            // 3. 사용자 정보로 새로운 Access Token 발급
+            Map<String, String> claims = jwtTokenProvider.getClaims(member);
+            String accessToken = jwtTokenProvider.generateToken(userId, claims, false);
+
+            return new TokenResponse(accessToken, null);
+        } catch (Exception e) {
+            throw new RuntimeException("토큰 갱신 중 오류 발생: " + e.getMessage());
         }
-
-        String userId = jwtTokenProvider.getUserId(refreshToken);
-        String storedRefreshToken = redisTemplate.opsForValue().get("refresh:" + userId);
-
-        // Redis에 저장된 리프레시 토큰과 일치하는지 확인
-        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
-            throw new BadCredentialsException("이미 만료되었거나 저장되지 않은 토큰입니다.");
-        }
-
-        // 새 Access Token만 발급
-        Member member = memberRepository.findByUserId(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자 정보를 찾을 수 없습니다."));
-
-        List<String> roles = resolveRoles(member.getUserLevel());
-        String newAccessToken = jwtTokenProvider.generateToken(userId, roles, false);
-
-        return new TokenResponse(newAccessToken, null); // refreshToken은 그대로
     }
 
     public void forceLogoutByAdmin(String userId, @Nullable String token) {

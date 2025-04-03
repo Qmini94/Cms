@@ -1,4 +1,4 @@
-package kr.co.itid.cms.config.common.exception;
+package kr.co.itid.cms.config.exception;
 
 import kr.co.itid.cms.dto.common.ApiResponse;
 import org.springframework.boot.web.servlet.error.ErrorController;

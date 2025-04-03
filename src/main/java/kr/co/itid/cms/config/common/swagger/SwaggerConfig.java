@@ -18,8 +18,8 @@ public class SwaggerConfig {
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("kr.co.itid.cms.controller"))
                 .paths(PathSelectors.any())
-                .build()
-                .pathMapping("/")  // 기본 경로 설정
-                .host("cms.itid.co.kr");  // 호스트 명시
+                .build();
+//                .pathMapping("/")  // 기본 경로 설정
+//                .host("cms.itid.co.kr");  // 호스트 명시
     }
 }

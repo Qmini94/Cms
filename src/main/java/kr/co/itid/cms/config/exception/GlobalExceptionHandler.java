@@ -1,4 +1,4 @@
-package kr.co.itid.cms.config.common.exception;
+package kr.co.itid.cms.config.exception;
 
 import kr.co.itid.cms.dto.common.ApiResponse;
 import org.springframework.http.HttpStatus;
@@ -22,6 +22,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleBadRequest(Exception e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(400, "잘못된 요청입니다."));
+    }
+
+    // 401 - JWT 인증 오류
+    @ExceptionHandler(org.springframework.security.authentication.AuthenticationServiceException.class)
+    public ResponseEntity<ApiResponse<Void>> handleJwtAuthenticationException(Exception e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(401, "토큰이 유효하지 않거나 만료되었습니다."));
     }
 
     // 401 - 인증 실패

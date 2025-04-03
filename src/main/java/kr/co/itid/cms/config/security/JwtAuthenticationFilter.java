@@ -13,11 +13,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+
+    private static final String ANONYMOUS_USER = "notUser";
 
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -33,11 +34,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
                 String userId = jwtTokenProvider.getUserId(token);
 
+                // 유효한 토큰이 있는 경우: 사용자 ID를 설정
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userId, null, List.of());
-
+                        new UsernamePasswordAuthenticationToken(userId, null, null);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                // 유효하지 않거나 만료된 경우: 익명 사용자로 설정
+                UsernamePasswordAuthenticationToken guestAuthentication =
+                        new UsernamePasswordAuthenticationToken(ANONYMOUS_USER, null, null);
+                guestAuthentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(guestAuthentication);
             }
 
             filterChain.doFilter(request, response);
@@ -64,5 +71,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         response.getWriter().write(json);
     }
-
 }
