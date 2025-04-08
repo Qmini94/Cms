@@ -8,7 +8,6 @@ import kr.co.itid.cms.service.list.SiteService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

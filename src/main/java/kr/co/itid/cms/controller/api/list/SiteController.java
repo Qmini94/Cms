@@ -20,7 +20,7 @@ public class SiteController {
 
     private final SiteService siteService;
 
-    @PreAuthorize("@permService.hasAccess(authentication, #menuId, 'READ')")
+//    @PreAuthorize("@permService.hasAccess(authentication, #menuId, 'READ')")
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData(@RequestParam int menuId) throws Exception {
         List<SiteResponse> sites = siteService.getSiteAllData();
