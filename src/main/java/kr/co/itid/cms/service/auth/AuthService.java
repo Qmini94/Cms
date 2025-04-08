@@ -1,84 +1,38 @@
 package kr.co.itid.cms.service.auth;
 
-import kr.co.itid.cms.config.security.JwtTokenProvider;
 import kr.co.itid.cms.dto.auth.TokenResponse;
-import kr.co.itid.cms.entity.cms.Member;
-import kr.co.itid.cms.repository.cms.MemberRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.lang.Nullable;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
-import java.util.Map;
 
-@Service
-@RequiredArgsConstructor
-public class AuthService {
+/**
+ * AuthService 인터페이스
+ * 사용자 인증 관련 서비스 메서드를 정의합니다.
+ */
+public interface AuthService {
 
-    private final MemberRepository memberRepository;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final TokenBlacklistService tokenBlacklistService;
-    private final PasswordEncoder passwordEncoder;
+    /**
+     * 사용자 로그인 메소드
+     * @param userId 사용자 ID
+     * @param password 사용자 비밀번호
+     * @return TokenResponse 엑세스 토큰 및 리프레시 토큰 반환
+     */
+    TokenResponse login(String userId, String password) throws Exception;
 
-    public TokenResponse login(String userId, String password) {
-        Member member = memberRepository.findByUserId(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));
+    /**
+     * 사용자 로그아웃 메소드
+     * @param token 엑세스 토큰
+     */
+    void logout(String token) throws Exception;
 
-        if (!passwordEncoder.matches(password, member.getUserPassword())) {
-            throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
-        }
+    /**
+     * 엑세스 토큰 갱신 메소드
+     * @param refreshToken 리프레시 토큰
+     * @return TokenResponse 새로운 엑세스 토큰
+     */
+    TokenResponse refreshAccessToken(String refreshToken) throws Exception;
 
-        Map<String, Object> claims = jwtTokenProvider.getClaims(member);
-        String accessToken = jwtTokenProvider.generateToken(userId, claims, false);
-        String refreshToken = jwtTokenProvider.generateToken(userId, claims, true);
-
-        // Redis에 Refresh Token 저장
-        jwtTokenProvider.storeRefreshToken(userId, refreshToken);
-
-        // 로그인 시간 갱신
-        member.setLastLoginDate(LocalDateTime.now());
-        memberRepository.save(member);
-
-        return new TokenResponse(accessToken, refreshToken);
-    }
-
-    public void logout(String token) {
-        String userId = jwtTokenProvider.getUserId(token);
-        long expiration = jwtTokenProvider.getExpiration(token);
-        tokenBlacklistService.blockUserSession(token, userId, expiration);
-    }
-
-    public TokenResponse refreshAccessToken(String refreshToken) {
-        try {
-            // 1. 토큰에서 userId 추출 후 해당 member 조회
-            String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
-            Member member = memberRepository.findByUserId(userId)
-                    .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));
-
-            // 2. Redis에서 Refresh Token 유효성 검사
-            if (!jwtTokenProvider.validateRefreshToken(userId, refreshToken)) {
-                throw new BadCredentialsException("유효하지 않은 리프레시 토큰입니다.");
-            }
-
-            // 3. 사용자 정보로 새로운 Access Token 발급
-            Map<String, Object> claims = jwtTokenProvider.getClaims(member);
-            String accessToken = jwtTokenProvider.generateToken(userId, claims, false);
-
-            return new TokenResponse(accessToken, null);
-        } catch (Exception e) {
-            throw new RuntimeException("토큰 갱신 중 오류 발생: " + e.getMessage());
-        }
-    }
-
-    public void forceLogoutByAdmin(String userId, @Nullable String token) {
-        if (token != null) {
-            long expiration = jwtTokenProvider.getExpiration(token);
-            tokenBlacklistService.blockUserSession(token, userId, expiration);
-        } else {
-            tokenBlacklistService.removeRefreshToken(userId);
-        }
-    }
+    /**
+     * 관리자에 의한 강제 로그아웃 메소드
+     * @param userId 사용자 ID
+     * @param token 엑세스 토큰 (nullable)
+     */
+    void forceLogoutByAdmin(String userId, String token) throws Exception;
 }
-

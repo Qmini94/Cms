@@ -1,63 +1,24 @@
 package kr.co.itid.cms.service.cms;
 
 import kr.co.itid.cms.dto.cms.MenuResponse;
-import kr.co.itid.cms.entity.cms.Menu;
-import kr.co.itid.cms.repository.cms.MenuRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-public class MenuService {
+/**
+ * 메뉴 관리 서비스 인터페이스
+ * 메뉴 데이터를 조회하고 계층 구조를 구성하는 메서드를 정의합니다.
+ */
+public interface MenuService {
 
-    private final MenuRepository menuRepository;
+    /**
+     * 모든 드라이브 메뉴를 조회
+     * @return List<MenuResponse> 드라이브 메뉴 목록
+     */
+    List<MenuResponse> getAllDrives() throws Exception;
 
-    public List<MenuResponse> getAllDrives() {
-        List<Menu> menus = menuRepository.findByParentIdIsNull();
-
-        return menus.stream()
-                .map(menu -> new MenuResponse(
-                        menu.getId(),
-                        menu.getParentId(),
-                        menu.getTitle(),
-                        menu.getType(),
-                        menu.getValue(),
-                        menu.getDisplay() != null ? menu.getDisplay().name() : null,
-                        menu.getPathUrl()
-                ))
-                .toList();
-    }
-
-    public List<MenuResponse> getAllChildrenByName(String name) {
-        // 1. 드라이브 루트 메뉴 조회
-        Menu rootMenu = menuRepository.findByNameOrderByLeftAsc(name)
-                .orElseThrow(() -> new RuntimeException("Drive not found: " + name));
-
-        // 2. 하위 메뉴 트리 구성
-        return buildMenuTree(rootMenu.getId());
-    }
-
-    private List<MenuResponse> buildMenuTree(Long parentId) {
-        List<Menu> children = menuRepository.findByParentIdOrderByLevelAscLeftAsc(parentId);
-
-        return children.stream()
-                .map(menu -> {
-                    MenuResponse response = new MenuResponse(
-                            menu.getId(),
-                            menu.getParentId(),
-                            menu.getTitle(),
-                            menu.getType(),
-                            menu.getValue(),
-                            menu.getDisplay() != null ? menu.getDisplay().name() : null,
-                            menu.getPathUrl()
-                    );
-                    // 재귀 호출로 하위 children 구성
-                    List<MenuResponse> subChildren = buildMenuTree(menu.getId());
-                    response.setChildren(subChildren);
-                    return response;
-                })
-                .toList();
-    }
+    /**
+     * 특정 이름을 가진 드라이브의 모든 하위 메뉴 조회
+     * @param name 드라이브 이름
+     * @return List<MenuResponse> 하위 메뉴 목록
+     */
+    List<MenuResponse> getAllChildrenByName(String name) throws Exception;
 }

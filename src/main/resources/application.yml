@@ -38,6 +38,14 @@ spring:
   profiles:
     active: production
 
+  messages:
+    basename: messages
+    encoding: UTF-8
+
+  devtools:
+    restart:
+      enabled: false
+
 server:
   error:
     whitelabel:

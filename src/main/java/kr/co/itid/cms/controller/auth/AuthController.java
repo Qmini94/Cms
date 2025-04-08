@@ -63,7 +63,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String token) throws Exception {
         authService.logout(token.replace(TOKEN_PREFIX, ""));
         return ResponseEntity.ok(ApiResponse.success(null));
     }
