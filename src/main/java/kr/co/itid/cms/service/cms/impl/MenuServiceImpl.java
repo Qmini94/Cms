@@ -8,6 +8,7 @@ import kr.co.itid.cms.service.cms.MenuService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,15 +40,18 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                             menu.getPathUrl()
                     ))
                     .toList();
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Database error while getting drives");
+            throw processException("Cannot access database", e);
         } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Error while getting all drives");
-            throw processException("Error while getting all drives", e);
+            loggingUtil.logFail(Action.RETRIEVE, "Unknown error while getting drives");
+            throw processException("Unexpected error", e);
         }
     }
 
     @Override
     public List<MenuResponse> getAllChildrenByName(String name) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get children by name: " + name);
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get children for: " + name);
 
         try {
             Menu rootMenu = menuRepository.findByNameOrderByLeftAsc(name)
@@ -56,11 +60,16 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                         return processException("Drive not found", new NoSuchElementException("Drive not found"));
                     });
 
-            loggingUtil.logSuccess(Action.RETRIEVE, "Got children for name: " + name);
+            loggingUtil.logSuccess(Action.RETRIEVE, "Got children for: " + name);
             return buildMenuTree(rootMenu.getId());
+        } catch (NoSuchElementException e) {
+            throw e;
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Database error while getting children: " + name);
+            throw processException("Cannot access database", e);
         } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Error while getting children: " + name);
-            throw processException("Error while getting children", e);
+            loggingUtil.logFail(Action.RETRIEVE, "Unknown error while getting children: " + name);
+            throw processException("Unexpected error", e);
         }
     }
 

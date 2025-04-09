@@ -14,7 +14,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:3000",  // 로컬 개발 환경
                         "https://cms.itid.co.kr"  // 운영 서버 도메인
                 )
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")  // 허용할 HTTP 메서드
+                .allowedMethods("GET", "POST", "PUT", "DELETE")  // 허용할 HTTP 메서드
                 .allowedHeaders("*")  // 모든 헤더 허용
                 .allowCredentials(true)  // 쿠키 허용
                 .maxAge(3600);  // 캐시 시간 (1시간)

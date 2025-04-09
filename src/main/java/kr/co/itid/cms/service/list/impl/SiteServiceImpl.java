@@ -8,6 +8,7 @@ import kr.co.itid.cms.service.list.SiteService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,13 +27,16 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
         try {
             List<Site> sites = siteRepository.findAll();
-            loggingUtil.logSuccess(Action.RETRIEVE, "Got all site data");
+            loggingUtil.logSuccess(Action.RETRIEVE, "All site data loaded");
             return sites.stream()
                     .map(this::convertToResponse)
                     .collect(Collectors.toList());
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Database error while loading site data");
+            throw processException("Cannot access database", e);
         } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Error while getting site data");
-            throw processException("Error while getting site data", e);
+            loggingUtil.logFail(Action.RETRIEVE, "Unexpected error while loading site data");
+            throw processException("Unexpected error", e);
         }
     }
 

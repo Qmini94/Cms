@@ -16,6 +16,10 @@ import static kr.co.itid.cms.config.security.SecurityConstants.*;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
 
+/**
+ * 인증(Authentication) 관련 API를 처리하는 컨트롤러입니다.
+ * 로그인, 로그아웃, 토큰 갱신 기능을 제공합니다.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -30,6 +34,12 @@ public class AuthController {
     @Value("${jwt.refresh-token-validity}")
     private long refreshTokenValidity;
 
+    /**
+     * 로그인 요청을 처리합니다.
+     *
+     * @param request 사용자 로그인 요청 (아이디, 비밀번호 포함)
+     * @return 로그인 성공 시 토큰 응답 및 쿠키 설정, 실패 시 에러 응답
+     */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenResponse>> login(@RequestBody LoginRequest request) {
         try {
@@ -62,12 +72,25 @@ public class AuthController {
         }
     }
 
+    /**
+     * 로그아웃 요청을 처리합니다.
+     *
+     * @param token Authorization 헤더에 담긴 액세스 토큰
+     * @return 로그아웃 성공 여부 응답
+     * @throws Exception 로그아웃 처리 중 발생한 예외
+     */
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String token) throws Exception {
         authService.logout(token.replace(TOKEN_PREFIX, ""));
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
+    /**
+     * 리프레시 토큰을 이용해 액세스 토큰을 갱신합니다.
+     *
+     * @param request HttpServletRequest 객체로부터 쿠키 또는 헤더에서 리프레시 토큰을 추출
+     * @return 갱신된 액세스 토큰 응답, 실패 시 에러 응답
+     */
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(HttpServletRequest request) {
         try {

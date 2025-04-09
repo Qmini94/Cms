@@ -13,6 +13,25 @@ java {
     }
 }
 
+javadoc {
+    failOnError = false
+    options.encoding = 'UTF-8'
+    options.charSet = 'UTF-8'
+    options.locale = 'ko_KR'         // 한국어 지역 설정
+    options.author = true
+    options.version = true
+    options.links("https://docs.oracle.com/en/java/javase/17/docs/api/")
+
+    // 가져올 패키지 처리
+    source = sourceSets.main.allJava.matching {
+        // 포함
+        include 'kr/co/itid/cms/service/**/*.java'
+        include 'kr/co/itid/cms/controller/**/*.java'
+        // 제외
+        exclude 'kr/co/itid/cms/service/**/impl/**'
+    }
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor

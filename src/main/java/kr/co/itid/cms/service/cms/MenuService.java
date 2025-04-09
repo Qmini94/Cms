@@ -11,14 +11,14 @@ public interface MenuService {
 
     /**
      * 모든 드라이브 메뉴를 조회
-     * @return List<MenuResponse> 드라이브 메뉴 목록
+     * @return &lt;MenuResponse&gt; 드라이브 메뉴 목록
      */
     List<MenuResponse> getAllDrives() throws Exception;
 
     /**
      * 특정 이름을 가진 드라이브의 모든 하위 메뉴 조회
      * @param name 드라이브 이름
-     * @return List<MenuResponse> 하위 메뉴 목록
+     * @return &lt;MenuResponse&gt; 하위 메뉴 목록
      */
     List<MenuResponse> getAllChildrenByName(String name) throws Exception;
 }

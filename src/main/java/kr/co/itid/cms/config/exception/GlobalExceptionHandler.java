@@ -2,6 +2,7 @@ package kr.co.itid.cms.config.exception;
 
 import kr.co.itid.cms.dto.common.ApiResponse;
 import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -46,6 +49,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(403, extractMessage(e, "권한이 없습니다")));
     }
 
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(NoSuchElementException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(404, extractMessage(e, "Resource not found")));
+    }
+
     // 405 - 지원하지 않는 메서드
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodNotAllowed(HttpRequestMethodNotSupportedException e) {
@@ -65,6 +74,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(500, extractMessage(e, "예상치 못한 서버 오류")));
+    }
+
+    // 503 - 데이터베이스 접근 예외
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataAccess(DataAccessException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE) // 503
+                .body(ApiResponse.error(503, extractMessage(e, "데이터베이스 접근 오류")));
     }
 
     /**

@@ -5,6 +5,8 @@ import kr.co.itid.cms.service.auth.PermissionService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +23,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         try {
             if (authentication == null || !authentication.isAuthenticated()) {
                 loggingUtil.logFail(Action.RETRIEVE, "User not logged in");
-                throw processException("User not logged in");
+                throw processException("User not logged in", new BadCredentialsException("User not logged in"));
             }
 
             String principal;
@@ -37,7 +39,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             return result;
         } catch (NullPointerException e) {
             loggingUtil.logFail(Action.RETRIEVE, "No authentication found");
-            throw processException("No authentication", e);
+            throw processException("No authentication", new AccessDeniedException("Authentication not found"));
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Access check error");
             throw processException("Access check error", e);
@@ -53,11 +55,13 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
             if (!hasPermission) {
                 loggingUtil.logFail(Action.RETRIEVE, "Access denied: user=" + principal);
-                throw processException("Access denied");
+                throw processException("Access denied", new AccessDeniedException("User has no permission"));
             }
 
             loggingUtil.logSuccess(Action.RETRIEVE, "Permission check success: user=" + principal);
             return hasPermission;
+        } catch (AccessDeniedException e) {
+            throw e;
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Permission check error");
             throw processException("Permission check error", e);

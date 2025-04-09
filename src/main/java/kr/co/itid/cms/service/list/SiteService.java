@@ -11,7 +11,7 @@ public interface SiteService {
 
     /**
      * 모든 사이트 데이터를 조회
-     * @return List<SiteResponse> 사이트 데이터 목록
+     * @return &lt;SiteResponse&gt; 사이트 데이터 목록
      */
     List<SiteResponse> getSiteAllData() throws Exception;
 }
