@@ -1,21 +1,25 @@
 package kr.co.itid.cms.service.auth.impl;
 
+import io.jsonwebtoken.Claims;
 import kr.co.itid.cms.config.security.JwtTokenProvider;
 import kr.co.itid.cms.dto.auth.TokenResponse;
+import kr.co.itid.cms.dto.auth.UserInfoResponse;
 import kr.co.itid.cms.entity.cms.Member;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.repository.cms.MemberRepository;
 import kr.co.itid.cms.service.auth.AuthService;
-import kr.co.itid.cms.service.auth.TokenBlacklistService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -25,7 +29,6 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
     private final MemberRepository memberRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final TokenBlacklistService tokenBlacklistService;
     private final PasswordEncoder passwordEncoder;
     private final LoggingUtil loggingUtil;
 
@@ -46,15 +49,13 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
             }
 
             Map<String, Object> claims = jwtTokenProvider.getClaims(member);
-            String accessToken = jwtTokenProvider.generateToken(userId, claims, false);
-            String refreshToken = jwtTokenProvider.generateToken(userId, claims, true);
+            String accessToken = jwtTokenProvider.createToken(userId, claims);
 
-            jwtTokenProvider.storeRefreshToken(userId, refreshToken);
             member.setLastLoginDate(LocalDateTime.now());
             memberRepository.save(member);
 
             loggingUtil.logSuccess(Action.LOGIN, "Login success: " + userId);
-            return new TokenResponse(accessToken, refreshToken);
+            return new TokenResponse(accessToken);
         } catch (UsernameNotFoundException | BadCredentialsException e) {
             throw e;
         } catch (Exception e) {
@@ -69,9 +70,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
         try {
             String userId = jwtTokenProvider.getUserId(token);
-            long expiration = jwtTokenProvider.getExpiration(token);
-            tokenBlacklistService.blockUserSession(token, userId, expiration);
-
+            jwtTokenProvider.addToBlacklist(token); // 블랙리스트 등록
             loggingUtil.logSuccess(Action.LOGOUT, "Logout success: " + userId);
         } catch (BadCredentialsException e) {
             loggingUtil.logFail(Action.LOGOUT, "Invalid token: " + token);
@@ -83,51 +82,45 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     }
 
     @Override
-    public TokenResponse refreshAccessToken(String refreshToken) throws Exception {
-        loggingUtil.logAttempt(Action.REFRESH, "Try refresh token");
-
-        try {
-            String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
-            Member member = memberRepository.findByUserId(userId)
-                    .orElseThrow(() -> {
-                        loggingUtil.logFail(Action.REFRESH, "User not found: " + userId);
-                        return processException("User not found", new UsernameNotFoundException("User not found"));
-                    });
-
-            if (!jwtTokenProvider.validateRefreshToken(userId, refreshToken)) {
-                loggingUtil.logFail(Action.REFRESH, "Invalid refresh token: " + userId);
-                throw processException("Invalid refresh token", new BadCredentialsException("Invalid refresh token"));
-            }
-
-            Map<String, Object> claims = jwtTokenProvider.getClaims(member);
-            String accessToken = jwtTokenProvider.generateToken(userId, claims, false);
-
-            loggingUtil.logSuccess(Action.REFRESH, "Token refresh success: " + userId);
-            return new TokenResponse(accessToken, null);
-        } catch (UsernameNotFoundException | BadCredentialsException e) {
-            throw e;
-        } catch (Exception e) {
-            loggingUtil.logFail(Action.REFRESH, "Token refresh error: " + e.getMessage());
-            throw processException("Token refresh error", e);
-        }
-    }
-
-    @Override
     public void forceLogoutByAdmin(String userId, @Nullable String token) throws Exception {
         loggingUtil.logAttempt(Action.FORCE, "Try force logout: " + userId);
 
         try {
             if (token != null) {
-                long expiration = jwtTokenProvider.getExpiration(token);
-                tokenBlacklistService.blockUserSession(token, userId, expiration);
+                jwtTokenProvider.addToBlacklist(token);
                 loggingUtil.logSuccess(Action.FORCE, "Force logout with token: " + userId);
             } else {
-                tokenBlacklistService.removeRefreshToken(userId);
                 loggingUtil.logSuccess(Action.FORCE, "Force logout without token: " + userId);
             }
         } catch (Exception e) {
             loggingUtil.logFail(Action.FORCE, "Force logout error: " + e.getMessage());
             throw processException("Force logout error", e);
+        }
+    }
+
+    @Override
+    public UserInfoResponse getUserInfoFromToken(HttpServletRequest request) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try get user info from token");
+
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+            if (auth == null || !auth.isAuthenticated() || "GUEST".equals(auth.getPrincipal())) {
+                return new UserInfoResponse(null, null, null);
+            }
+
+            String token = jwtTokenProvider.resolveToken(request);
+            Claims claims = jwtTokenProvider.getClaimsFromToken(token);
+
+            String userName = (String) claims.get("userName");
+            String role = (String) claims.get("role");
+            int idx = (int) claims.get("idx");
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "User info retrieved from token");
+            return new UserInfoResponse(userName, role, idx);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Failed to get user info: " + e.getMessage());
+            throw processException("Failed to retrieve user info", e);
         }
     }
 }

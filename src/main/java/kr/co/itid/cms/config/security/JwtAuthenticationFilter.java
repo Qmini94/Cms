@@ -1,7 +1,7 @@
 package kr.co.itid.cms.config.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.itid.cms.dto.common.ApiResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static kr.co.itid.cms.config.security.SecurityConstants.ANONYMOUS_USER;
+import static kr.co.itid.cms.config.security.SecurityConstants.GUEST_USER;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -29,46 +29,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
-            String token = resolveToken(request);
+            String token = jwtTokenProvider.resolveToken(request);
 
-            if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
-                String userId = jwtTokenProvider.getUserId(token);
+            if (StringUtils.hasText(token)) {
+                //블랙리스트 여부 확인
+                if (jwtTokenProvider.isBlacklisted(token)) {
+                    setGuestContext(request); //게스트 처리
+                } else if (jwtTokenProvider.validateToken(token)) {
+                    //정상 토큰
+                    String userId = jwtTokenProvider.getUserId(token);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userId, null, null);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                // 유효한 토큰이 있는 경우: 사용자 ID를 설정
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userId, null, null);
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    //요청 시마다 토큰 재발급(슬라이딩 방식)
+                    String newToken = jwtTokenProvider.recreateTokenFrom(token);
+                    ResponseCookie cookie = jwtTokenProvider.createAccessTokenCookie(newToken);
+                    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+                } else {
+                    // 유효하지 않은 토큰 → 익명 사용자 처리
+                    setGuestContext(request);
+                }
             } else {
-                // 유효하지 않거나 만료된 경우: 익명 사용자로 설정
-                UsernamePasswordAuthenticationToken guestAuthentication =
-                        new UsernamePasswordAuthenticationToken(ANONYMOUS_USER, null, null);
-                guestAuthentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(guestAuthentication);
+                setGuestContext(request); //게스트 처리
             }
 
-            filterChain.doFilter(request, response);
-
         } catch (Exception e) {
-            setErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "토큰이 유효하지 않거나 만료되었습니다.");
+            logger.error("JWT 필터 처리 중 예외 발생", e);
         }
+
+        filterChain.doFilter(request, response);
     }
 
-    private String resolveToken(HttpServletRequest request) {
-        String bearer = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")) {
-            return bearer.substring(7);
-        }
-        return null;
-    }
-
-    private void setErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json;charset=UTF-8");
-
-        ApiResponse<Void> error = ApiResponse.error(status, message);
-        String json = new ObjectMapper().writeValueAsString(error);
-
-        response.getWriter().write(json);
+    private void setGuestContext(HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken guestAuth =
+                new UsernamePasswordAuthenticationToken(GUEST_USER, null, null);
+        guestAuth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(guestAuth);
     }
 }

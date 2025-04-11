@@ -5,7 +5,7 @@ public class SecurityConstants {
         throw new UnsupportedOperationException("유틸리티 클래스이므로 인스턴스화할 수 없습니다");
     }
     // 비회원 식별자: JWT 토큰이 없거나 유효하지 않은 경우 사용
-    public static final String ANONYMOUS_USER = "notUser";
+    public static final String GUEST_USER = "GUEST";
 
     // 권한 관련 상수: 사용자와 관리자 권한을 구분하기 위한 역할
     public static final String ROLE_USER = "ROLE_USER";
@@ -22,7 +22,6 @@ public class SecurityConstants {
 
     // 쿠키 이름 설정: 클라이언트에서 사용할 토큰 쿠키 이름
     public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";   // 액세스 토큰 쿠키 이름
-    public static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken"; // 리프레시 토큰 쿠키 이름
 
     // JWT 토큰의 접두어: Authorization 헤더에서 토큰 값을 파싱할 때 사용
     public static final String TOKEN_PREFIX = "Bearer ";  // JWT 토큰의 접두어 (ex: Bearer abcdef12345)

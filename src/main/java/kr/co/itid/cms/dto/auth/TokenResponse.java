@@ -9,5 +9,4 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TokenResponse {
     private String accessToken;
-    private String refreshToken;
 }
