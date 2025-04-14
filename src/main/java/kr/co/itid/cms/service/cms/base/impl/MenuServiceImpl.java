@@ -37,6 +37,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                             menu.getType(),
                             menu.getValue(),
                             menu.getDisplay() != null ? menu.getDisplay().name() : null,
+                            menu.getPathUrl(),
                             menu.getPathId()
                     ))
                     .toList();
@@ -85,6 +86,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                             menu.getType(),
                             menu.getValue(),
                             menu.getDisplay() != null ? menu.getDisplay().name() : null,
+                            menu.getPathUrl(),
                             menu.getPathId()
                     );
                     List<MenuResponse> subChildren = buildMenuTree(menu.getId());

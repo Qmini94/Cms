@@ -56,8 +56,11 @@ public class Menu {
     @Column(name = "_opt_news")
     private Boolean optNews;  // news 여부
 
+    @Column(name = "_path_url", length = 255)
+    private String pathUrl;  // 경로 URL
+
     @Column(name = "_path_id", length = 255)
-    private String pathId;  // 경로 아이디 (→ 여기서 REPLACE 대상 컬럼)
+    private String pathId;  // 경로 아이디
 
     @Column(name = "_navi", length = 400)
     private String navi;  // 네비게이션
