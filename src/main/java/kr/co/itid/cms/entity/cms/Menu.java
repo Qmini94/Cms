@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "_cms_menu")
@@ -13,50 +14,68 @@ public class Menu {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id;  // 고유번호 (PK)
 
     @Column(name = "parent_id", nullable = false)
-    private Long parentId;
+    private Long parentId;  // 상속메뉴
 
     @Column(name = "position", nullable = false)
-    private Long position;
-
-    @Column(name = "`left`", nullable = false) // reserved word
-    private Long left;
-
-    @Column(name = "`right`", nullable = false) // reserved word
-    private Long right;
+    private Long position;  // 트리 포지션
 
     @Column(name = "level", nullable = false)
-    private Long level;
+    private Long level;  // 트리 레벨
 
-    @Column(name = "title")
-    private String title;
+    @Column(name = "title", length = 255)
+    private String title;  // 메뉴명
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "name", length = 255)
+    private String name;  // 메뉴 이름
 
-    @Column(name = "type")
-    private String type;
+    @Column(name = "type", length = 255)
+    private String type;  // 메뉴 타입
 
-    @Column(name = "value")
-    private String value;
+    @Column(name = "value", length = 255)
+    private String value;  // 구분값
 
-    @Column(name = "display")
     @Enumerated(EnumType.STRING)
-    private Display display;
+    @Column(name = "display")
+    private Display display;  // 표시 여부 (show, hide)
 
-    @Column(name = "_path_url")
-    private String pathUrl;
+    @Column(name = "_opt_sns")
+    private Boolean optSns;  // SNS 여부
+
+    @Column(name = "_opt_shot_url")
+    private Boolean optShortUrl;  // short_url 여부
+
+    @Column(name = "_opt_qrcode")
+    private Boolean optQrcode;  // QR코드 여부
+
+    @Column(name = "_opt_mobile")
+    private Boolean optMobile;  // 모바일 여부
+
+    @Column(name = "_opt_news")
+    private Boolean optNews;  // news 여부
+
+    @Column(name = "_path_id", length = 255)
+    private String pathId;  // 경로 아이디 (→ 여기서 REPLACE 대상 컬럼)
+
+    @Column(name = "_navi", length = 400)
+    private String navi;  // 네비게이션
 
     @Column(name = "_serial_no")
-    private Integer serialNo;
+    private Integer serialNo;  // 구분값
 
-    @Column(name = "_module")
-    private String module;
+    @Column(name = "_module", length = 200)
+    private String module;  // 모듈명
 
-    @Column(name = "_board_id")
-    private String boardId;
+    @Column(name = "_board_id", length = 200)
+    private String boardId;  // 모듈 아이디
+
+    @Column(name = "_search_opt")
+    private String searchOpt;  // 검색 여부 (y/n)
+
+    @Column(name = "_page_manager", length = 255)
+    private String pageManager;  // 페이지 담당자
 
     public enum Display {
         show, hide

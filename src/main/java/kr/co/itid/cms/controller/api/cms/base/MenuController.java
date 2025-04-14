@@ -1,8 +1,8 @@
-package kr.co.itid.cms.controller.api.cms;
+package kr.co.itid.cms.controller.api.cms.base;
 
 import kr.co.itid.cms.dto.cms.MenuResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
-import kr.co.itid.cms.service.cms.MenuService;
+import kr.co.itid.cms.service.cms.base.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

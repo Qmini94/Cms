@@ -1,8 +1,8 @@
-package kr.co.itid.cms.controller.api.list;
+package kr.co.itid.cms.controller.api.cms.list;
 
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.dto.list.SiteResponse;
-import kr.co.itid.cms.service.list.SiteService;
+import kr.co.itid.cms.service.cms.list.SiteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,9 +30,9 @@ public class SiteController {
      * @return ApiResponse&lt;List&lt;SiteResponse&gt;&gt; 사이트 목록을 포함한 응답
      * @throws Exception 데이터 조회 중 오류 발생 시
      */
-//    @PreAuthorize("@permService.hasAccess(authentication, #menuId, 'READ')") @RequestParam int menuId
+    @PreAuthorize("@permService.hasAccess(authentication, #menuId, 'READ')")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData() throws Exception {
+    public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData(@RequestParam int menuId) throws Exception {
         List<SiteResponse> sites = siteService.getSiteAllData();
         return ResponseEntity.ok(ApiResponse.success(sites));
     }

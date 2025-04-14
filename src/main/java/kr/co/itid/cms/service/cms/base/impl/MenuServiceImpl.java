@@ -1,10 +1,10 @@
-package kr.co.itid.cms.service.cms.impl;
+package kr.co.itid.cms.service.cms.base.impl;
 
 import kr.co.itid.cms.dto.cms.MenuResponse;
 import kr.co.itid.cms.entity.cms.Menu;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.repository.cms.MenuRepository;
-import kr.co.itid.cms.service.cms.MenuService;
+import kr.co.itid.cms.service.cms.base.MenuService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
@@ -37,7 +37,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                             menu.getType(),
                             menu.getValue(),
                             menu.getDisplay() != null ? menu.getDisplay().name() : null,
-                            menu.getPathUrl()
+                            menu.getPathId()
                     ))
                     .toList();
         } catch (DataAccessException e) {
@@ -54,7 +54,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get children for: " + name);
 
         try {
-            Menu rootMenu = menuRepository.findByNameOrderByLeftAsc(name)
+            Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(name)
                     .orElseThrow(() -> {
                         loggingUtil.logFail(Action.RETRIEVE, "Drive not found: " + name);
                         return processException("Drive not found", new NoSuchElementException("Drive not found"));
@@ -74,7 +74,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     }
 
     private List<MenuResponse> buildMenuTree(Long parentId) {
-        List<Menu> children = menuRepository.findByParentIdOrderByLevelAscLeftAsc(parentId);
+        List<Menu> children = menuRepository.findByParentIdOrderByPositionAsc(parentId);
 
         return children.stream()
                 .map(menu -> {
@@ -85,7 +85,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                             menu.getType(),
                             menu.getValue(),
                             menu.getDisplay() != null ? menu.getDisplay().name() : null,
-                            menu.getPathUrl()
+                            menu.getPathId()
                     );
                     List<MenuResponse> subChildren = buildMenuTree(menu.getId());
                     response.setChildren(subChildren);

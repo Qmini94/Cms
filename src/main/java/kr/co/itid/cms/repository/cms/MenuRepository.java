@@ -11,8 +11,8 @@ import java.util.Optional;
 public interface MenuRepository extends JpaRepository<Menu, Long> {
     List<Menu> findByParentIdIsNull();
 
-    Optional<Menu> findByNameOrderByLeftAsc(String name);
+    Optional<Menu> findByNameOrderByPositionAsc(String name);
 
     // 부모 ID로 하위 메뉴 조회
-    List<Menu> findByParentIdOrderByLevelAscLeftAsc(Long parentId);
+    List<Menu> findByParentIdOrderByPositionAsc(Long parentId);
 }

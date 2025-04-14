@@ -1,4 +1,4 @@
-package kr.co.itid.cms.service.cms;
+package kr.co.itid.cms.service.cms.base;
 
 import kr.co.itid.cms.dto.cms.MenuResponse;
 import java.util.List;
