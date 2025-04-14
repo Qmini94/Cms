@@ -1,26 +1,27 @@
-//package kr.co.itid.cms.service.auth.impl;
-//
-//import kr.co.itid.cms.entity.cms.base.Permission;
-//import kr.co.itid.cms.repository.cms.MenuRepository;
-//import kr.co.itid.cms.repository.cms.PermissionRepository;
-//import kr.co.itid.cms.service.auth.PermissionResolverService;
-//import kr.co.itid.cms.service.auth.model.MenuPermissionData;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.data.redis.core.RedisTemplate;
-//import org.springframework.stereotype.Service;
-//
-//import java.time.Duration;
-//import java.util.*;
-//
-//@Service("permissionResolverService")
-//@RequiredArgsConstructor
-//public class PermissionResolverServiceImpl implements PermissionResolverService {
-//    private final MenuRepository menuRepository;
-//    private final PermissionRepository permissionRepository;
-//    private final RedisTemplate redisTemplate;
-//
-//    @Override
-//    public boolean resolvePermission(String userId, long menuId, String permission) throws Exception {
+package kr.co.itid.cms.service.auth.impl;
+
+import kr.co.itid.cms.entity.cms.base.Permission;
+import kr.co.itid.cms.repository.cms.MenuRepository;
+import kr.co.itid.cms.repository.cms.PermissionRepository;
+import kr.co.itid.cms.service.auth.PermissionResolverService;
+import kr.co.itid.cms.service.auth.model.MenuPermissionData;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.util.*;
+
+@Service("permissionResolverService")
+@RequiredArgsConstructor
+public class PermissionResolverServiceImpl implements PermissionResolverService {
+    private final MenuRepository menuRepository;
+    private final PermissionRepository permissionRepository;
+    private final RedisTemplate redisTemplate;
+
+    @Override
+    public boolean resolvePermission(String userId, long menuId, String permission) throws Exception {
+        return true;
 //        MenuPermissionData cached = (MenuPermissionData) redisTemplate.opsForValue().get("perm:menu:" + menuId);
 //
 //        if (cached == null) {
@@ -29,8 +30,8 @@
 //        }
 //
 //        return cached.hasPermission(userId, permission);
-//    }
-//
+    }
+
 //    private MenuPermissionData buildMenuPermission(long menuId) throws Exception {
 //        MenuPermissionData permissionData = new MenuPermissionData();
 //        permissionData.setMenuId(menuId);
@@ -62,7 +63,7 @@
 //
 //        return permissionData;
 //    }
-//
+
 //    private List<String> extractAllowedPermissions(Permission perm) {
 //        List<String> permissions = new ArrayList<>();
 //
@@ -77,7 +78,7 @@
 //
 //        return permissions;
 //    }
-//
+
 //    private List<Integer> findMenuHierarchy(long menuId) {
 //        List<Integer> hierarchy = new ArrayList<>();
 //        String path = menuRepository.findPathIdById(menuId);
@@ -94,4 +95,4 @@
 //
 //        return hierarchy;
 //    }
-//}
+}
