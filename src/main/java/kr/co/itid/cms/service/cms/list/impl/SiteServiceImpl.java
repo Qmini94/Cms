@@ -1,7 +1,7 @@
 package kr.co.itid.cms.service.cms.list.impl;
 
-import kr.co.itid.cms.dto.list.SiteResponse;
-import kr.co.itid.cms.entity.cms.Site;
+import kr.co.itid.cms.dto.cms.list.SiteResponse;
+import kr.co.itid.cms.entity.cms.list.Site;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.repository.list.SiteRepository;
 import kr.co.itid.cms.service.cms.list.SiteService;

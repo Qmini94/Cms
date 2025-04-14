@@ -1,10 +1,9 @@
-package kr.co.itid.cms.entity.cms;
+package kr.co.itid.cms.entity.cms.base;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "_cms_menu")
@@ -52,9 +51,6 @@ public class Menu {
 
     @Column(name = "_opt_mobile")
     private Boolean optMobile;  // 모바일 여부
-
-    @Column(name = "_opt_news")
-    private Boolean optNews;  // news 여부
 
     @Column(name = "_path_url", length = 255)
     private String pathUrl;  // 경로 URL

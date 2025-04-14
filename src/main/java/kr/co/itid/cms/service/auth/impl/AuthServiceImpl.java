@@ -4,7 +4,7 @@ import io.jsonwebtoken.Claims;
 import kr.co.itid.cms.config.security.JwtTokenProvider;
 import kr.co.itid.cms.dto.auth.TokenResponse;
 import kr.co.itid.cms.dto.auth.UserInfoResponse;
-import kr.co.itid.cms.entity.cms.Member;
+import kr.co.itid.cms.entity.cms.base.Member;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.repository.cms.MemberRepository;
 import kr.co.itid.cms.service.auth.AuthService;

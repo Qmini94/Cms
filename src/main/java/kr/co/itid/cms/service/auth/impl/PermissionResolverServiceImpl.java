@@ -1,50 +1,60 @@
-package kr.co.itid.cms.service.auth.impl;
-
-import kr.co.itid.cms.repository.cms.MenuRepository;
-import kr.co.itid.cms.service.auth.PermissionResolverService;
-import kr.co.itid.cms.service.auth.model.MenuPermissionData;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-@Service("permissionResolverService")
-@RequiredArgsConstructor
-public class PermissionResolverServiceImpl implements PermissionResolverService {
-    private final MenuRepository menuRepository;
-
-    @Override
-    public boolean resolvePermission(String userId, int menuId, String permission) throws Exception {
-        return false;
-    }
-
-//    private MenuPermissionData buildMenuPermission(int menuId) throws Exception {
+//package kr.co.itid.cms.service.auth.impl;
+//
+//import kr.co.itid.cms.entity.cms.base.Permission;
+//import kr.co.itid.cms.repository.cms.MenuRepository;
+//import kr.co.itid.cms.repository.cms.PermissionRepository;
+//import kr.co.itid.cms.service.auth.PermissionResolverService;
+//import kr.co.itid.cms.service.auth.model.MenuPermissionData;
+//import lombok.RequiredArgsConstructor;
+//import org.springframework.data.redis.core.RedisTemplate;
+//import org.springframework.stereotype.Service;
+//
+//import java.time.Duration;
+//import java.util.*;
+//
+//@Service("permissionResolverService")
+//@RequiredArgsConstructor
+//public class PermissionResolverServiceImpl implements PermissionResolverService {
+//    private final MenuRepository menuRepository;
+//    private final PermissionRepository permissionRepository;
+//    private final RedisTemplate redisTemplate;
+//
+//    @Override
+//    public boolean resolvePermission(String userId, long menuId, String permission) throws Exception {
+//        MenuPermissionData cached = (MenuPermissionData) redisTemplate.opsForValue().get("perm:menu:" + menuId);
+//
+//        if (cached == null) {
+//            cached = buildMenuPermission(menuId);
+//            redisTemplate.opsForValue().set("perm:menu:" + menuId, cached, Duration.ofHours(1));
+//        }
+//
+//        return cached.hasPermission(userId, permission);
+//    }
+//
+//    private MenuPermissionData buildMenuPermission(long menuId) throws Exception {
 //        MenuPermissionData permissionData = new MenuPermissionData();
 //        permissionData.setMenuId(menuId);
 //        permissionData.setLastUpdate(new Date());
 //
 //        // 1. 상위 메뉴 포함한 트리 라인업 조회
-//        List<Integer> menuHierarchy = findMenuHierarchy(menuId); // [1, 23, 78]
+//        List<Integer> menuHierarchy = findMenuHierarchy(menuId);
 //
 //        // 2. 해당 메뉴 + 상위 메뉴들의 권한을 전부 조회
-//        List<PermissionEntity> allPermissions = permissionRepository.findAllByMenuIds(menuHierarchy);
+//        List<Permission> allPermissions = permissionRepository.findAllByMenuIds(menuHierarchy);
 //
-//        for (PermissionEntity perm : allPermissions) {
-//            String[] allowed = perm.getPermission().split(","); // 예: "VIEW,WRITE"
+//        for (Permission perm : allPermissions) {
+//            List<String> allowed = extractAllowedPermissions(perm);
 //
 //            for (String p : allowed) {
-//                if ("LEVEL".equals(perm.getType())) {
+//                if ("LEVEL".equalsIgnoreCase(perm.getType())) {
 //                    int level = Integer.parseInt(perm.getValue());
 //                    permissionData.getLevelPermissions()
 //                            .computeIfAbsent(level, k -> new HashSet<>())
 //                            .add(p);
-//                } else if ("USER".equals(perm.getType())) {
-//                    String userId = perm.getValue();
+//                } else if ("USER".equalsIgnoreCase(perm.getType())) {
+//                    String targetUserId = perm.getValue();
 //                    permissionData.getUserPermissions()
-//                            .computeIfAbsent(userId, k -> new HashSet<>())
+//                            .computeIfAbsent(targetUserId, k -> new HashSet<>())
 //                            .add(p);
 //                }
 //            }
@@ -53,17 +63,35 @@ public class PermissionResolverServiceImpl implements PermissionResolverService 
 //        return permissionData;
 //    }
 //
-//    private List<Integer> findMenuHierarchy(int menuId) {
-//        List<Integer> hierarchy = new ArrayList<>();
-//        Integer current = menuId;
+//    private List<String> extractAllowedPermissions(Permission perm) {
+//        List<String> permissions = new ArrayList<>();
 //
-//        while (current != null) {
-//            hierarchy.add(current);
-//            current = menuRepository.findParentIdById(current); // 메뉴 테이블에서 parent_id 조회
+//        if ("y".equalsIgnoreCase(perm.getView())) permissions.add("VIEW");
+//        if ("y".equalsIgnoreCase(perm.getWrite())) permissions.add("WRITE");
+//        if ("y".equalsIgnoreCase(perm.getModify())) permissions.add("MODIFY");
+//        if ("y".equalsIgnoreCase(perm.getRemove())) permissions.add("REMOVE");
+//        if ("y".equalsIgnoreCase(perm.getManage())) permissions.add("MANAGE");
+//        if ("y".equalsIgnoreCase(perm.getAccess())) permissions.add("ACCESS");
+//        if ("y".equalsIgnoreCase(perm.getReply())) permissions.add("REPLY");
+//        if ("y".equalsIgnoreCase(perm.getAdmin())) permissions.add("ADMIN");
+//
+//        return permissions;
+//    }
+//
+//    private List<Integer> findMenuHierarchy(long menuId) {
+//        List<Integer> hierarchy = new ArrayList<>();
+//        String path = menuRepository.findPathIdById(menuId);
+//
+//        if (path != null && !path.isEmpty()) {
+//            String[] ids = path.split("\\.");
+//            for (String id : ids) {
+//                try {
+//                    hierarchy.add(Integer.parseInt(id));
+//                } catch (NumberFormatException ignored) {
+//                }
+//            }
 //        }
 //
-//        Collections.reverse(hierarchy); // 상위 → 하위 순으로 정렬
 //        return hierarchy;
 //    }
-
-}
+//}

@@ -15,5 +15,5 @@ public interface PermissionService {
      * @param permission 권한 유형 (READ, WRITE, MODIFY, DELETE)
      * @return 권한이 있는 경우 true, 없는 경우 false
      */
-    boolean hasAccess(Authentication authentication, int menuId, String permission) throws Exception;
+    boolean hasAccess(Authentication authentication, long menuId, String permission) throws Exception;
 }

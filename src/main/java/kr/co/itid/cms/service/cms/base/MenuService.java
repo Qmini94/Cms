@@ -1,6 +1,6 @@
 package kr.co.itid.cms.service.cms.base;
 
-import kr.co.itid.cms.dto.cms.MenuResponse;
+import kr.co.itid.cms.dto.cms.base.MenuResponse;
 import java.util.List;
 
 /**

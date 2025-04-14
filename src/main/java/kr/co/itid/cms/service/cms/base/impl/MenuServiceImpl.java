@@ -1,7 +1,7 @@
 package kr.co.itid.cms.service.cms.base.impl;
 
-import kr.co.itid.cms.dto.cms.MenuResponse;
-import kr.co.itid.cms.entity.cms.Menu;
+import kr.co.itid.cms.dto.cms.base.MenuResponse;
+import kr.co.itid.cms.entity.cms.base.Menu;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.repository.cms.MenuRepository;
 import kr.co.itid.cms.service.cms.base.MenuService;

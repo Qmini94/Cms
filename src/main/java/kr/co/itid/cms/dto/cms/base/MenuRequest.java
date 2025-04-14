@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.common;
+package kr.co.itid.cms.dto.cms.base;
 
 import lombok.Getter;
 import lombok.Setter;

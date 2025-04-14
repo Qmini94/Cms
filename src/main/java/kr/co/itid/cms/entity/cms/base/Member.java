@@ -1,4 +1,4 @@
-package kr.co.itid.cms.entity.cms;
+package kr.co.itid.cms.entity.cms.base;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -2,7 +2,7 @@ package kr.co.itid.cms.config.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import kr.co.itid.cms.entity.cms.Member;
+import kr.co.itid.cms.entity.cms.base.Member;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseCookie;

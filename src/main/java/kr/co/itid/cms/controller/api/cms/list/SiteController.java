@@ -1,7 +1,7 @@
 package kr.co.itid.cms.controller.api.cms.list;
 
 import kr.co.itid.cms.dto.common.ApiResponse;
-import kr.co.itid.cms.dto.list.SiteResponse;
+import kr.co.itid.cms.dto.cms.list.SiteResponse;
 import kr.co.itid.cms.service.cms.list.SiteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ public class SiteController {
      */
     @PreAuthorize("@permService.hasAccess(authentication, #menuId, 'READ')")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData(@RequestParam int menuId) throws Exception {
+    public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData(@RequestParam long menuId) throws Exception {
         List<SiteResponse> sites = siteService.getSiteAllData();
         return ResponseEntity.ok(ApiResponse.success(sites));
     }
