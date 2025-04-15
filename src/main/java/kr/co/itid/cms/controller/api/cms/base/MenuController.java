@@ -1,6 +1,7 @@
 package kr.co.itid.cms.controller.api.cms.base;
 
 import kr.co.itid.cms.dto.cms.base.MenuResponse;
+import kr.co.itid.cms.dto.cms.base.MenuTreeResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.base.MenuService;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,19 @@ public class MenuController {
     @GetMapping("/{name}")
     public ResponseEntity<ApiResponse<List<MenuResponse>>> getChildrenByName(@PathVariable String name) throws Exception {
         List<MenuResponse> children = menuService.getAllChildrenByName(name);
+        return ResponseEntity.ok(ApiResponse.success(children));
+    }
+
+    /**
+     * 특정 이름을 가진 드라이브의 하위 메뉴를 TREE 구성을 위해 전체 데이터를 조회합니다.
+     *
+     * @param name 드라이브 또는 메뉴 이름
+     * @return ApiResponse&lt;List&lt;MenuResponse&gt;&gt; 하위 메뉴 목록을 포함한 응답
+     * @throws Exception 하위 메뉴 조회 중 오류 발생 시
+     */
+    @GetMapping("/tree/{name}")
+    public ResponseEntity<ApiResponse<List<MenuTreeResponse>>> getChildrenTreeByName(@PathVariable String name) throws Exception {
+        List<MenuTreeResponse> children = menuService.getAllChildrenTreeByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
 }

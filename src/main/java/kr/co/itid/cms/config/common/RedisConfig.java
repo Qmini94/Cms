@@ -1,6 +1,9 @@
 package kr.co.itid.cms.config.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import kr.co.itid.cms.service.auth.model.MenuPermissionData;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,16 +19,22 @@ public class RedisConfig {
         RedisTemplate<String, MenuPermissionData> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
 
-        // Jackson Serializer 설정
-        Jackson2JsonRedisSerializer<MenuPermissionData> serializer = new Jackson2JsonRedisSerializer<>(MenuPermissionData.class);
         ObjectMapper mapper = new ObjectMapper();
-        mapper.activateDefaultTyping(mapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.NON_FINAL);
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // 날짜 ISO 포맷
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.registerModule(new JavaTimeModule()); // LocalDateTime 등 호환
+
+        Jackson2JsonRedisSerializer<MenuPermissionData> serializer =
+                new Jackson2JsonRedisSerializer<>(MenuPermissionData.class);
         serializer.setObjectMapper(mapper);
 
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);
-        template.afterPropertiesSet();
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(serializer);
 
+        template.afterPropertiesSet();
         return template;
     }
+
 }

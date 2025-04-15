@@ -7,6 +7,7 @@ import kr.co.itid.cms.repository.cms.PermissionRepository;
 import kr.co.itid.cms.service.auth.PermissionResolverService;
 import kr.co.itid.cms.service.auth.model.MenuPermissionData;
 import lombok.RequiredArgsConstructor;
+import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,49 +16,111 @@ import java.util.*;
 
 @Service("permissionResolverService")
 @RequiredArgsConstructor
-public class PermissionResolverServiceImpl implements PermissionResolverService {
+public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl implements PermissionResolverService {
+
     private final MenuRepository menuRepository;
     private final PermissionRepository permissionRepository;
     private final RedisTemplate<String, MenuPermissionData> redisTemplate;
 
-    @Override
-    public boolean resolvePermission(String userId, int userLevel, long menuId, String permission) throws Exception {
-        MenuPermissionData cached = redisTemplate.opsForValue().get("perm:menu:" + menuId);
+    private static final String PERMISSION_KEY_PREFIX = "perm:menu:";
+    private static final Duration CACHE_TTL = Duration.ofHours(1);
 
-        if (cached == null) {
-            cached = buildMenuPermission(menuId);
-            redisTemplate.opsForValue().set("perm:menu:" + menuId, cached, Duration.ofHours(1));
+    @Override
+    public boolean resolvePermission(int userIdx, int userLevel, long menuId, String permission) throws Exception {
+        String redisKey = getCacheKey(menuId);
+        MenuPermissionData cached;
+
+        try {
+            cached = redisTemplate.opsForValue().get(redisKey);
+        } catch (Exception e) {
+            throw processException("Fail to read permission cache", e);
         }
 
-        return cached.hasPermission(userId, userLevel, permission);
+        if (cached == null) {
+            try {
+                cached = buildMenuPermission(menuId);
+                redisTemplate.opsForValue().set(redisKey, cached, CACHE_TTL);
+            } catch (Exception e) {
+                throw processException("Fail to build permission cache", e);
+            }
+        }else{
+            redisTemplate.expire(redisKey, CACHE_TTL);
+        }
+
+        return cached.hasPermission(userIdx, userLevel, permission);
     }
 
     private MenuPermissionData buildMenuPermission(long menuId) throws Exception {
         MenuPermissionData permissionData = new MenuPermissionData();
         permissionData.setMenuId(menuId);
         permissionData.setLastUpdate(new Date());
+        permissionData.setVersion(System.currentTimeMillis()); // 버전 관리용
 
-        // 1. 상위 메뉴 포함한 트리 라인업 조회
-        List<Integer> menuHierarchy = findMenuHierarchy(menuId);
+        List<Integer> menuHierarchy;
+        try {
+            menuHierarchy = findMenuHierarchy(menuId);
+        } catch (Exception e) {
+            throw processException("Cannot find menu path", e);
+        }
 
-        // 2. 해당 메뉴 + 상위 메뉴들의 권한을 전부 조회
-        List<Permission> allPermissions = permissionRepository.findAllByMenuIds(menuHierarchy);
+        if (menuHierarchy.isEmpty()) {
+            throw processException("Menu path is empty");
+        }
+
+        List<Permission> allPermissions;
+        try {
+            allPermissions = permissionRepository.findAllByMenuIds(menuHierarchy);
+        } catch (Exception e) {
+            throw processException("Fail to get permission list", e);
+        }
 
         for (Permission perm : allPermissions) {
             List<String> allowed = extractAllowedPermissions(perm);
-            int sort = perm.getSort() != null ? perm.getSort() : 9999; // 정렬 기준값
-
+            int sort = perm.getSort() != null ? perm.getSort() : 9999;
             Set<String> permissionSet = new HashSet<>(allowed);
 
-            if ("id".equalsIgnoreCase(perm.getType())) {
-                permissionData.addPermissionEntry(sort, perm.getValue(), null, permissionSet);
-            } else if ("login".equalsIgnoreCase(perm.getType())) {
-                int level = Integer.parseInt(perm.getValue());
-                permissionData.addPermissionEntry(sort, null, level, permissionSet);
+            try {
+                if ("id".equalsIgnoreCase(perm.getType())) {
+                    int idx = Integer.parseInt(
+                            Optional.ofNullable(perm.getValue())
+                                    .orElseThrow(() -> new IllegalArgumentException("Login idx is null"))
+                    );
+                    permissionData.addPermissionEntry(sort, idx, null, permissionSet);
+                } else if ("login".equalsIgnoreCase(perm.getType())) {
+                    int level = Integer.parseInt(
+                            Optional.ofNullable(perm.getValue())
+                                    .orElseThrow(() -> new IllegalArgumentException("Login level is null"))
+                    );
+                    permissionData.addPermissionEntry(sort, null, level, permissionSet);
+                }
+            } catch (Exception e) {
+                throw processException("Fail to parse permission data", e);
             }
         }
 
         return permissionData;
+    }
+
+    private List<Integer> findMenuHierarchy(long menuId) throws Exception {
+        String path;
+        try {
+            path = menuRepository.findById(menuId)
+                    .map(Menu::getPathId)
+                    .orElseThrow(() -> new NoSuchElementException("Menu not found"));
+        } catch (Exception e) {
+            throw processException("Fail to get menu path", e);
+        }
+
+        List<Integer> hierarchy = new ArrayList<>();
+        try {
+            for (String id : path.split("\\.")) {
+                hierarchy.add(Integer.parseInt(id));
+            }
+        } catch (NumberFormatException e) {
+            throw processException("Menu path format error", e);
+        }
+
+        return hierarchy;
     }
 
     private List<String> extractAllowedPermissions(Permission perm) {
@@ -75,22 +138,20 @@ public class PermissionResolverServiceImpl implements PermissionResolverService 
         return permissions;
     }
 
-    private List<Integer> findMenuHierarchy(long menuId) {
-        List<Integer> hierarchy = new ArrayList<>();
-        String path = menuRepository.findById(menuId)
-                .map(Menu::getPathId)
-                .orElse(null);
+    private String getCacheKey(long menuId) {
+        return PERMISSION_KEY_PREFIX + menuId;
+    }
 
-        if (path != null && !path.isEmpty()) {
-            String[] ids = path.split("\\.");
-            for (String id : ids) {
-                try {
-                    hierarchy.add(Integer.parseInt(id));
-                } catch (NumberFormatException ignored) {
-                }
-            }
+    /**
+     * 특정 메뉴 ID의 권한 캐시를 무효화합니다.
+     * TODO: 삭제할때 싱위, 하위 ID들 캐쉬 같이 삭제해야함.
+     * @param menuId 삭제할 메뉴 ID
+     */
+    public void invalidateMenuPermission(long menuId) {
+        try {
+            redisTemplate.delete(getCacheKey(menuId));
+        } catch (Exception e) {
+            throw new RuntimeException("Fail to invalidate menu permission cache", e);
         }
-
-        return hierarchy;
     }
 }

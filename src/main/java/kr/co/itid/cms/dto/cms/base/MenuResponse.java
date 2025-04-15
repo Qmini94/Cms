@@ -19,7 +19,6 @@ public class MenuResponse {
     private String display;
     private String pathUrl;
     private String pathId;
-    @Setter
     private List<MenuResponse> children;
 
     public MenuResponse(Long id, Long parentId, String title, String type, String value,

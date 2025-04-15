@@ -38,6 +38,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             }
 
             Claims claims = (Claims) authentication.getCredentials();
+            int userIdx = claims.get("idx", Integer.class);
             int userLevel = claims.get("userLevel", Integer.class);
 
             if (userLevel == 1) {
@@ -45,13 +46,18 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 return true;
             }
 
-            boolean result = permissionResolverService.resolvePermission(principal, userLevel, menuId, permission);
-            if(result){
-                loggingUtil.logSuccess(Action.RETRIEVE, "Access check success: user=" + principal + ", menuId=" + menuId + ", permission=" + permission);
-            }else{
-                loggingUtil.logFail(Action.RETRIEVE, "Access check fail: user=" + principal + ", menuId=" + menuId + ", permission=" + permission);
+            try {
+                boolean result = permissionResolverService.resolvePermission(userIdx, userLevel, menuId, permission);
+                if (result) {
+                    loggingUtil.logSuccess(Action.RETRIEVE, "Permission granted: user=" + principal);
+                } else {
+                    loggingUtil.logFail(Action.RETRIEVE, "Permission denied: user=" + principal);
+                }
+                return result;
+            } catch (Exception e) {
+                loggingUtil.logFail(Action.RETRIEVE, "Permission check error:" + e.getMessage() + " user=" + principal);
+                throw processException("Permission check error", e);
             }
-            return result;
         } catch (NullPointerException e) {
             loggingUtil.logFail(Action.RETRIEVE, "No authentication found");
             throw processException("No authentication", new AccessDeniedException("Authentication not found"));

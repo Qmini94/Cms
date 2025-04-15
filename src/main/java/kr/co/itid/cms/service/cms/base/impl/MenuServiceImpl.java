@@ -1,6 +1,7 @@
 package kr.co.itid.cms.service.cms.base.impl;
 
 import kr.co.itid.cms.dto.cms.base.MenuResponse;
+import kr.co.itid.cms.dto.cms.base.MenuTreeResponse;
 import kr.co.itid.cms.entity.cms.base.Menu;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.repository.cms.MenuRepository;
@@ -74,6 +75,30 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         }
     }
 
+    @Override
+    public List<MenuTreeResponse> getAllChildrenTreeByName(String name) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree for: " + name);
+
+        try {
+            Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(name)
+                    .orElseThrow(() -> {
+                        loggingUtil.logFail(Action.RETRIEVE, "Drive not found: " + name);
+                        return processException("Drive not found", new NoSuchElementException("Drive not found"));
+                    });
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "Got tree for: " + name);
+            return buildMenuTreeResponse(rootMenu.getId());
+        } catch (NoSuchElementException e) {
+            throw e;
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Database error while getting tree: " + name);
+            throw processException("Cannot access database", e);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Unknown error while getting tree: " + name);
+            throw processException("Unexpected error", e);
+        }
+    }
+
     private List<MenuResponse> buildMenuTree(Long parentId) {
         List<Menu> children = menuRepository.findByParentIdOrderByPositionAsc(parentId);
 
@@ -92,6 +117,19 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                     List<MenuResponse> subChildren = buildMenuTree(menu.getId());
                     response.setChildren(subChildren);
                     return response;
+                })
+                .toList();
+    }
+
+    private List<MenuTreeResponse> buildMenuTreeResponse(Long parentId) {
+        List<Menu> children = menuRepository.findByParentIdOrderByPositionAsc(parentId);
+
+        return children.stream()
+                .map(menu -> {
+                    MenuTreeResponse dto = MenuTreeResponse.fromEntity(menu);
+                    List<MenuTreeResponse> subChildren = buildMenuTreeResponse(menu.getId());
+                    dto.setChildren(subChildren);
+                    return dto;
                 })
                 .toList();
     }
