@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -83,12 +84,23 @@ public class JwtTokenProvider {
     }
 
     public String resolveToken(HttpServletRequest request) {
+        // 1. Authorization 헤더 먼저 확인
         String bearer = request.getHeader("Authorization");
         if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")) {
             return bearer.substring(7);
         }
+
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+
         return null;
     }
+
 
     public ResponseCookie createAccessTokenCookie(String token) {
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, token)
@@ -96,7 +108,7 @@ public class JwtTokenProvider {
                 .secure(true)
                 .path("/")
                 .maxAge(Duration.ofSeconds(accessTokenValidity))
-                .sameSite("Lax")
+                .sameSite("Strict")
                 .build();
     }
 
