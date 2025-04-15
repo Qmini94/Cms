@@ -36,8 +36,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 throw processException("Invalid principal", e);
             }
 
-//            boolean result = permissionResolverService.resolvePermission(principal, menuId, permission);
-            boolean result = true;
+            boolean result = permissionResolverService.resolvePermission(principal, menuId, permission);
             loggingUtil.logSuccess(Action.RETRIEVE, "Access check success: user=" + principal + ", menuId=" + menuId + ", permission=" + permission);
             return result;
         } catch (NullPointerException e) {

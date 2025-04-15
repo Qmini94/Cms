@@ -68,14 +68,6 @@ public class JwtTokenProvider {
         return createToken(claims.getSubject(), claims);
     }
 
-    public Claims getClaimsFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-    }
-
     public Map<String, Object> getClaims(Member member) {
         Map<String, Object> claims = new HashMap<>();
 
@@ -83,17 +75,11 @@ public class JwtTokenProvider {
         int userLevel = member.getUserLevel();
         String userName = member.getUserName();
 
-        claims.put("role", resolveRoles(userLevel));
+        claims.put("userLevel", userLevel);
         claims.put("userName", userName);
         claims.put("idx", idx);
 
         return claims;
-    }
-
-    private String resolveRoles(Integer level) {
-        if (level == 1) return "ROLE_ADMIN";
-        else if (level == 6) return "ROLE_STAFF";
-        else return "ROLE_USER";
     }
 
     public String resolveToken(HttpServletRequest request) {
@@ -156,6 +142,14 @@ public class JwtTokenProvider {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public Claims getClaimsFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public long getExpiration(String token) {

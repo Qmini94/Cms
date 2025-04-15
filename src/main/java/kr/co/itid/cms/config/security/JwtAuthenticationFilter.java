@@ -1,10 +1,10 @@
 package kr.co.itid.cms.config.security;
 
+import io.jsonwebtoken.Claims;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -13,6 +13,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static kr.co.itid.cms.config.security.SecurityConstants.GUEST_USER;
 
@@ -32,29 +34,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = jwtTokenProvider.resolveToken(request);
 
             if (StringUtils.hasText(token)) {
-                //블랙리스트 여부 확인
                 if (jwtTokenProvider.isBlacklisted(token)) {
-                    setGuestContext(request); //게스트 처리
+                    setGuestContext();  // 수정 필요
                 } else if (jwtTokenProvider.validateToken(token)) {
-                    //정상 토큰
-                    String userId = jwtTokenProvider.getUserId(token);
+                    Claims claims = jwtTokenProvider.getClaimsFromToken(token);
+                    String userId = claims.getSubject();
+
                     UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userId, null, null);
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                            new UsernamePasswordAuthenticationToken(userId, claims, null);
+
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    //요청 시마다 토큰 재발급(슬라이딩 방식)
+                    // 슬라이딩 토큰 재발급
                     String newToken = jwtTokenProvider.recreateTokenFrom(token);
                     ResponseCookie cookie = jwtTokenProvider.createAccessTokenCookie(newToken);
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
                 } else {
-                    // 유효하지 않은 토큰 → 익명 사용자 처리
-                    setGuestContext(request);
+                    setGuestContext();  // 수정 필요
                 }
             } else {
-                setGuestContext(request); //게스트 처리
+                setGuestContext();  // 수정 필요
             }
-
         } catch (Exception e) {
             logger.error("JWT 필터 처리 중 예외 발생", e);
         }
@@ -62,10 +62,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void setGuestContext(HttpServletRequest request) {
+    private void setGuestContext() {
+        Map<String, Object> guestClaims = new HashMap<>();
+        guestClaims.put("userLevel", 11);
+        guestClaims.put("idx", -1);
+
         UsernamePasswordAuthenticationToken guestAuth =
-                new UsernamePasswordAuthenticationToken(GUEST_USER, null, null);
-        guestAuth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                new UsernamePasswordAuthenticationToken(GUEST_USER, guestClaims, null);
         SecurityContextHolder.getContext().setAuthentication(guestAuth);
     }
 }
