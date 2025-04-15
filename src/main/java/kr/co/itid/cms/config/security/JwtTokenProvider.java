@@ -3,6 +3,7 @@ package kr.co.itid.cms.config.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import kr.co.itid.cms.entity.cms.base.Member;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseCookie;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import static kr.co.itid.cms.config.security.SecurityConstants.ACCESS_TOKEN_COOKIE_NAME;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
 
     @Value("${jwt.secret}")
@@ -36,9 +38,6 @@ public class JwtTokenProvider {
     private final StringRedisTemplate redisTemplate;
     private Key key;
 
-    public JwtTokenProvider(StringRedisTemplate redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
 
     @PostConstruct
     public void init() {
@@ -108,7 +107,7 @@ public class JwtTokenProvider {
                 .secure(true)
                 .path("/")
                 .maxAge(Duration.ofSeconds(accessTokenValidity))
-                .sameSite("None")  //Strict
+                .sameSite("None")  //Strict, Lax
                 .build();
     }
 

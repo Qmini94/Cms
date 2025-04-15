@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.auth.impl;
 
+import io.jsonwebtoken.Claims;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.service.auth.PermissionResolverService;
 import kr.co.itid.cms.service.auth.PermissionService;
@@ -36,7 +37,15 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 throw processException("Invalid principal", e);
             }
 
-            boolean result = permissionResolverService.resolvePermission(principal, menuId, permission);
+            Claims claims = (Claims) authentication.getCredentials();
+            int userLevel = claims.get("userLevel", Integer.class);
+
+            if (userLevel == 1) {
+                loggingUtil.logSuccess(Action.RETRIEVE, "Admin override access granted for user=" + principal);
+                return true;
+            }
+
+            boolean result = permissionResolverService.resolvePermission(principal, userLevel, menuId, permission);
             if(result){
                 loggingUtil.logSuccess(Action.RETRIEVE, "Access check success: user=" + principal + ", menuId=" + menuId + ", permission=" + permission);
             }else{

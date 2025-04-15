@@ -1,5 +1,6 @@
 package kr.co.itid.cms.config.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -18,13 +19,10 @@ import java.util.List;
 
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
+@RequiredArgsConstructor
 public class JwtSecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
-
-    public JwtSecurityConfig(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {

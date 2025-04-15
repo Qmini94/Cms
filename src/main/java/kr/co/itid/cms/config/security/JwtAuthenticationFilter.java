@@ -1,6 +1,7 @@
 package kr.co.itid.cms.config.security;
 
 import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,13 +19,10 @@ import java.util.Map;
 
 import static kr.co.itid.cms.config.security.SecurityConstants.GUEST_USER;
 
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

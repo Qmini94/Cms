@@ -8,8 +8,6 @@ import kr.co.itid.cms.service.auth.PermissionResolverService;
 import kr.co.itid.cms.service.auth.model.MenuPermissionData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -23,7 +21,7 @@ public class PermissionResolverServiceImpl implements PermissionResolverService 
     private final RedisTemplate<String, MenuPermissionData> redisTemplate;
 
     @Override
-    public boolean resolvePermission(String userId, long menuId, String permission) throws Exception {
+    public boolean resolvePermission(String userId, int userLevel, long menuId, String permission) throws Exception {
         MenuPermissionData cached = redisTemplate.opsForValue().get("perm:menu:" + menuId);
 
         if (cached == null) {
@@ -31,8 +29,7 @@ public class PermissionResolverServiceImpl implements PermissionResolverService 
             redisTemplate.opsForValue().set("perm:menu:" + menuId, cached, Duration.ofHours(1));
         }
 
-        int level = fetchUserLevel(); // 사용자 레벨을 조회하는 메서드 필요
-        return cached.hasPermission(userId, level, permission);
+        return cached.hasPermission(userId, userLevel, permission);
     }
 
     private MenuPermissionData buildMenuPermission(long menuId) throws Exception {
@@ -95,22 +92,5 @@ public class PermissionResolverServiceImpl implements PermissionResolverService 
         }
 
         return hierarchy;
-    }
-
-    private int fetchUserLevel() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.getCredentials() instanceof Map) {
-            Map<String, Object> claims = (Map<String, Object>) authentication.getCredentials();
-            Object userLevelObj = claims.get("userLevel");
-
-            if (userLevelObj instanceof Integer) {
-                return (Integer) userLevelObj;
-            } else if (userLevelObj instanceof String) {
-                return Integer.parseInt((String) userLevelObj);
-            }
-        }
-
-        throw new IllegalStateException("SecurityContext에 사용자 권한 정보가 없습니다.");
     }
 }
