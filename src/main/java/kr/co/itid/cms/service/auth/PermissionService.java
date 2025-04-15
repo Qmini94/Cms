@@ -12,7 +12,7 @@ public interface PermissionService {
      *
      * @param authentication 현재 인증 정보
      * @param menuId 메뉴 식별자
-     * @param permission 권한 유형 (READ, WRITE, MODIFY, DELETE)
+     * @param permission 권한 유형 (VIEW, WRITE, MODIFY, REMOVE, MANAGE, ACCESS, REPLY, ADMIN)
      * @return 권한이 있는 경우 true, 없는 경우 false
      */
     boolean hasAccess(Authentication authentication, long menuId, String permission) throws Exception;

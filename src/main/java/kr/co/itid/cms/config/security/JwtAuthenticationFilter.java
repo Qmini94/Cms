@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(token)) {
                 if (jwtTokenProvider.isBlacklisted(token)) {
-                    setGuestContext();  // 수정 필요
+                    setGuestContext();
                 } else if (jwtTokenProvider.validateToken(token)) {
                     Claims claims = jwtTokenProvider.getClaimsFromToken(token);
                     String userId = claims.getSubject();

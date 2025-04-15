@@ -37,7 +37,11 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             }
 
             boolean result = permissionResolverService.resolvePermission(principal, menuId, permission);
-            loggingUtil.logSuccess(Action.RETRIEVE, "Access check success: user=" + principal + ", menuId=" + menuId + ", permission=" + permission);
+            if(result){
+                loggingUtil.logSuccess(Action.RETRIEVE, "Access check success: user=" + principal + ", menuId=" + menuId + ", permission=" + permission);
+            }else{
+                loggingUtil.logFail(Action.RETRIEVE, "Access check fail: user=" + principal + ", menuId=" + menuId + ", permission=" + permission);
+            }
             return result;
         } catch (NullPointerException e) {
             loggingUtil.logFail(Action.RETRIEVE, "No authentication found");
