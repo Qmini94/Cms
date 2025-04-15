@@ -15,7 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PermissionEntry implements Serializable {
-    private Integer userIdx;           // 사용자 ID (우선순위 높음)
+    private Long userIdx;           // 사용자 ID (우선순위 높음)
     private Integer level;           // 사용자 등급 (null이면 무시)
     private Set<String> permissions; // 부여된 권한 집합
 }

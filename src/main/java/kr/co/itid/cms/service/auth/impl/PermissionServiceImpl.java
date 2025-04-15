@@ -1,13 +1,12 @@
 package kr.co.itid.cms.service.auth.impl;
 
-import io.jsonwebtoken.Claims;
+import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.service.auth.PermissionResolverService;
 import kr.co.itid.cms.service.auth.PermissionService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -29,38 +28,34 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 throw processException("User not logged in", new BadCredentialsException("User not logged in"));
             }
 
-            String principal;
+            JwtAuthenticatedUser user;
             try {
-                principal = (String) authentication.getPrincipal();
+                user = (JwtAuthenticatedUser) authentication.getPrincipal();
             } catch (ClassCastException e) {
                 loggingUtil.logFail(Action.RETRIEVE, "Invalid principal type");
-                throw processException("Invalid principal", e);
+                throw processException("Invalid principal type", e);
             }
 
-            Claims claims = (Claims) authentication.getCredentials();
-            int userIdx = claims.get("idx", Integer.class);
-            int userLevel = claims.get("userLevel", Integer.class);
-
-            if (userLevel == 1) {
-                loggingUtil.logSuccess(Action.RETRIEVE, "Admin override access granted for user=" + principal);
+            if (user.isAdmin()) {
+                loggingUtil.logSuccess(Action.RETRIEVE, "Admin override access granted for user=" + user.userId());
                 return true;
             }
 
             try {
-                boolean result = permissionResolverService.resolvePermission(userIdx, userLevel, menuId, permission);
+                boolean result = permissionResolverService.resolvePermission(user, menuId, permission);
+
                 if (result) {
-                    loggingUtil.logSuccess(Action.RETRIEVE, "Permission granted: user=" + principal);
+                    loggingUtil.logSuccess(Action.RETRIEVE, "Permission granted: user=" + user.userId());
                 } else {
-                    loggingUtil.logFail(Action.RETRIEVE, "Permission denied: user=" + principal);
+                    loggingUtil.logFail(Action.RETRIEVE, "Permission denied: user=" + user.userId());
                 }
+
                 return result;
             } catch (Exception e) {
-                loggingUtil.logFail(Action.RETRIEVE, "Permission check error:" + e.getMessage() + " user=" + principal);
+                loggingUtil.logFail(Action.RETRIEVE, "Permission check error: " + e.getMessage() + " user=" + user.userId());
                 throw processException("Permission check error", e);
             }
-        } catch (NullPointerException e) {
-            loggingUtil.logFail(Action.RETRIEVE, "No authentication found");
-            throw processException("No authentication", new AccessDeniedException("Authentication not found"));
+
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Access check error");
             throw processException("Access check error", e);

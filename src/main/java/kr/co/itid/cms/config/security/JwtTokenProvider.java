@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static kr.co.itid.cms.config.security.SecurityConstants.ACCESS_TOKEN_COOKIE_NAME;
+import static kr.co.itid.cms.config.security.SecurityConstants.SAME_SITE_NONE;
 
 @Component
 @RequiredArgsConstructor
@@ -107,7 +108,7 @@ public class JwtTokenProvider {
                 .secure(true)
                 .path("/")
                 .maxAge(Duration.ofSeconds(accessTokenValidity))
-                .sameSite("None")  //Strict, Lax
+                .sameSite(SAME_SITE_NONE)  //Strict, Lax
                 .build();
     }
 

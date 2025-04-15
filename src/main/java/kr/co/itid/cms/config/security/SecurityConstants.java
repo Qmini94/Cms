@@ -4,9 +4,6 @@ public class SecurityConstants {
     private SecurityConstants() {
         throw new UnsupportedOperationException("유틸리티 클래스이므로 인스턴스화할 수 없습니다");
     }
-    // 비회원 식별자: JWT 토큰이 없거나 유효하지 않은 경우 사용
-    public static final String GUEST_USER = "GUEST";
-
     // 권한 관련 상수: 사용자와 관리자 권한을 구분하기 위한 역할
     public static final String ROLE_USER = "ROLE_USER";
     public static final String ROLE_ADMIN = "ROLE_ADMIN";

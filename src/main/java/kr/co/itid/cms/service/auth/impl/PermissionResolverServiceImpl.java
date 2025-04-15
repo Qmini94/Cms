@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.auth.impl;
 
+import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.entity.cms.base.Menu;
 import kr.co.itid.cms.entity.cms.base.Permission;
 import kr.co.itid.cms.repository.cms.MenuRepository;
@@ -26,7 +27,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
     private static final Duration CACHE_TTL = Duration.ofHours(1);
 
     @Override
-    public boolean resolvePermission(int userIdx, int userLevel, long menuId, String permission) throws Exception {
+    public boolean resolvePermission(JwtAuthenticatedUser user, long menuId, String permission) throws Exception {
         String redisKey = getCacheKey(menuId);
         MenuPermissionData cached;
 
@@ -47,7 +48,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
             redisTemplate.expire(redisKey, CACHE_TTL);
         }
 
-        return cached.hasPermission(userIdx, userLevel, permission);
+        return cached.hasPermission(user.userIdx(), user.userLevel(), permission);
     }
 
     private MenuPermissionData buildMenuPermission(long menuId) throws Exception {
@@ -91,7 +92,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
                             Optional.ofNullable(perm.getValue())
                                     .orElseThrow(() -> new IllegalArgumentException("Login level is null"))
                     );
-                    permissionData.addPermissionEntry(sort, null, level, permissionSet);
+                    permissionData.addPermissionEntry(sort, -1, level, permissionSet);
                 }
             } catch (Exception e) {
                 throw processException("Fail to parse permission data", e);
