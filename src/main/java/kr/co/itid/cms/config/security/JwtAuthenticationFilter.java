@@ -48,10 +48,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     ResponseCookie cookie = jwtTokenProvider.createAccessTokenCookie(newToken);
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
                 } else {
-                    setGuestContext();  // 수정 필요
+                    setGuestContext();
                 }
             } else {
-                setGuestContext();  // 수정 필요
+                setGuestContext();
             }
         } catch (Exception e) {
             logger.error("JWT 필터 처리 중 예외 발생", e);
