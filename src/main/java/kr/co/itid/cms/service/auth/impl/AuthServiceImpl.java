@@ -2,6 +2,7 @@ package kr.co.itid.cms.service.auth.impl;
 
 import io.jsonwebtoken.Claims;
 import kr.co.itid.cms.config.security.JwtTokenProvider;
+import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.dto.auth.TokenResponse;
 import kr.co.itid.cms.dto.auth.UserInfoResponse;
 import kr.co.itid.cms.entity.cms.base.Member;
@@ -104,20 +105,17 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-            if (auth == null || !auth.isAuthenticated() || "GUEST".equals(auth.getPrincipal())) {
+            if (auth == null || !auth.isAuthenticated()) {
                 return new UserInfoResponse(null, null, null);
             }
 
-            String token = jwtTokenProvider.resolveToken(request);
-            Claims claims = jwtTokenProvider.getClaimsFromToken(token);
-
-            String userName = (String) claims.get("userName");
-            String role = (String) claims.get("role");
-            int idx = (int) claims.get("idx");
+            Object principal = auth.getPrincipal();
+            if (!(principal instanceof JwtAuthenticatedUser user) || user.isGuest()) {
+                return new UserInfoResponse(null, null, null);
+            }
 
             loggingUtil.logSuccess(Action.RETRIEVE, "User info retrieved from token");
-            return new UserInfoResponse(userName, role, idx);
+            return new UserInfoResponse(user.userName(), String.valueOf(user.userLevel()), user.userIdx().intValue());
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Failed to get user info: " + e.getMessage());
             throw processException("Failed to retrieve user info", e);

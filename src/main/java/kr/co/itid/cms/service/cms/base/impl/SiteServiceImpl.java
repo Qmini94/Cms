@@ -1,10 +1,10 @@
-package kr.co.itid.cms.service.cms.list.impl;
+package kr.co.itid.cms.service.cms.base.impl;
 
-import kr.co.itid.cms.dto.cms.list.SiteResponse;
-import kr.co.itid.cms.entity.cms.list.Site;
+import kr.co.itid.cms.dto.cms.base.SiteResponse;
+import kr.co.itid.cms.entity.cms.base.Site;
 import kr.co.itid.cms.enums.Action;
-import kr.co.itid.cms.repository.list.SiteRepository;
-import kr.co.itid.cms.service.cms.list.SiteService;
+import kr.co.itid.cms.repository.cms.SiteRepository;
+import kr.co.itid.cms.service.cms.base.SiteService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;

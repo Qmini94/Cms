@@ -60,20 +60,30 @@ public class AuthController {
      * @return 사용자 이름, 역할, 인덱스를 담은 응답
      */
     @GetMapping("/me")
-    public ResponseEntity<UserInfoResponse> me(HttpServletRequest request) throws Exception {
-        return ResponseEntity.ok(authService.getUserInfoFromToken(request));
+    public ResponseEntity<ApiResponse<UserInfoResponse>> me(HttpServletRequest request) throws Exception {
+        return ResponseEntity.ok(ApiResponse.success(authService.getUserInfoFromToken(request)));
     }
 
     /**
      * 로그아웃 요청을 처리합니다.
      *
-     * @param token Authorization 헤더에 담긴 액세스 토큰
-     * @return 로그아웃 성공 여부 응답
-     * @throws Exception 로그아웃 처리 중 발생한 예외
+     * 클라이언트는 HttpOnly 쿠키에 저장된 ACCESS_TOKEN을 자동으로 전송합니다.
+     * 이 메서드는 해당 쿠키에서 토큰 값을 추출하여 로그아웃 처리 (블랙리스트 등록 등)를 수행합니다.
+     *
+     * @param token ACCESS_TOKEN 쿠키에 담긴 JWT 토큰
+     * @return 로그아웃 성공 여부를 나타내는 응답 객체
+     * @throws Exception 로그아웃 처리 중 오류가 발생한 경우
      */
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String token) throws Exception {
-        authService.logout(token.replace(TOKEN_PREFIX, ""));
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @CookieValue(value = ACCESS_TOKEN_COOKIE_NAME, required = false) String token) throws Exception {
+        if (token == null || token.isBlank()) {
+            return ResponseEntity
+                    .status(HttpServletResponse.SC_UNAUTHORIZED)
+                    .body(ApiResponse.error(401, "토큰이 존재하지 않습니다."));
+        }
+        authService.logout(token);
+
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

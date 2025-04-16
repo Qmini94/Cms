@@ -19,7 +19,4 @@ public class SecurityConstants {
 
     // 쿠키 이름 설정: 클라이언트에서 사용할 토큰 쿠키 이름
     public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";   // 액세스 토큰 쿠키 이름
-
-    // JWT 토큰의 접두어: Authorization 헤더에서 토큰 값을 파싱할 때 사용
-    public static final String TOKEN_PREFIX = "Bearer ";  // JWT 토큰의 접두어 (ex: Bearer abcdef12345)
 }
