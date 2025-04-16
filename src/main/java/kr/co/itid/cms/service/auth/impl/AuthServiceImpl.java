@@ -108,12 +108,13 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
             JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
 
             if (user.isGuest()) {
-                return new UserInfoResponse(null, null, null);
+                return new UserInfoResponse(null, null, null, null);
             }
 
             loggingUtil.logSuccess(Action.RETRIEVE, "User info retrieved from token");
             return new UserInfoResponse(
                     user.userName(),
+                    user.userId(),
                     String.valueOf(user.userLevel()),
                     user.userIdx().intValue()
             );

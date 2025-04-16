@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 } else if (jwtTokenProvider.validateToken(token)) {
                     Claims claims = jwtTokenProvider.getClaimsFromToken(token);
                     user = new JwtAuthenticatedUser(
-                            claims.get("userIdx", Long.class),
+                            claims.get("idx", Long.class),
                             claims.getSubject(),
                             claims.get("userName", String.class),
                             claims.get("userLevel", Integer.class),
