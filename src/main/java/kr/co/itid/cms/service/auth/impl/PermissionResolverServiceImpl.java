@@ -55,7 +55,6 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
         MenuPermissionData permissionData = new MenuPermissionData();
         permissionData.setMenuId(menuId);
         permissionData.setLastUpdate(new Date());
-        permissionData.setVersion(System.currentTimeMillis()); // 버전 관리용
 
         List<Integer> menuHierarchy;
         try {

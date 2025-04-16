@@ -20,8 +20,6 @@ public class MenuPermissionData implements Serializable {
 
     private Date lastUpdate; // 캐시 마지막 갱신 시점
 
-    private Long version;    // 캐시 버전 (타임스탬프 등)
-
     /**
      * 정렬 기준에 따른 권한 목록 (sort -> [PermissionEntry...])
      * 상속된 상위 메뉴 권한이 먼저 평가되도록 TreeMap 사용
