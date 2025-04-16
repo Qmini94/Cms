@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.*;
 
+import static kr.co.itid.cms.config.common.redis.RedisConstants.PERMISSION_KEY_PREFIX;
+import static kr.co.itid.cms.config.common.redis.RedisConstants.PERMISSION_TTL;
+
 @Service("permissionResolverService")
 @RequiredArgsConstructor
 public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl implements PermissionResolverService {
@@ -22,9 +25,6 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
     private final MenuRepository menuRepository;
     private final PermissionRepository permissionRepository;
     private final RedisTemplate<String, MenuPermissionData> redisTemplate;
-
-    private static final String PERMISSION_KEY_PREFIX = "perm:menu:";
-    private static final Duration CACHE_TTL = Duration.ofHours(1);
 
     @Override
     public boolean resolvePermission(JwtAuthenticatedUser user, long menuId, String permission) throws Exception {
@@ -40,12 +40,12 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
         if (cached == null) {
             try {
                 cached = buildMenuPermission(menuId);
-                redisTemplate.opsForValue().set(redisKey, cached, CACHE_TTL);
+                redisTemplate.opsForValue().set(redisKey, cached, PERMISSION_TTL);
             } catch (Exception e) {
                 throw processException("Fail to build permission cache", e);
             }
         }else{
-            redisTemplate.expire(redisKey, CACHE_TTL);
+            redisTemplate.expire(redisKey, PERMISSION_TTL);
         }
 
         return cached.hasPermission(user.userIdx(), user.userLevel(), permission);

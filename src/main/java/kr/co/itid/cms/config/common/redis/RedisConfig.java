@@ -1,4 +1,4 @@
-package kr.co.itid.cms.config.common;
+package kr.co.itid.cms.config.common.redis;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;

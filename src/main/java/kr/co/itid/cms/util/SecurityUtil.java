@@ -4,8 +4,6 @@ import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Optional;
-
 public class SecurityUtil {
 
     private SecurityUtil() {}
@@ -23,14 +21,6 @@ public class SecurityUtil {
         }
 
         return user;
-    }
-
-    public static Optional<JwtAuthenticatedUser> getCurrentUserOptional() {
-        try {
-            return Optional.of(getCurrentUser());
-        } catch (Exception e) {
-            return Optional.empty();
-        }
     }
 }
 

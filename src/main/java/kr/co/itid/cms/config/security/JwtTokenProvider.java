@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static kr.co.itid.cms.config.common.redis.RedisConstants.BLACKLIST_KEY_PREFIX;
 import static kr.co.itid.cms.config.security.SecurityConstants.ACCESS_TOKEN_COOKIE_NAME;
 import static kr.co.itid.cms.config.security.SecurityConstants.SAME_SITE_NONE;
 
@@ -170,6 +171,6 @@ public class JwtTokenProvider {
 
     public void addToBlacklist(String token) {
         long remainingTime = getExpiration(token);
-        redisTemplate.opsForValue().set("blacklist:" + token, "true", remainingTime, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(BLACKLIST_KEY_PREFIX + token, "true", remainingTime, TimeUnit.MILLISECONDS);
     }
 }
