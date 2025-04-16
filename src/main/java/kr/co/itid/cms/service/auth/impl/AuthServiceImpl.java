@@ -1,6 +1,5 @@
 package kr.co.itid.cms.service.auth.impl;
 
-import io.jsonwebtoken.Claims;
 import kr.co.itid.cms.config.security.JwtTokenProvider;
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.dto.auth.TokenResponse;
@@ -10,12 +9,11 @@ import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.repository.cms.MemberRepository;
 import kr.co.itid.cms.service.auth.AuthService;
 import kr.co.itid.cms.util.LoggingUtil;
+import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -66,7 +64,10 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     }
 
     @Override
-    public void logout(String token) throws Exception {
+    public void logout() throws Exception {
+        JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
+        String token = user.token();
+
         loggingUtil.logAttempt(Action.LOGOUT, "Try logout: " + token);
 
         try {
@@ -104,18 +105,18 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
         loggingUtil.logAttempt(Action.RETRIEVE, "Try get user info from token");
 
         try {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth == null || !auth.isAuthenticated()) {
-                return new UserInfoResponse(null, null, null);
-            }
+            JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
 
-            Object principal = auth.getPrincipal();
-            if (!(principal instanceof JwtAuthenticatedUser user) || user.isGuest()) {
+            if (user.isGuest()) {
                 return new UserInfoResponse(null, null, null);
             }
 
             loggingUtil.logSuccess(Action.RETRIEVE, "User info retrieved from token");
-            return new UserInfoResponse(user.userName(), String.valueOf(user.userLevel()), user.userIdx().intValue());
+            return new UserInfoResponse(
+                    user.userName(),
+                    String.valueOf(user.userLevel()),
+                    user.userIdx().intValue()
+            );
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Failed to get user info: " + e.getMessage());
             throw processException("Failed to retrieve user info", e);

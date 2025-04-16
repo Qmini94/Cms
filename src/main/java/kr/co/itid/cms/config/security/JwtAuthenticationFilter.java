@@ -41,7 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             claims.get("userIdx", Long.class),
                             claims.getSubject(),
                             claims.get("userName", String.class),
-                            claims.get("userLevel", Integer.class)
+                            claims.get("userLevel", Integer.class),
+                            token
                     );
 
                     // 슬라이딩 토큰 재발급
@@ -79,7 +80,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 -1L,
                 "GUEST",
                 "게스트",
-                11
+                11,
+                "not has token"
         );
     }
 

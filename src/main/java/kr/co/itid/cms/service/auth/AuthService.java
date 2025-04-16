@@ -23,9 +23,8 @@ public interface AuthService {
     /**
      * 사용자 로그아웃 메소드
      *
-     * @param token 엑세스 토큰
      */
-    void logout(String token) throws Exception;
+    void logout() throws Exception;
 
     /**
      * 관리자에 의한 강제 로그아웃 메소드
