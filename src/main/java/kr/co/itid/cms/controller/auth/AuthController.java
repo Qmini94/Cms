@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static kr.co.itid.cms.config.security.SecurityConstants.*;
-
 /**
  * 인증(Authentication) 관련 API를 처리하는 컨트롤러입니다.
  * 로그인, 로그아웃, 사용자 정보 조회 기능을 제공합니다.

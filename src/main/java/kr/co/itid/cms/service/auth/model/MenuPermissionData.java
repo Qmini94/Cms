@@ -41,7 +41,6 @@ public class MenuPermissionData implements Serializable {
 
         for (Map.Entry<Integer, List<PermissionEntry>> entry : sortedPermissionMap.entrySet()) {
             for (PermissionEntry permissionEntry : entry.getValue()) {
-                // 1. ID 일치 시 즉시 true
                 if (permissionEntry.getUserIdx() != null &&
                         permissionEntry.getUserIdx().equals(userIdx)) {
                     if (permissionEntry.getPermissions().contains(targetPermission)) {
@@ -49,7 +48,6 @@ public class MenuPermissionData implements Serializable {
                     }
                 }
 
-                // 2. 등급 일치 → 조건만 저장 (마지막 적용)
                 if (permissionEntry.getLevel() != null && permissionEntry.getLevel() == level) {
                     levelAllowed = permissionEntry.getPermissions().contains(targetPermission);
                 }

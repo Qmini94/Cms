@@ -1,7 +1,7 @@
-package kr.co.itid.cms.dto.cms.base;
+package kr.co.itid.cms.dto.cms.core.menu;
 
-import kr.co.itid.cms.entity.cms.base.Menu;
-import kr.co.itid.cms.entity.cms.base.Menu.Display;
+import kr.co.itid.cms.entity.cms.core.Menu;
+import kr.co.itid.cms.entity.cms.core.Menu.Display;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

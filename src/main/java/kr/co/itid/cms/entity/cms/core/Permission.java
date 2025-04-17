@@ -1,4 +1,4 @@
-package kr.co.itid.cms.entity.cms.base;
+package kr.co.itid.cms.entity.cms.core;
 
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;

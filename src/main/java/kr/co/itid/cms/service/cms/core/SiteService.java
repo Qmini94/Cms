@@ -1,6 +1,6 @@
-package kr.co.itid.cms.service.cms.base;
+package kr.co.itid.cms.service.cms.core;
 
-import kr.co.itid.cms.dto.cms.base.SiteResponse;
+import kr.co.itid.cms.dto.cms.core.site.SiteResponse;
 import java.util.List;
 
 /**

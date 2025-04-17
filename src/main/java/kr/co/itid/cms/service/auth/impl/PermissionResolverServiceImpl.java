@@ -1,10 +1,10 @@
 package kr.co.itid.cms.service.auth.impl;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
-import kr.co.itid.cms.entity.cms.base.Menu;
-import kr.co.itid.cms.entity.cms.base.Permission;
-import kr.co.itid.cms.repository.cms.MenuRepository;
-import kr.co.itid.cms.repository.cms.PermissionRepository;
+import kr.co.itid.cms.entity.cms.core.Menu;
+import kr.co.itid.cms.entity.cms.core.Permission;
+import kr.co.itid.cms.repository.cms.core.MenuRepository;
+import kr.co.itid.cms.repository.cms.core.PermissionRepository;
 import kr.co.itid.cms.service.auth.PermissionResolverService;
 import kr.co.itid.cms.service.auth.model.MenuPermissionData;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,6 @@ import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.*;
 
 import static kr.co.itid.cms.config.common.redis.RedisConstants.PERMISSION_KEY_PREFIX;

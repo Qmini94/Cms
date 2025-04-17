@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.cms.base;
+package kr.co.itid.cms.dto.cms.core.menu;
 
 import lombok.Getter;
 import lombok.Setter;

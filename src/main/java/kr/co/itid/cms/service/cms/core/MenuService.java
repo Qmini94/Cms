@@ -1,7 +1,7 @@
-package kr.co.itid.cms.service.cms.base;
+package kr.co.itid.cms.service.cms.core;
 
-import kr.co.itid.cms.dto.cms.base.MenuResponse;
-import kr.co.itid.cms.dto.cms.base.MenuTreeResponse;
+import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
+import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
 
 import java.util.List;
 
