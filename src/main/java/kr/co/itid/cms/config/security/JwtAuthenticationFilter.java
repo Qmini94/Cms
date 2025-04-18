@@ -82,7 +82,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String referer = request.getHeader("Referer");
         String uri = request.getRequestURI();
 
-        return referer != null && referer.contains("/admin/") && !uri.startsWith("/auth/");
+        return referer != null
+                && referer.contains("/admin/")
+                && !uri.startsWith("/api/auth/");
     }
 
     private boolean isUnauthorizedAdmin(JwtAuthenticatedUser user, HttpServletRequest request) {
