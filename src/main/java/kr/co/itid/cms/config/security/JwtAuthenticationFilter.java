@@ -27,13 +27,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
             String token = jwtTokenProvider.resolveToken(request);
+            String uri = request.getRequestURI();
+            String referer = request.getHeader("Referer");
+
+            // DEBUG: 요청 정보 로그
+            logger.info("[JWT] 요청 URI: " + uri); // DEBUG:
+            logger.info("[JWT] Referer: " + referer); // DEBUG:
+            logger.info("[JWT] 토큰 존재 여부: " + StringUtils.hasText(token)); // DEBUG:
 
             JwtAuthenticatedUser user = null;
 
             if (StringUtils.hasText(token)) {
                 if (jwtTokenProvider.isBlacklisted(token)) {
+                    logger.info("[JWT] 블랙리스트 토큰 감지 → 게스트로 처리"); // DEBUG:
                     user = createGuestUser();
                 } else if (jwtTokenProvider.validateToken(token)) {
+                    logger.info("[JWT] 유효한 토큰 → 사용자 인증 처리"); // DEBUG:
                     Claims claims = jwtTokenProvider.getClaimsFromToken(token);
                     user = new JwtAuthenticatedUser(
                             claims.get("idx", Long.class),
@@ -43,18 +52,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             token
                     );
                 } else {
+                    logger.info("[JWT] 토큰 유효성 검증 실패 → 게스트 처리"); // DEBUG:
                     user = createGuestUser();
                 }
             } else {
+                logger.info("[JWT] 토큰 없음 → 게스트 처리"); // DEBUG:
                 user = createGuestUser();
             }
+
+            // DEBUG: 최종 인증 유저 정보 출력
+            logger.info("[JWT] 인증 유저: " + user.userId() + ", 레벨: " + user.userLevel()); // DEBUG:
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(user, null, null);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // 관리자 권한 체크
+            // 관리자 접근 체크
             if (isUnauthorizedAdmin(user, request)) {
+                logger.warn("[JWT] 관리자 페이지 접근 권한 없음 → 403 응답"); // DEBUG:
                 writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "관리자 권한 필요");
                 return;
             }
@@ -82,13 +97,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String referer = request.getHeader("Referer");
         String uri = request.getRequestURI();
 
-        return referer != null
+        boolean result = referer != null
                 && referer.contains("/admin/")
                 && !uri.startsWith("/api/auth/");
+
+        // DEBUG: 관리자 접근 여부 로그
+        logger.info("[JWT] 관리자 접근 판단: " + result); // DEBUG:
+
+        return result;
     }
 
     private boolean isUnauthorizedAdmin(JwtAuthenticatedUser user, HttpServletRequest request) {
-        return isAdminAccess(request) && !user.isAdmin();
+        boolean unauthorized = isAdminAccess(request) && !user.isAdmin();
+        // DEBUG: 관리자 권한 체크 로그
+        logger.info("[JWT] 관리자 권한 있음?: " + user.isAdmin() + ", 접근 차단?: " + unauthorized); // DEBUG:
+        return unauthorized;
     }
 
     private void writeJsonError(HttpServletResponse response, int statusCode, String message) throws IOException {

@@ -113,7 +113,7 @@ public class JwtTokenProvider {
     public ResponseCookie createAccessTokenCookie(String token) {
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, token)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .maxAge(Duration.ofSeconds(accessTokenValidity))
                 .sameSite(SAME_SITE_NONE)  //Strict, Lax
