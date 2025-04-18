@@ -40,7 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(token)) {
                 if (jwtTokenProvider.isBlacklisted(token)) {
                     logger.info("[JWT] 블랙리스트 토큰 감지 → 게스트로 처리"); // DEBUG:
-                    user = createGuestUser();
+                    user = createGuestUser(request);
                 } else if (jwtTokenProvider.validateToken(token)) {
                     logger.info("[JWT] 유효한 토큰 → 사용자 인증 처리"); // DEBUG:
                     Claims claims = jwtTokenProvider.getClaimsFromToken(token);
@@ -53,11 +53,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                 } else {
                     logger.info("[JWT] 토큰 유효성 검증 실패 → 게스트 처리"); // DEBUG:
-                    user = createGuestUser();
+                    user = createGuestUser(request);
                 }
             } else {
                 logger.info("[JWT] 토큰 없음 → 게스트 처리"); // DEBUG:
-                user = createGuestUser();
+                user = createGuestUser(request);
             }
 
             // DEBUG: 최종 인증 유저 정보 출력
@@ -83,7 +83,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private JwtAuthenticatedUser createGuestUser() {
+    private JwtAuthenticatedUser createGuestUser(HttpServletRequest request) {
+        String referer = request.getHeader("Referer");
+
+        // DEBUG: 개발 환경 프론트에서 접근 시 관리자 권한 부여
+        if (referer != null && referer.startsWith("http://localhost:3000")) {
+            logger.info("[JWT] 로컬 개발환경 접근 → 관리자 권한 임시 부여"); // DEBUG:
+            return new JwtAuthenticatedUser(
+                    0L,
+                    "DEV_ADMIN",
+                    "개발관리자",
+                    1, // 관리자 레벨
+                    "dev-token"
+            );
+        }
+
+        // 기본 게스트
         return new JwtAuthenticatedUser(
                 -1L,
                 "GUEST",
