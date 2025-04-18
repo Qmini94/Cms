@@ -45,8 +45,6 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
                 if (response != null) {
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-                } else {
-                    loggingUtil.logFail(Action.RETRIEVE,"여기일거같은데... Response is null, cannot set cookie"); // DEBUG:
                 }
             }
 
@@ -71,7 +69,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             }
 
         } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Access check error");
+            loggingUtil.logFail(Action.RETRIEVE, "Access check error: " + e.getMessage());
             throw processException("Access check error", e);
         }
     }
