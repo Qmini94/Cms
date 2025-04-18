@@ -53,7 +53,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
             member.setLastLoginDate(LocalDateTime.now());
             memberRepository.save(member);
 
-            loggingUtil.logSuccess(Action.LOGIN, "Login success: " + userId);
+            loggingUtil.logSuccess(Action.LOGIN, "Login success: " + userId + "access token: " + accessToken);
             return new TokenResponse(accessToken);
         } catch (UsernameNotFoundException | BadCredentialsException e) {
             throw e;
