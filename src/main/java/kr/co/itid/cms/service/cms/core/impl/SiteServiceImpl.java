@@ -41,18 +41,6 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
     }
 
     private SiteResponse convertToResponse(Site site) {
-        return new SiteResponse(
-                site.getIdx(), site.getSiteName(), site.getSiteDomain(), site.getSitePort(),
-                site.getSiteOption(), site.getLanguage(), site.getAdmin(),
-                site.getSessionTimeout(), site.getSessionLayer(),
-                site.getCompany(), site.getDdd(), site.getTel(),
-                site.getSessionDupLogin(), site.getSslMode(),
-                site.getSiren24Id(), site.getSiren24No(), site.getUmsId(),
-                site.getUmsKey(), site.getTreeId(), site.getPrivacyCheck(),
-                site.getBadText(), site.getBadTextOption(),
-                site.getNaverApiKey(), site.getNaverMapKey(), site.getGoogleMapKey(),
-                site.getCsApiUrl(), site.getCsApiKey(), site.getDigitomiDomain(),
-                site.getDigitomiApi(), site.getDigitomiKey(), site.getDigitomiReturnUrl()
-        );
+        return SiteResponse.fromEntity(site);
     }
 }

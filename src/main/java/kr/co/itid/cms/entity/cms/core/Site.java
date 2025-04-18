@@ -6,7 +6,7 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "_site")
+@Table(name = "site")
 @Getter
 @Setter
 public class Site {
@@ -30,30 +30,6 @@ public class Site {
     @Column(name = "language", nullable = false)
     private String language;
 
-    @Column(name = "admin")
-    private String admin;
-
-    @Column(name = "session_timeout", nullable = false)
-    private Integer sessionTimeout;
-
-    @Column(name = "session_layer", nullable = false)
-    private String sessionLayer;
-
-    @Column(name = "company")
-    private String company;
-
-    @Column(name = "ddd")
-    private String ddd;
-
-    @Column(name = "tel")
-    private String tel;
-
-    @Column(name = "session_dup_login", nullable = false)
-    private String sessionDupLogin;
-
-    @Column(name = "ssl_mode", nullable = false)
-    private String sslMode;
-
     @Column(name = "siren24_id")
     private String siren24Id;
 
@@ -66,8 +42,6 @@ public class Site {
     @Column(name = "ums_key")
     private String umsKey;
 
-    @Column(name = "tree_id")
-    private Integer treeId;
 
     @Column(name = "privacy_check")
     private String privacyCheck;
