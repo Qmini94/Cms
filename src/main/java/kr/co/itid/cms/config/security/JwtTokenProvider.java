@@ -18,12 +18,9 @@ import java.security.Key;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static kr.co.itid.cms.config.common.redis.RedisConstants.BLACKLIST_KEY_PREFIX;
 import static kr.co.itid.cms.config.security.SecurityConstants.ACCESS_TOKEN_COOKIE_NAME;
 import static kr.co.itid.cms.config.security.SecurityConstants.SAME_SITE_NONE;
 
@@ -50,6 +47,10 @@ public class JwtTokenProvider {
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
         Date issuedAt = Date.from(now.toInstant());
         Date expiration = Date.from(now.plusSeconds(accessTokenValidity).toInstant());
+        String jti = (String) claims.get("jti");
+        if (jti != null && !jti.isEmpty()) {
+            storeJtiToRedis(userId, jti, accessTokenValidity);
+        }
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -61,13 +62,19 @@ public class JwtTokenProvider {
     }
 
     public String recreateTokenFrom(String oldToken) {
-        Claims claims = Jwts.parserBuilder()
+        Claims oldClaims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(oldToken)
                 .getBody();
+        String newJti = UUID.randomUUID().toString();
+        // 새로운 claims 복사 후 jti 갱신
+        Map<String, Object> newClaims = new HashMap<>(oldClaims);
+        newClaims.put("jti", newJti);
 
-        return createToken(claims.getSubject(), claims);
+        String userId = oldClaims.getSubject();
+
+        return createToken(userId, newClaims);
     }
 
     public Map<String, Object> getClaims(Member member) {
@@ -76,7 +83,9 @@ public class JwtTokenProvider {
         int idx = member.getIdx();
         int userLevel = member.getUserLevel();
         String userName = member.getUserName();
+        String jti = UUID.randomUUID().toString();
 
+        claims.put("jti", jti);
         claims.put("userLevel", userLevel);
         claims.put("userName", userName);
         claims.put("idx", idx);
@@ -100,7 +109,6 @@ public class JwtTokenProvider {
 
         return null;
     }
-
 
     public ResponseCookie createAccessTokenCookie(String token) {
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, token)
@@ -140,7 +148,19 @@ public class JwtTokenProvider {
     }
 
     public boolean isBlacklisted(String token) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + token));
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String jti = claims.get("jti", String.class);
+            return jti != null && Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + jti));
+
+        } catch (JwtException | IllegalArgumentException e) {
+            return true;
+        }
     }
 
     public String getUserId(String token) {
@@ -164,13 +184,37 @@ public class JwtTokenProvider {
                 .getBody();
     }
 
-    public long getExpiration(String token) {
-        Date exp = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getExpiration();
-        return exp.getTime() - System.currentTimeMillis();
+    public void addAllTokensToBlacklist(String userId) {
+        String userTokenKey = "user_tokens:" + userId;
+        Set<String> jtiSet = redisTemplate.opsForSet().members(userTokenKey);
+
+        if (jtiSet == null || jtiSet.isEmpty()) {
+            return;
+        }
+        //TTL 오버헤드는 매우 낮기 때문에 토큰마다의 만료시간 계산하기보단 그냥 엑세스토큰의 만료시간을 다시 설정.
+        for (String jti : jtiSet) {
+            redisTemplate.opsForValue().set("blacklist:" + jti, "true", accessTokenValidity, TimeUnit.SECONDS);
+        }
+        redisTemplate.delete(userTokenKey);
     }
 
-    public void addToBlacklist(String token) {
-        long remainingTime = getExpiration(token);
-        redisTemplate.opsForValue().set(BLACKLIST_KEY_PREFIX + token, "true", remainingTime, TimeUnit.MILLISECONDS);
+
+    private void storeJtiToRedis(String userId, String jti, long expirationMillis) {
+        String key = "user_tokens:" + userId;
+        redisTemplate.opsForSet().add(key, jti);
+        redisTemplate.expire(key, expirationMillis, TimeUnit.SECONDS);
+
+        Long size = redisTemplate.opsForSet().size(key);
+        if (size != null && size > 20) {
+            Set<String> allJtis = redisTemplate.opsForSet().members(key);
+            int toRemove = size.intValue() - 20;
+
+            if (allJtis != null && toRemove > 0) {
+                Iterator<String> iter = allJtis.iterator();
+                while (iter.hasNext() && toRemove-- > 0) {
+                    redisTemplate.opsForSet().remove(key, iter.next());
+                }
+            }
+        }
     }
 }

@@ -63,6 +63,13 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
         }
     }
 
+// TODO: [보완 예정] user_tokens:{userId} 에서 제거된 jti를 별도 expired_jti:{jti} 키에 백업하도록 개선 고려
+//       - TTL(accessTokenValidity)과 함께 저장하여 만료되도록 설정
+//       - isBlacklisted() 메서드에서 blacklist:{jti} 외에 expired_jti:{jti}도 함께 검사
+//       - 현재는 최대 20개 jti만 유지되므로, 오래된 토큰이 살아있을 수 있음
+//       - 실무적으로 큰 문제는 없지만, 보안 커버리지를 높이기 위한 선택 사항
+//       - 장기적으로 Set → List 구조로 변경하여 jti 정렬 및 관리 방식 개선 여부도 판단 필요
+
     @Override
     public void logout() throws Exception {
         JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
@@ -72,7 +79,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
         try {
             String userId = jwtTokenProvider.getUserId(token);
-            jwtTokenProvider.addToBlacklist(token); // 블랙리스트 등록
+            jwtTokenProvider.addAllTokensToBlacklist(userId); // 블랙리스트 등록
             loggingUtil.logSuccess(Action.LOGOUT, "Logout success: " + userId);
         } catch (BadCredentialsException e) {
             loggingUtil.logFail(Action.LOGOUT, "Invalid token: " + token);
@@ -89,7 +96,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
         try {
             if (token != null) {
-                jwtTokenProvider.addToBlacklist(token);
+                jwtTokenProvider.addAllTokensToBlacklist(userId);
                 loggingUtil.logSuccess(Action.FORCE, "Force logout with token: " + userId);
             } else {
                 loggingUtil.logSuccess(Action.FORCE, "Force logout without token: " + userId);
