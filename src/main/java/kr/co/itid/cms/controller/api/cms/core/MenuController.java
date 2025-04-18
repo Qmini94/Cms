@@ -6,8 +6,10 @@ import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 /**
@@ -17,6 +19,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/menu")
+@Validated
 public class MenuController {
 
     private final MenuService menuService;
@@ -36,12 +39,14 @@ public class MenuController {
     /**
      * 특정 이름을 가진 드라이브의 하위 메뉴를 조회합니다.
      *
-     * @param name 드라이브 또는 메뉴 이름
+     * @param name 드라이브 또는 메뉴 이름 (필수, 공백 불가)
      * @return ApiResponse&lt;List&lt;MenuResponse&gt;&gt; 하위 메뉴 목록을 포함한 응답
      * @throws Exception 하위 메뉴 조회 중 오류 발생 시
      */
     @GetMapping("/{name}")
-    public ResponseEntity<ApiResponse<List<MenuResponse>>> getChildrenByName(@PathVariable String name) throws Exception {
+    public ResponseEntity<ApiResponse<List<MenuResponse>>> getChildrenByName(
+            @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name) throws Exception {
+
         List<MenuResponse> children = menuService.getAllChildrenByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
@@ -49,12 +54,14 @@ public class MenuController {
     /**
      * 특정 이름을 가진 드라이브의 하위 메뉴를 TREE 구성을 위해 전체 데이터를 조회합니다.
      *
-     * @param name 드라이브 또는 메뉴 이름
-     * @return ApiResponse&lt;List&lt;MenuResponse&gt;&gt; 하위 메뉴 목록을 포함한 응답
-     * @throws Exception 하위 메뉴 조회 중 오류 발생 시
+     * @param name 드라이브 또는 메뉴 이름 (필수, 공백 불가)
+     * @return ApiResponse&lt;List&lt;MenuTreeResponse&gt;&gt; 트리 형태의 하위 메뉴 응답
+     * @throws Exception 트리 조회 중 오류 발생 시
      */
     @GetMapping("/tree/{name}")
-    public ResponseEntity<ApiResponse<List<MenuTreeResponse>>> getChildrenTreeByName(@PathVariable String name) throws Exception {
+    public ResponseEntity<ApiResponse<List<MenuTreeResponse>>> getChildrenTreeByName(
+            @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name) throws Exception {
+
         List<MenuTreeResponse> children = menuService.getAllChildrenTreeByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
     }

@@ -3,6 +3,7 @@ package kr.co.itid.cms.service.cms.core.impl;
 import kr.co.itid.cms.dto.cms.core.site.SiteResponse;
 import kr.co.itid.cms.entity.cms.core.Site;
 import kr.co.itid.cms.enums.Action;
+import kr.co.itid.cms.mapper.core.SiteMapper;
 import kr.co.itid.cms.repository.cms.core.SiteRepository;
 import kr.co.itid.cms.service.cms.core.SiteService;
 import kr.co.itid.cms.util.LoggingUtil;
@@ -29,7 +30,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
             List<Site> sites = siteRepository.findAll();
             loggingUtil.logSuccess(Action.RETRIEVE, "All site data loaded");
             return sites.stream()
-                    .map(this::convertToResponse)
+                    .map(SiteMapper::toResponse)
                     .collect(Collectors.toList());
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "Database error while loading site data");
@@ -38,9 +39,5 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
             loggingUtil.logFail(Action.RETRIEVE, "Unexpected error while loading site data");
             throw processException("Unexpected error", e);
         }
-    }
-
-    private SiteResponse convertToResponse(Site site) {
-        return SiteResponse.fromEntity(site);
     }
 }

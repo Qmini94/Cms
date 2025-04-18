@@ -6,11 +6,13 @@ import kr.co.itid.cms.service.cms.core.SiteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 /**
@@ -20,6 +22,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/list/site")
+@Validated
 public class SiteController {
 
     private final SiteService siteService;
@@ -32,7 +35,9 @@ public class SiteController {
      */
     @PreAuthorize("@permService.hasAccess(#menuId, 'VIEW')")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData(@RequestParam long menuId) throws Exception {
+    public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData(
+            @RequestParam @Positive(message = "menuId는 1 이상의 값이어야 합니다") long menuId) throws Exception {
+
         List<SiteResponse> sites = siteService.getSiteAllData();
         return ResponseEntity.ok(ApiResponse.success(sites));
     }
