@@ -12,9 +12,13 @@ public record JwtAuthenticatedUser(
 
     public boolean isAdmin() {
         return userLevel == 1;
-    } 
+    }
 
     public boolean isGuest() {
         return userIdx != null && userIdx == -1;
+    }
+
+    public boolean isDev() {
+        return userIdx != null && userIdx == 0;
     }
 }

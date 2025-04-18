@@ -37,7 +37,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 loggingUtil.logFail(Action.RETRIEVE, "User not logged in or invalid principal");
                 throw processException("User not logged in", e);
             }
-            if (!user.isGuest()) {
+            if (!user.isGuest() && !user.isDev()) {
                 HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder
                         .currentRequestAttributes()).getResponse();
                 String newToken = jwtTokenProvider.recreateTokenFrom(user.token());
