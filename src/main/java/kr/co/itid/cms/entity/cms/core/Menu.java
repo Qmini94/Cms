@@ -1,6 +1,7 @@
 package kr.co.itid.cms.entity.cms.core;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -9,6 +10,7 @@ import javax.persistence.*;
 @Table(name = "_cms_menu")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Menu {
 
     @Id

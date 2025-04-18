@@ -1,6 +1,7 @@
 package kr.co.itid.cms.entity.cms.core;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -8,9 +9,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "egov_member")
 @Getter
 @Setter
-@Table(name = "egov_member")
+@NoArgsConstructor
 public class Member {
 
     @Id
