@@ -44,11 +44,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             claims.get("userLevel", Integer.class),
                             token
                     );
-
-                    // 슬라이딩 토큰 재발급
-                    String newToken = jwtTokenProvider.recreateTokenFrom(token);
-                    ResponseCookie cookie = jwtTokenProvider.createAccessTokenCookie(newToken);
-                    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
                 } else {
                     user = createGuestUser();
                 }

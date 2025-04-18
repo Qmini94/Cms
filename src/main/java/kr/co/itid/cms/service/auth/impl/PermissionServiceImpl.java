@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.auth.impl;
 
+import kr.co.itid.cms.config.security.JwtTokenProvider;
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.service.auth.PermissionResolverService;
@@ -8,7 +9,13 @@ import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletResponse;
 
 @Service("permService")
 @RequiredArgsConstructor
@@ -16,6 +23,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
     private final LoggingUtil loggingUtil;
     private final PermissionResolverService permissionResolverService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public boolean hasAccess(long menuId, String permission) throws Exception {
@@ -28,6 +36,16 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             } catch (Exception e) {
                 loggingUtil.logFail(Action.RETRIEVE, "User not logged in or invalid principal");
                 throw processException("User not logged in", e);
+            }
+            if (!user.isGuest()) {
+                HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder
+                        .currentRequestAttributes()).getResponse();
+                String newToken = jwtTokenProvider.recreateTokenFrom(user.token());
+                ResponseCookie cookie = jwtTokenProvider.createAccessTokenCookie(newToken);
+
+                if (response != null) {
+                    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+                }
             }
 
             if (user.isAdmin()) {
