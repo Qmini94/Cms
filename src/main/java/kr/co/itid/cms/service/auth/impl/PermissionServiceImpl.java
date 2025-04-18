@@ -45,6 +45,8 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
                 if (response != null) {
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+                } else {
+                    loggingUtil.logFail(Action.RETRIEVE,"여기일거같은데... Response is null, cannot set cookie"); // DEBUG:
                 }
             }
 
