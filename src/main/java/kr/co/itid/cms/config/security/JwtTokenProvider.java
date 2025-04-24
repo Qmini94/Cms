@@ -198,21 +198,26 @@ public class JwtTokenProvider {
         redisTemplate.delete(userTokenKey);
     }
 
-
+    /* TODO: [보완 예정] user_tokens:{userId} 에서 제거된 jti를 별도 expired_jti:{jti} 키에 백업하도록 개선 고려
+           - TTL(accessTokenValidity)과 함께 저장하여 만료되도록 설정
+           - isBlacklisted() 메서드에서 blacklist:{jti} 외에 expired_jti:{jti}도 함께 검사
+           - 현재는 최대 20개 jti만 유지되므로, 오래된 토큰이 살아있을 수 있음
+           - 실무적으로 큰 문제는 없지만, 보안 커버리지를 높이기 위한 선택 사항
+           - 장기적으로 Set → List 구조로 변경하여 jti 정렬 및 관리 방식 개선 여부도 판단 필요 */
     private void storeJtiToRedis(String userId, String jti, long expirationMillis) {
-        String key = "user_tokens:" + userId;
-        redisTemplate.opsForSet().add(key, jti);
-        redisTemplate.expire(key, expirationMillis, TimeUnit.SECONDS);
+        String tokenKey = "user_tokens:" + userId;
+        redisTemplate.opsForSet().add(tokenKey, jti);
+        redisTemplate.expire(tokenKey, expirationMillis, TimeUnit.SECONDS);
 
-        Long size = redisTemplate.opsForSet().size(key);
+        Long size = redisTemplate.opsForSet().size(tokenKey);
         if (size != null && size > 20) {
-            Set<String> allJtis = redisTemplate.opsForSet().members(key);
+            Set<String> allJtis = redisTemplate.opsForSet().members(tokenKey);
             int toRemove = size.intValue() - 20;
 
             if (allJtis != null && toRemove > 0) {
                 Iterator<String> iter = allJtis.iterator();
                 while (iter.hasNext() && toRemove-- > 0) {
-                    redisTemplate.opsForSet().remove(key, iter.next());
+                    redisTemplate.opsForSet().remove(tokenKey, iter.next());
                 }
             }
         }

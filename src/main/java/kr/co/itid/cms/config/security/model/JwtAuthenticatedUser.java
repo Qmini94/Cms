@@ -7,7 +7,8 @@ public record JwtAuthenticatedUser(
         String userId,
         String userName,
         int userLevel,
-        String token
+        String token,
+        String hostname
 ) implements Serializable {
 
     public boolean isAdmin() {

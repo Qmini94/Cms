@@ -1,10 +1,9 @@
-package kr.co.itid.cms.mapper.core;
+package kr.co.itid.cms.mapper.common;
 
-import kr.co.itid.cms.dto.cms.core.site.SiteResponse;
-import kr.co.itid.cms.entity.cms.core.Site;
+import kr.co.itid.cms.dto.common.site.SiteResponse;
+import kr.co.itid.cms.entity.common.Site;
 
 public class SiteMapper {
-
     public static SiteResponse toResponse(Site site) {
         return new SiteResponse(
                 site.getIdx(), site.getSiteName(), site.getSiteDomain(), site.getSitePort(),

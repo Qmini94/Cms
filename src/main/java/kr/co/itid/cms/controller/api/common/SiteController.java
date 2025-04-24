@@ -1,8 +1,8 @@
-package kr.co.itid.cms.controller.api.cms.core;
+package kr.co.itid.cms.controller.api.common;
 
 import kr.co.itid.cms.dto.common.ApiResponse;
-import kr.co.itid.cms.dto.cms.core.site.SiteResponse;
-import kr.co.itid.cms.service.cms.core.SiteService;
+import kr.co.itid.cms.dto.common.site.SiteResponse;
+import kr.co.itid.cms.service.common.SiteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

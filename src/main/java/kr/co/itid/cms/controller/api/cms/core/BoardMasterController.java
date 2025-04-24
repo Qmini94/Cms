@@ -3,7 +3,7 @@ package kr.co.itid.cms.controller.api.cms.core;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.entity.cms.core.BoardMaster;
-import kr.co.itid.cms.mapper.core.BoardMapper;
+import kr.co.itid.cms.mapper.cms.core.BoardMapper;
 import kr.co.itid.cms.service.cms.core.BoardMasterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/list/board")
-@Validated // ✅ PathVariable / RequestParam 유효성 검증 활성화
+@Validated
 public class BoardMasterController {
 
     private final BoardMasterService boardMasterService;

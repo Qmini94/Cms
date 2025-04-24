@@ -1,4 +1,4 @@
-package kr.co.itid.cms.entity.cms.core;
+package kr.co.itid.cms.entity.common;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

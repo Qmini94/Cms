@@ -37,21 +37,13 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 loggingUtil.logFail(Action.RETRIEVE, "User not logged in or invalid principal");
                 throw processException("User not logged in", e);
             }
-            if (!user.isGuest() && !user.isDev()) {
-                HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder
-                        .currentRequestAttributes()).getResponse();
-                String newToken = jwtTokenProvider.recreateTokenFrom(user.token());
-                ResponseCookie cookie = jwtTokenProvider.createAccessTokenCookie(newToken);
-
-                if (response != null) {
-                    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-                }
-            }
 
             if (user.isAdmin()) {
                 loggingUtil.logSuccess(Action.RETRIEVE, "Admin override access granted for user=" + user.userId());
                 return true;
             }
+
+            refreshTokenIfRequired(user);
 
             try {
                 boolean result = permissionResolverService.resolvePermission(user, menuId, permission);
@@ -71,6 +63,19 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Access check error: " + e.getMessage());
             throw processException("Access check error", e);
+        }
+    }
+
+    private void refreshTokenIfRequired(JwtAuthenticatedUser user) {
+        if (user.isGuest() || user.isDev()) return;
+
+        HttpServletResponse response = ((ServletRequestAttributes)
+                RequestContextHolder.currentRequestAttributes()).getResponse();
+        String newToken = jwtTokenProvider.recreateTokenFrom(user.token());
+        ResponseCookie cookie = jwtTokenProvider.createAccessTokenCookie(newToken);
+
+        if (response != null) {
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         }
     }
 }

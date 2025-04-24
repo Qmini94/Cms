@@ -28,11 +28,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = jwtTokenProvider.resolveToken(request);
             String uri = request.getRequestURI();
-            String referer = request.getHeader("Referer");
+            String hostname = request.getHeader("X-Site-Hostname");
+            hostname = StringUtils.hasText(hostname) ? hostname : "unknown";
 
             // DEBUG: 요청 정보 로그
             logger.info("[JWT] 요청 URI: " + uri); // DEBUG:
-            logger.info("[JWT] Referer: " + referer); // DEBUG:
+            logger.info("[JWT] X-Site-Hostname: " + hostname); // DEBUG:
             logger.info("[JWT] 토큰 존재 여부: " + StringUtils.hasText(token)); // DEBUG:
 
             JwtAuthenticatedUser user = null;
@@ -40,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(token)) {
                 if (jwtTokenProvider.isBlacklisted(token)) {
                     logger.info("[JWT] 블랙리스트 토큰 감지 → 게스트로 처리"); // DEBUG:
-                    user = createGuestUser(request);
+                    user = createGuestUser(request, hostname);
                 } else if (jwtTokenProvider.validateToken(token)) {
                     logger.info("[JWT] 유효한 토큰 → 사용자 인증 처리"); // DEBUG:
                     Claims claims = jwtTokenProvider.getClaimsFromToken(token);
@@ -49,15 +50,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             claims.getSubject(),
                             claims.get("userName", String.class),
                             claims.get("userLevel", Integer.class),
-                            token
+                            token,
+                            hostname
                     );
                 } else {
                     logger.info("[JWT] 토큰 유효성 검증 실패 → 게스트 처리"); // DEBUG:
-                    user = createGuestUser(request);
+                    user = createGuestUser(request, hostname);
                 }
             } else {
                 logger.info("[JWT] 토큰 없음 → 게스트 처리"); // DEBUG:
-                user = createGuestUser(request);
+                user = createGuestUser(request, hostname);
             }
 
             // DEBUG: 최종 인증 유저 정보 출력
@@ -68,7 +70,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             // 관리자 접근 체크
-            if (isUnauthorizedAdmin(user, request)) {
+            if (isUnauthorizedAdmin(user, uri, hostname)) {
                 logger.warn("[JWT] 관리자 페이지 접근 권한 없음 → 403 응답"); // DEBUG:
                 writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "관리자 권한 필요");
                 return;
@@ -83,18 +85,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private JwtAuthenticatedUser createGuestUser(HttpServletRequest request) {
-        String referer = request.getHeader("Referer");
+    private JwtAuthenticatedUser createGuestUser(HttpServletRequest request, String hostname) {
+        String originHost = request.getServerName();
+        int originPort = request.getServerPort();
+        String origin = (originPort != 80 && originPort != 443)
+                ? originHost + ":" + originPort
+                : originHost;
 
         // DEBUG: 개발 환경 프론트에서 접근 시 관리자 권한 부여
-        if (referer != null && referer.startsWith("http://localhost:3000")) {
+        if ("localhost:3000".equalsIgnoreCase(origin)) {
             logger.info("[JWT] 로컬 개발환경 접근 → 관리자 권한 임시 부여"); // DEBUG:
             return new JwtAuthenticatedUser(
                     0L,
                     "DEV_ADMIN",
                     "개발관리자",
                     1, // 관리자 레벨
-                    "dev-token"
+                    "dev-token",
+                    hostname
             );
         }
 
@@ -104,16 +111,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "GUEST",
                 "게스트",
                 11,
-                "not has token"
+                "not has token",
+                hostname
         );
     }
 
-    private boolean isAdminAccess(HttpServletRequest request) {
-        String referer = request.getHeader("Referer");
-        String uri = request.getRequestURI();
-
-        boolean result = referer != null
-                && referer.contains("/admin/")
+    private boolean isAdminAccess(String uri, String hostname) {
+        boolean result = hostname != null
+                && hostname.contains("admin")
                 && !uri.startsWith("/api/auth/");
 
         // DEBUG: 관리자 접근 여부 로그
@@ -122,8 +127,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return result;
     }
 
-    private boolean isUnauthorizedAdmin(JwtAuthenticatedUser user, HttpServletRequest request) {
-        boolean unauthorized = isAdminAccess(request) && !user.isAdmin();
+    private boolean isUnauthorizedAdmin(JwtAuthenticatedUser user, String uri, String hostname) {
+        boolean unauthorized = isAdminAccess(uri, hostname) && !user.isAdmin();
         // DEBUG: 관리자 권한 체크 로그
         logger.info("[JWT] 관리자 권한 있음?: " + user.isAdmin() + ", 접근 차단?: " + unauthorized); // DEBUG:
         return unauthorized;

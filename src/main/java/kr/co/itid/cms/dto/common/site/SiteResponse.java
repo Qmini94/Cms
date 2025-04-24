@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.cms.core.site;
+package kr.co.itid.cms.dto.common.site;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

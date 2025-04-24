@@ -1,7 +1,5 @@
 package kr.co.itid.cms.service.auth;
 
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * PermissionService 인터페이스
  * 사용자 권한 관련 서비스 메서드를 정의합니다.

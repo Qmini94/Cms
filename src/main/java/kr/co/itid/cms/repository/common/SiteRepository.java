@@ -1,6 +1,6 @@
-package kr.co.itid.cms.repository.cms.core;
+package kr.co.itid.cms.repository.common;
 
-import kr.co.itid.cms.entity.cms.core.Site;
+import kr.co.itid.cms.entity.common.Site;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

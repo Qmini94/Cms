@@ -1,4 +1,4 @@
-package kr.co.itid.cms.mapper.core;
+package kr.co.itid.cms.mapper.cms.core;
 
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
 import kr.co.itid.cms.entity.cms.core.BoardMaster;
