@@ -39,11 +39,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             JwtAuthenticatedUser user = null;
 
             if (StringUtils.hasText(token)) {
-                if (jwtTokenProvider.isBlacklisted(token)) {
-                    logger.info("[JWT] 블랙리스트 토큰 감지 → 게스트로 처리"); // DEBUG:
-                    user = createGuestUser(request, hostname);
-                } else if (jwtTokenProvider.validateToken(token)) {
-                    logger.info("[JWT] 유효한 토큰 → 사용자 인증 처리"); // DEBUG:
+                try {
+                    jwtTokenProvider.validateToken(token);
+
+                    logger.info("[JWT] 유효한 토큰 → 사용자 인증 처리");
                     Claims claims = jwtTokenProvider.getClaimsFromToken(token);
                     user = new JwtAuthenticatedUser(
                             claims.get("idx", Long.class),
@@ -53,10 +52,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             token,
                             hostname
                     );
-                } else {
-                    logger.info("[JWT] 토큰 유효성 검증 실패 → 게스트 처리"); // DEBUG:
+
+                } catch (Exception e) {
+                    logger.info("[JWT] 토큰 검증 실패 ({}): 게스트 처리" + e.getMessage()); // DEBUG:
                     user = createGuestUser(request, hostname);
                 }
+
             } else {
                 logger.info("[JWT] 토큰 없음 → 게스트 처리"); // DEBUG:
                 user = createGuestUser(request, hostname);

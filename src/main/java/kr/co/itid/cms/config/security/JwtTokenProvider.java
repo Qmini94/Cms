@@ -120,31 +120,20 @@ public class JwtTokenProvider {
                 .build();
     }
 
-    public boolean validateToken(String token) {
-        try {
-            if (isBlacklisted(token)) {
-                System.err.println("블랙리스트에 등록된 토큰입니다.");
-                return false;
-            }
+    public void validateToken(String token) throws Exception {
+        if (isBlacklisted(token)) {
+            throw new Exception("Token is blacklisted");
+        }
 
+        try {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .setAllowedClockSkewSeconds(60)
                     .build()
                     .parseClaimsJws(token);
-            return true;
-        } catch (ExpiredJwtException e) {
-            System.err.println("토큰 만료: " + e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            System.err.println("지원하지 않는 토큰 형식: " + e.getMessage());
-        } catch (MalformedJwtException e) {
-            System.err.println("잘못된 JWT 구조: " + e.getMessage());
-        } catch (io.jsonwebtoken.security.SecurityException e) {
-            System.err.println("잘못된 서명(Security): " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            System.err.println("잘못된 인자: " + e.getMessage());
+        } catch (Exception e) {
+            throw new Exception("Token invalid", e);
         }
-        return false;
     }
 
     public boolean isBlacklisted(String token) {
