@@ -36,6 +36,7 @@ public class VisitorMigrationServiceImpl extends EgovAbstractServiceImpl impleme
 
             Map<String, Integer> webMap = new HashMap<>();
             Map<String, Integer> mobileMap = new HashMap<>();
+            Map<String, List<String>> compoundKeyToRedisKeys = new HashMap<>();
 
             for (String key : keys) {
                 try {
@@ -47,23 +48,30 @@ public class VisitorMigrationServiceImpl extends EgovAbstractServiceImpl impleme
                     String deviceType = parts[4];
                     String compoundKey = date + "|" + hostname;
 
-                    int count = Integer.parseInt(redisTemplate.opsForValue().get(key));
+                    String value = redisTemplate.opsForValue().get(key);
+                    if (value == null) continue;
+                    int count = Integer.parseInt(value);
+
                     if ("web".equals(deviceType)) {
                         webMap.merge(compoundKey, count, Integer::sum);
                     } else if ("mobile".equals(deviceType)) {
                         mobileMap.merge(compoundKey, count, Integer::sum);
                     }
 
-                    redisTemplate.delete(key);
+                    compoundKeyToRedisKeys
+                            .computeIfAbsent(compoundKey, k -> new ArrayList<>())
+                            .add(key);
+
                 } catch (Exception e) {
                     loggingUtil.logFail(Action.UPDATE, "Skip broken key: " + key + " - " + e.getMessage());
-                    // 계속해서 다음 key 처리 필요. catch 만하고 예외 던지면 안됨.
                 }
             }
 
             Set<String> allKeys = new HashSet<>();
             allKeys.addAll(webMap.keySet());
             allKeys.addAll(mobileMap.keySet());
+
+            List<String> keysToDelete = new ArrayList<>();
 
             for (String compoundKey : allKeys) {
                 String[] parts = compoundKey.split("\\|");
@@ -80,13 +88,22 @@ public class VisitorMigrationServiceImpl extends EgovAbstractServiceImpl impleme
                             web_count = web_count + VALUES(web_count),
                             mobile_count = mobile_count + VALUES(mobile_count)
                     """, LocalDate.parse(date), hostname, webCount, mobileCount);
+
+                    // 쿼리 성공한 경우에만 삭제할 키에 추가
+                    keysToDelete.addAll(compoundKeyToRedisKeys.getOrDefault(compoundKey, Collections.emptyList()));
+
                 } catch (DataAccessException e) {
-                    loggingUtil.logFail(Action.UPDATE, "DB error: " + e.getMessage());
-                    throw processException("DB error. " + e.getMessage(), e);
+                    loggingUtil.logFail(Action.UPDATE, "DB error for " + compoundKey + ": " + e.getMessage());
+                    // 실패한 경우 해당 키는 Redis에 남김
                 }
             }
 
-            loggingUtil.logSuccess(Action.UPDATE, "Visitor stats migration done");
+            // 최종적으로 성공한 키만 삭제
+            if (!keysToDelete.isEmpty()) {
+                redisTemplate.delete(keysToDelete);
+            }
+
+            loggingUtil.logSuccess(Action.UPDATE, "Visitor stats migration done. Inserted: " + keysToDelete.size() + " keys");
 
         } catch (Exception e) {
             loggingUtil.logFail(Action.UPDATE, "Migration failed: " + e.getMessage());
