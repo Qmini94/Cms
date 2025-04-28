@@ -23,7 +23,7 @@ public class VisitorMigrationServiceImpl extends EgovAbstractServiceImpl impleme
     private final LoggingUtil loggingUtil;
 
     @Override
-    @Scheduled(cron = "0 0 0 * * *") // 매일 00시 정각
+    @Scheduled(cron = "0 48 16 * * *") // 매일 00시 정각
     public void migrateDailyVisitorStats() throws Exception {
         loggingUtil.logAttempt(Action.UPDATE, "Try to migrate daily visitor stats");
 
@@ -57,11 +57,15 @@ public class VisitorMigrationServiceImpl extends EgovAbstractServiceImpl impleme
                     redisTemplate.delete(key);
                 } catch (Exception e) {
                     loggingUtil.logFail(Action.UPDATE, "Skip broken key: " + key + " - " + e.getMessage());
-                    // continue next key
+                    // 계속해서 다음 key 처리 필요. catch 만하고 예외 던지면 안됨.
                 }
             }
 
-            for (String compoundKey : webMap.keySet()) {
+            Set<String> allKeys = new HashSet<>();
+            allKeys.addAll(webMap.keySet());
+            allKeys.addAll(mobileMap.keySet());
+
+            for (String compoundKey : allKeys) {
                 String[] parts = compoundKey.split("\\|");
                 String date = parts[0];
                 String hostname = parts[1];
