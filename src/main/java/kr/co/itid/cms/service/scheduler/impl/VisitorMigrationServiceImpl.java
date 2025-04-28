@@ -23,7 +23,7 @@ public class VisitorMigrationServiceImpl extends EgovAbstractServiceImpl impleme
     private final LoggingUtil loggingUtil;
 
     @Override
-    @Scheduled(cron = "0 48 16 * * *") // 매일 00시 정각
+    @Scheduled(cron = "0 0 0 * * *") // 매일 00시 정각
     public void migrateDailyVisitorStats() throws Exception {
         loggingUtil.logAttempt(Action.UPDATE, "Try to migrate daily visitor stats");
 
