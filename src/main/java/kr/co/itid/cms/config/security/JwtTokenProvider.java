@@ -2,18 +2,25 @@ package kr.co.itid.cms.config.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.entity.cms.core.Member;
 import kr.co.itid.cms.repository.cms.core.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Duration;
@@ -102,6 +109,14 @@ public class JwtTokenProvider {
         return claims;
     }
 
+    public Claims getClaimsFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
     public String resolveToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
         if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")) {
@@ -127,6 +142,51 @@ public class JwtTokenProvider {
                 .maxAge(Duration.ofSeconds(accessTokenValidity))
                 .sameSite(SAME_SITE_NONE)  //Strict, Lax
                 .build();
+    }
+
+    public void refreshIfNeeded(JwtAuthenticatedUser user) {
+        if (user.isGuest() || user.isDev()) return;
+
+        // 1. 항상 accessToken 재발급 (슬라이딩 유지)
+        String newToken = recreateTokenFrom(user.token());
+        ResponseCookie cookie = createAccessTokenCookie(newToken);
+
+        HttpServletResponse response = ((ServletRequestAttributes)
+                RequestContextHolder.currentRequestAttributes()).getResponse();
+
+        if (response != null) {
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        }
+
+        // 2. 새 토큰을 기반으로 SecurityContext 갱신
+        Claims claims = getClaimsFromToken(newToken);
+
+        JwtAuthenticatedUser refreshedUser = new JwtAuthenticatedUser(
+                claims.get("idx", Long.class),
+                claims.getSubject(),
+                claims.get("userName", String.class),
+                claims.get("userLevel", Integer.class),
+                newToken,
+                user.hostname()
+        );
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(refreshedUser, null, null);
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    public String getUserId(String token) {
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+
+            return claims.getBody().getSubject();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public void validateToken(String token) throws Exception {
@@ -158,27 +218,6 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return true;
         }
-    }
-
-    public String getUserId(String token) {
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
-
-            return claims.getBody().getSubject();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    public Claims getClaimsFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
     }
 
     public void addUserToBlacklist(String userId) {

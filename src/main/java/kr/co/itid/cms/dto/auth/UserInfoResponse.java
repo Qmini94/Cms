@@ -12,4 +12,5 @@ public class UserInfoResponse {
     private String userId;
     private String level;
     private Integer idx;
+//    private Integer exp; TODO:만료시간 추가해야함.
 }
