@@ -3,6 +3,7 @@ package kr.co.itid.cms.config.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import kr.co.itid.cms.entity.cms.core.Member;
+import kr.co.itid.cms.repository.cms.core.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -35,6 +36,7 @@ public class JwtTokenProvider {
     private long accessTokenValidity;
 
     private final StringRedisTemplate redisTemplate;
+    private final MemberRepository memberService; // TODO: 나중에 service로 변경해야함
     private Key key;
 
 
@@ -47,10 +49,6 @@ public class JwtTokenProvider {
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
         Date issuedAt = Date.from(now.toInstant());
         Date expiration = Date.from(now.plusSeconds(accessTokenValidity).toInstant());
-        String jti = (String) claims.get("jti");
-        if (jti != null && !jti.isEmpty()) {
-            storeJtiToRedis(userId, jti, accessTokenValidity);
-        }
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -67,14 +65,27 @@ public class JwtTokenProvider {
                 .build()
                 .parseClaimsJws(oldToken)
                 .getBody();
-        String newJti = UUID.randomUUID().toString();
-        // 새로운 claims 복사 후 jti 갱신
-        Map<String, Object> newClaims = new HashMap<>(oldClaims);
-        newClaims.put("jti", newJti);
 
         String userId = oldClaims.getSubject();
 
-        return createToken(userId, newClaims);
+        // 먼저 changedClaim:{userId} Redis에 있는지 확인
+        Boolean needFreshClaims = redisTemplate.hasKey("changedClaim:" + userId);
+
+        Map<String, Object> claims;
+
+        if (Boolean.TRUE.equals(needFreshClaims)) {
+            //Redis에 changedClaim 있으면, DB에서 새로 조회해서 claims 만들기
+            Optional<Member> optionalMember = memberService.findByUserId(userId);
+            Member member = optionalMember.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+            claims = getClaims(member);
+
+            //changedClaim Redis 키 삭제
+            redisTemplate.delete("changedClaim:" + userId);
+        } else {
+            claims = new HashMap<>(oldClaims);
+        }
+
+        return createToken(userId, claims);
     }
 
     public Map<String, Object> getClaims(Member member) {
@@ -83,9 +94,7 @@ public class JwtTokenProvider {
         int idx = member.getIdx();
         int userLevel = member.getUserLevel();
         String userName = member.getUserName();
-        String jti = UUID.randomUUID().toString();
 
-        claims.put("jti", jti);
         claims.put("userLevel", userLevel);
         claims.put("userName", userName);
         claims.put("idx", idx);
@@ -144,9 +153,8 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
 
-            String jti = claims.get("jti", String.class);
-            return jti != null && Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + jti));
-
+            String userId = claims.getSubject();
+            return userId != null && Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + userId));
         } catch (JwtException | IllegalArgumentException e) {
             return true;
         }
@@ -173,42 +181,11 @@ public class JwtTokenProvider {
                 .getBody();
     }
 
-    public void addAllTokensToBlacklist(String userId) {
-        String userTokenKey = "user_tokens:" + userId;
-        Set<String> jtiSet = redisTemplate.opsForSet().members(userTokenKey);
-
-        if (jtiSet == null || jtiSet.isEmpty()) {
-            return;
-        }
-        //TTL 오버헤드는 매우 낮기 때문에 토큰마다의 만료시간 계산하기보단 그냥 엑세스토큰의 만료시간을 다시 설정.
-        for (String jti : jtiSet) {
-            redisTemplate.opsForValue().set("blacklist:" + jti, "true", accessTokenValidity, TimeUnit.SECONDS);
-        }
-        redisTemplate.delete(userTokenKey);
+    public void addUserToBlacklist(String userId) {
+        redisTemplate.opsForValue().set("blacklist:" + userId, "true", accessTokenValidity, TimeUnit.SECONDS);
     }
 
-    /* TODO: [보완 예정] user_tokens:{userId} 에서 제거된 jti를 별도 expired_jti:{jti} 키에 백업하도록 개선 고려
-           - TTL(accessTokenValidity)과 함께 저장하여 만료되도록 설정
-           - isBlacklisted() 메서드에서 blacklist:{jti} 외에 expired_jti:{jti}도 함께 검사
-           - 현재는 최대 20개 jti만 유지되므로, 오래된 토큰이 살아있을 수 있음
-           - 실무적으로 큰 문제는 없지만, 보안 커버리지를 높이기 위한 선택 사항
-           - 장기적으로 Set → List 구조로 변경하여 jti 정렬 및 관리 방식 개선 여부도 판단 필요 */
-    private void storeJtiToRedis(String userId, String jti, long expirationMillis) {
-        String tokenKey = "user_tokens:" + userId;
-        redisTemplate.opsForSet().add(tokenKey, jti);
-        redisTemplate.expire(tokenKey, expirationMillis, TimeUnit.SECONDS);
-
-        Long size = redisTemplate.opsForSet().size(tokenKey);
-        if (size != null && size > 20) {
-            Set<String> allJtis = redisTemplate.opsForSet().members(tokenKey);
-            int toRemove = size.intValue() - 20;
-
-            if (allJtis != null && toRemove > 0) {
-                Iterator<String> iter = allJtis.iterator();
-                while (iter.hasNext() && toRemove-- > 0) {
-                    redisTemplate.opsForSet().remove(tokenKey, iter.next());
-                }
-            }
-        }
+    public void deleteUserToBlacklist(String userId) {
+        redisTemplate.delete("blacklist:" + userId);
     }
 }

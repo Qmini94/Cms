@@ -38,12 +38,12 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 throw processException("User not logged in", e);
             }
 
+            refreshTokenIfRequired(user);
+
             if (user.isAdmin()) {
                 loggingUtil.logSuccess(Action.RETRIEVE, "Admin override access granted for user=" + user.userId());
                 return true;
             }
-
-            refreshTokenIfRequired(user);
 
             try {
                 boolean result = permissionResolverService.resolvePermission(user, menuId, permission);

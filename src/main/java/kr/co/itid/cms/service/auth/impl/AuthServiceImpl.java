@@ -53,6 +53,8 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
             member.setLastLoginDate(LocalDateTime.now());
             memberRepository.save(member);
 
+            jwtTokenProvider.deleteUserToBlacklist(userId);
+
             loggingUtil.logSuccess(Action.LOGIN, "Login success: " + userId);
             return new TokenResponse(accessToken);
         } catch (UsernameNotFoundException | BadCredentialsException e) {
@@ -72,7 +74,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
         try {
             String userId = jwtTokenProvider.getUserId(token);
-            jwtTokenProvider.addAllTokensToBlacklist(userId); // 블랙리스트 등록
+            jwtTokenProvider.addUserToBlacklist(userId); // 블랙리스트 등록
             loggingUtil.logSuccess(Action.LOGOUT, "Logout success: " + userId);
         } catch (BadCredentialsException e) {
             loggingUtil.logFail(Action.LOGOUT, "Invalid token: " + token);
@@ -89,7 +91,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
         try {
             if (token != null) {
-                jwtTokenProvider.addAllTokensToBlacklist(userId);
+                jwtTokenProvider.addUserToBlacklist(userId);
                 loggingUtil.logSuccess(Action.FORCE, "Force logout with token: " + userId);
             } else {
                 loggingUtil.logSuccess(Action.FORCE, "Force logout without token: " + userId);
