@@ -23,7 +23,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     private final LoggingUtil loggingUtil;
 
     @Override
-    public List<MenuResponse> getAllDrives() throws Exception {
+    public List<MenuResponse> getRootMenus() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get all drives");
 
         try {
@@ -31,16 +31,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             loggingUtil.logSuccess(Action.RETRIEVE, "Got all drives");
 
             return menus.stream()
-                    .map(menu -> new MenuResponse(
-                            menu.getId(),
-                            menu.getParentId(),
-                            menu.getTitle(),
-                            menu.getType(),
-                            menu.getValue(),
-                            menu.getDisplay() != null ? menu.getDisplay().name() : null,
-                            menu.getPathUrl(),
-                            menu.getPathId()
-                    ))
+                    .map(MenuResponse::from)
                     .toList();
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "Database error while getting drives");
@@ -52,41 +43,35 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     }
 
     @Override
-    public List<MenuResponse> getAllChildrenByName(String name) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get children for: " + name);
+    public List<MenuTreeResponse> getMenuTreeLiteByName(String name) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree (lite) for: " + name);
 
         try {
             Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(name)
-                    .orElseThrow(() -> {
-                        loggingUtil.logFail(Action.RETRIEVE, "Drive not found: " + name);
-                        return processException("Drive not found", new NoSuchElementException("Drive not found"));
-                    });
+                    .orElseThrow(() -> processException("Drive not found: " + name));
 
-            loggingUtil.logSuccess(Action.RETRIEVE, "Got children for: " + name);
-            return buildMenuTree(rootMenu.getId());
+            loggingUtil.logSuccess(Action.RETRIEVE, "Got lite tree for: " + name);
+            return buildMenuTreeLite(rootMenu.getId());
         } catch (NoSuchElementException e) {
             throw e;
         } catch (DataAccessException e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Database error while getting children: " + name);
+            loggingUtil.logFail(Action.RETRIEVE, "Database error while getting tree: " + name);
             throw processException("Cannot access database", e);
         } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Unknown error while getting children: " + name);
+            loggingUtil.logFail(Action.RETRIEVE, "Unknown error while getting tree: " + name);
             throw processException("Unexpected error", e);
         }
     }
 
     @Override
-    public List<MenuTreeResponse> getAllChildrenTreeByName(String name) throws Exception {
+    public List<MenuTreeResponse> getMenuTreeByName(String name) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree for: " + name);
 
         try {
             Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(name)
-                    .orElseThrow(() -> {
-                        loggingUtil.logFail(Action.RETRIEVE, "Drive not found: " + name);
-                        return processException("Drive not found", new NoSuchElementException("Drive not found"));
-                    });
+                    .orElseThrow(() -> processException("Drive not found: " + name));
 
-            loggingUtil.logSuccess(Action.RETRIEVE, "Got tree for: " + name);
+            loggingUtil.logSuccess(Action.RETRIEVE, "Got full tree for: " + name);
             return buildMenuTreeResponse(rootMenu.getId());
         } catch (NoSuchElementException e) {
             throw e;
@@ -99,38 +84,19 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         }
     }
 
-    private List<MenuResponse> buildMenuTree(Long parentId) {
-        List<Menu> children = menuRepository.findByParentIdOrderByPositionAsc(parentId);
-
-        return children.stream()
-                .map(menu -> {
-                    MenuResponse response = new MenuResponse(
-                            menu.getId(),
-                            menu.getParentId(),
-                            menu.getTitle(),
-                            menu.getType(),
-                            menu.getValue(),
-                            menu.getDisplay() != null ? menu.getDisplay().name() : null,
-                            menu.getPathUrl(),
-                            menu.getPathId()
-                    );
-                    List<MenuResponse> subChildren = buildMenuTree(menu.getId());
-                    response.setChildren(subChildren);
-                    return response;
-                })
+    private List<MenuTreeResponse> buildMenuTreeLite(Long parentId) {
+        return getChildren(parentId).stream()
+                .map(menu -> MenuTreeResponse.ofLite(menu, buildMenuTreeLite(menu.getId())))
                 .toList();
     }
 
     private List<MenuTreeResponse> buildMenuTreeResponse(Long parentId) {
-        List<Menu> children = menuRepository.findByParentIdOrderByPositionAsc(parentId);
-
-        return children.stream()
-                .map(menu -> {
-                    MenuTreeResponse dto = MenuTreeResponse.fromEntity(menu);
-                    List<MenuTreeResponse> subChildren = buildMenuTreeResponse(menu.getId());
-                    dto.setChildren(subChildren);
-                    return dto;
-                })
+        return getChildren(parentId).stream()
+                .map(menu -> MenuTreeResponse.ofFull(menu, buildMenuTreeResponse(menu.getId())))
                 .toList();
+    }
+
+    private List<Menu> getChildren(Long parentId) {
+        return menuRepository.findByParentIdOrderByPositionAsc(parentId);
     }
 }

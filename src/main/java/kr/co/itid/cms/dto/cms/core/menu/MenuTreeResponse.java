@@ -1,19 +1,18 @@
 package kr.co.itid.cms.dto.cms.core.menu;
 
-import kr.co.itid.cms.entity.cms.core.Menu;
 import kr.co.itid.cms.entity.cms.core.Menu.Display;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class MenuTreeResponse {
     private Long id;
     private Long parentId;
@@ -36,31 +35,47 @@ public class MenuTreeResponse {
     private String boardId;
     private String searchOpt;
     private String pageManager;
+    @Builder.Default
     private List<MenuTreeResponse> children = new ArrayList<>();
 
-    public static MenuTreeResponse fromEntity(Menu menu) {
-        MenuTreeResponse dto = new MenuTreeResponse();
-        dto.setId(menu.getId());
-        dto.setParentId(menu.getParentId());
-        dto.setPosition(menu.getPosition());
-        dto.setLevel(menu.getLevel());
-        dto.setTitle(menu.getTitle());
-        dto.setName(menu.getName());
-        dto.setType(menu.getType());
-        dto.setValue(menu.getValue());
-        dto.setDisplay(menu.getDisplay());
-        dto.setOptSns(menu.getOptSns());
-        dto.setOptShortUrl(menu.getOptShortUrl());
-        dto.setOptQrcode(menu.getOptQrcode());
-        dto.setOptMobile(menu.getOptMobile());
-        dto.setPathUrl(menu.getPathUrl());
-        dto.setPathId(menu.getPathId());
-        dto.setNavi(menu.getNavi());
-        dto.setSerialNo(menu.getSerialNo());
-        dto.setModule(menu.getModule());
-        dto.setBoardId(menu.getBoardId());
-        dto.setSearchOpt(menu.getSearchOpt());
-        dto.setPageManager(menu.getPageManager());
-        return dto;
+    public static MenuTreeResponse ofLite(kr.co.itid.cms.entity.cms.core.Menu menu, List<MenuTreeResponse> children) {
+        return MenuTreeResponse.builder()
+                .id(menu.getId())
+                .parentId(menu.getParentId())
+                .title(menu.getTitle())
+                .type(menu.getType())
+                .value(menu.getValue())
+                .display(menu.getDisplay())
+                .pathUrl(menu.getPathUrl())
+                .pathId(menu.getPathId())
+                .children(children)
+                .build();
+    }
+
+    public static MenuTreeResponse ofFull(kr.co.itid.cms.entity.cms.core.Menu menu, List<MenuTreeResponse> children) {
+        return MenuTreeResponse.builder()
+                .id(menu.getId())
+                .parentId(menu.getParentId())
+                .position(menu.getPosition())
+                .level(menu.getLevel())
+                .title(menu.getTitle())
+                .name(menu.getName())
+                .type(menu.getType())
+                .value(menu.getValue())
+                .display(menu.getDisplay())
+                .optSns(menu.getOptSns())
+                .optShortUrl(menu.getOptShortUrl())
+                .optQrcode(menu.getOptQrcode())
+                .optMobile(menu.getOptMobile())
+                .pathUrl(menu.getPathUrl())
+                .pathId(menu.getPathId())
+                .navi(menu.getNavi())
+                .serialNo(menu.getSerialNo())
+                .module(menu.getModule())
+                .boardId(menu.getBoardId())
+                .searchOpt(menu.getSearchOpt())
+                .pageManager(menu.getPageManager())
+                .children(children)
+                .build();
     }
 }

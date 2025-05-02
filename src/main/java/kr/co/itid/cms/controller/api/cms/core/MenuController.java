@@ -31,8 +31,8 @@ public class MenuController {
      * @throws Exception 메뉴 조회 중 오류 발생 시
      */
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllDrives() throws Exception {
-        List<MenuResponse> menus = menuService.getAllDrives();
+    public ResponseEntity<ApiResponse<List<MenuResponse>>> getRootMenus() throws Exception {
+        List<MenuResponse> menus = menuService.getRootMenus();
         return ResponseEntity.ok(ApiResponse.success(menus));
     }
 
@@ -44,10 +44,10 @@ public class MenuController {
      * @throws Exception 하위 메뉴 조회 중 오류 발생 시
      */
     @GetMapping("/{name}")
-    public ResponseEntity<ApiResponse<List<MenuResponse>>> getChildrenByName(
+    public ResponseEntity<ApiResponse<List<MenuTreeResponse>>> getChildrenByName(
             @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name) throws Exception {
 
-        List<MenuResponse> children = menuService.getAllChildrenByName(name);
+        List<MenuTreeResponse> children = menuService.getMenuTreeLiteByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
 
@@ -62,7 +62,7 @@ public class MenuController {
     public ResponseEntity<ApiResponse<List<MenuTreeResponse>>> getChildrenTreeByName(
             @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name) throws Exception {
 
-        List<MenuTreeResponse> children = menuService.getAllChildrenTreeByName(name);
+        List<MenuTreeResponse> children = menuService.getMenuTreeByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
 }

@@ -26,7 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
-            String token = jwtTokenProvider.resolveToken(request);
+            String token = jwtTokenProvider.extractAccessTokenFromRequest(request);
             String uri = request.getRequestURI();
             String hostname = request.getHeader("X-Site-Hostname");
             hostname = StringUtils.hasText(hostname) ? hostname : "unknown";

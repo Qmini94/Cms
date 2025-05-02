@@ -29,8 +29,9 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static kr.co.itid.cms.config.security.SecurityConstants.ACCESS_TOKEN_COOKIE_NAME;
-import static kr.co.itid.cms.config.security.SecurityConstants.SAME_SITE_NONE;
+import static kr.co.itid.cms.config.common.redis.RedisConstants.BLACKLIST_KEY_PREFIX;
+import static kr.co.itid.cms.config.common.redis.RedisConstants.CHANGED_CLAIM_KEY_PREFIX;
+import static kr.co.itid.cms.config.security.SecurityConstants.*;
 
 @Component
 @RequiredArgsConstructor
@@ -76,7 +77,7 @@ public class JwtTokenProvider {
         String userId = oldClaims.getSubject();
 
         // 먼저 changedClaim:{userId} Redis에 있는지 확인
-        Boolean needFreshClaims = redisTemplate.hasKey("changedClaim:" + userId);
+        Boolean needFreshClaims = redisTemplate.hasKey(CHANGED_CLAIM_KEY_PREFIX + userId);
 
         Map<String, Object> claims;
 
@@ -87,7 +88,7 @@ public class JwtTokenProvider {
             claims = getClaims(member);
 
             //changedClaim Redis 키 삭제
-            redisTemplate.delete("changedClaim:" + userId);
+            redisTemplate.delete(CHANGED_CLAIM_KEY_PREFIX + userId);
         } else {
             claims = new HashMap<>(oldClaims);
         }
@@ -117,7 +118,7 @@ public class JwtTokenProvider {
                 .getBody();
     }
 
-    public String resolveToken(HttpServletRequest request) {
+    public String extractAccessTokenFromRequest(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
         if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")) {
             return bearer.substring(7);
@@ -136,12 +137,25 @@ public class JwtTokenProvider {
 
     public ResponseCookie createAccessTokenCookie(String token) {
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, token)
-                .httpOnly(true)
-                .secure(true)
+                .httpOnly(HTTP_ONLY)
+                .secure(SECURE)
                 .path("/")
                 .maxAge(Duration.ofSeconds(accessTokenValidity))
                 .sameSite(SAME_SITE_NONE)  //Strict, Lax
                 .build();
+    }
+
+    public String getUserId(String token) {
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+
+            return claims.getBody().getSubject();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public void refreshIfNeeded(JwtAuthenticatedUser user) {
@@ -176,19 +190,6 @@ public class JwtTokenProvider {
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
-    public String getUserId(String token) {
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
-
-            return claims.getBody().getSubject();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     public void validateToken(String token) throws Exception {
         if (isBlacklisted(token)) {
             throw new Exception("Token is blacklisted");
@@ -214,17 +215,17 @@ public class JwtTokenProvider {
                     .getBody();
 
             String userId = claims.getSubject();
-            return userId != null && Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + userId));
+            return userId != null && Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_KEY_PREFIX + userId));
         } catch (JwtException | IllegalArgumentException e) {
             return true;
         }
     }
 
     public void addUserToBlacklist(String userId) {
-        redisTemplate.opsForValue().set("blacklist:" + userId, "true", accessTokenValidity, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(BLACKLIST_KEY_PREFIX + userId, "true", accessTokenValidity, TimeUnit.SECONDS);
     }
 
     public void deleteUserToBlacklist(String userId) {
-        redisTemplate.delete("blacklist:" + userId);
+        redisTemplate.delete(BLACKLIST_KEY_PREFIX + userId);
     }
 }

@@ -1,37 +1,31 @@
 package kr.co.itid.cms.dto.cms.core.menu;
 
-import lombok.AllArgsConstructor;
+import kr.co.itid.cms.entity.cms.core.Menu;
 import lombok.Getter;
-import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MenuResponse {
-    private Long id;
-    private Long parentId;
-    private String title;
-    private String type;
-    private String value;
-    private String display;
-    private String pathUrl;
-    private String pathId;
-    private List<MenuResponse> children;
+    private final Long id;
+    private final Long parentId;
+    private final String title;
+    private final String type;
+    private final String value;
+    private final String display;
+    private final String pathUrl;
+    private final String pathId;
 
-    public MenuResponse(Long id, Long parentId, String title, String type, String value,
-                        String display, String pathUrl, String pathId) {
-        this.id = id;
-        this.parentId = parentId;
-        this.title = title;
-        this.type = type;
-        this.value = value;
-        this.display = display;
-        this.pathUrl = pathUrl;
-        this.pathId = pathId;
-        this.children = new ArrayList<>();
+    public static MenuResponse from(Menu menu) {
+        return new MenuResponse(
+                menu.getId(),
+                menu.getParentId(),
+                menu.getTitle(),
+                menu.getType(),
+                menu.getValue(),
+                menu.getDisplay() != null ? menu.getDisplay().name() : null,
+                menu.getPathUrl(),
+                menu.getPathId()
+        );
     }
 }
-
