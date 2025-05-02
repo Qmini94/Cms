@@ -4,6 +4,7 @@ import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
 import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
 import kr.co.itid.cms.entity.cms.core.Menu;
 import kr.co.itid.cms.enums.Action;
+import kr.co.itid.cms.mapper.cms.core.menu.MenuMapper;
 import kr.co.itid.cms.repository.cms.core.MenuRepository;
 import kr.co.itid.cms.service.cms.core.MenuService;
 import kr.co.itid.cms.util.LoggingUtil;
@@ -31,7 +32,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             loggingUtil.logSuccess(Action.RETRIEVE, "Got all drives");
 
             return menus.stream()
-                    .map(MenuResponse::from)
+                    .map(MenuMapper::toResponse)
                     .toList();
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "Database error while getting drives");
@@ -86,13 +87,13 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 
     private List<MenuTreeResponse> buildMenuTreeLite(Long parentId) {
         return getChildren(parentId).stream()
-                .map(menu -> MenuTreeResponse.ofLite(menu, buildMenuTreeLite(menu.getId())))
+                .map(menu -> MenuMapper.toLiteResponse(menu, buildMenuTreeLite(menu.getId())))
                 .toList();
     }
 
     private List<MenuTreeResponse> buildMenuTreeResponse(Long parentId) {
         return getChildren(parentId).stream()
-                .map(menu -> MenuTreeResponse.ofFull(menu, buildMenuTreeResponse(menu.getId())))
+                .map(menu -> MenuMapper.toFullResponse(menu, buildMenuTreeResponse(menu.getId())))
                 .toList();
     }
 

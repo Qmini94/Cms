@@ -1,6 +1,5 @@
 package kr.co.itid.cms.dto.cms.core.menu;
 
-import kr.co.itid.cms.entity.cms.core.Menu;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -15,17 +14,4 @@ public class MenuResponse {
     private final String display;
     private final String pathUrl;
     private final String pathId;
-
-    public static MenuResponse from(Menu menu) {
-        return new MenuResponse(
-                menu.getId(),
-                menu.getParentId(),
-                menu.getTitle(),
-                menu.getType(),
-                menu.getValue(),
-                menu.getDisplay() != null ? menu.getDisplay().name() : null,
-                menu.getPathUrl(),
-                menu.getPathId()
-        );
-    }
 }

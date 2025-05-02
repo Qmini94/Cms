@@ -1,7 +1,9 @@
 package kr.co.itid.cms.service.cms.core.impl;
 
+import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
 import kr.co.itid.cms.entity.cms.core.BoardMaster;
 import kr.co.itid.cms.enums.Action;
+import kr.co.itid.cms.mapper.cms.core.board.BoardMapper;
 import kr.co.itid.cms.repository.cms.core.BoardMasterRepository;
 import kr.co.itid.cms.service.cms.core.BoardMasterService;
 import kr.co.itid.cms.util.LoggingUtil;
@@ -72,7 +74,8 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
-    public BoardMaster save(BoardMaster boardMaster) throws Exception {
+    public BoardMaster save(BoardMasterRequest request) throws Exception {
+        BoardMaster boardMaster = BoardMapper.toEntity(request);
         boolean isNew = (boardMaster.getId() == null);
         Action action = isNew ? Action.CREATE : Action.UPDATE;
 

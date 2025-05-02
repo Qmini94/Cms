@@ -3,7 +3,7 @@ package kr.co.itid.cms.controller.api.cms.core;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.entity.cms.core.BoardMaster;
-import kr.co.itid.cms.mapper.cms.core.BoardMapper;
+import kr.co.itid.cms.mapper.cms.core.board.BoardMapper;
 import kr.co.itid.cms.service.cms.core.BoardMasterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -97,10 +97,10 @@ public class BoardMasterController {
             @RequestParam @Positive(message = "menuId는 1 이상의 값이어야 합니다") long menuId,
             @Valid @RequestBody BoardMasterRequest request) throws Exception {
 
-        BoardMaster entity = BoardMapper.toEntity(request);
-        BoardMaster saved = boardMasterService.save(entity);
+        BoardMaster saved = boardMasterService.save(request);
         return ResponseEntity.ok(ApiResponse.success(saved));
     }
+
 
     /**
      * 게시판을 삭제합니다.

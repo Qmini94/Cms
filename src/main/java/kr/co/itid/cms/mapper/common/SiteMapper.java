@@ -5,15 +5,29 @@ import kr.co.itid.cms.entity.common.Site;
 
 public class SiteMapper {
     public static SiteResponse toResponse(Site site) {
-        return new SiteResponse(
-                site.getIdx(), site.getSiteName(), site.getSiteDomain(), site.getSitePort(),
-                site.getSiteOption(), site.getLanguage(),
-                site.getSiren24Id(), site.getSiren24No(), site.getUmsId(),
-                site.getUmsKey(), site.getPrivacyCheck(),
-                site.getBadText(), site.getBadTextOption(),
-                site.getNaverApiKey(), site.getNaverMapKey(), site.getGoogleMapKey(),
-                site.getCsApiUrl(), site.getCsApiKey(), site.getDigitomiDomain(),
-                site.getDigitomiApi(), site.getDigitomiKey(), site.getDigitomiReturnUrl()
-        );
+        return SiteResponse.builder()
+                .idx(site.getIdx())
+                .siteName(site.getSiteName())
+                .siteDomain(site.getSiteDomain())
+                .sitePort(site.getSitePort())
+                .siteOption(site.getSiteOption())
+                .language(site.getLanguage())
+                .siren24Id(site.getSiren24Id())
+                .siren24No(site.getSiren24No())
+                .umsId(site.getUmsId())
+                .umsKey(site.getUmsKey())
+                .privacyCheck(site.getPrivacyCheck())
+                .badText(site.getBadText())
+                .badTextOption(site.getBadTextOption())
+                .naverApiKey(site.getNaverApiKey())
+                .naverMapKey(site.getNaverMapKey())
+                .googleMapKey(site.getGoogleMapKey())
+                .csApiUrl(site.getCsApiUrl())
+                .csApiKey(site.getCsApiKey())
+                .digitomiDomain(site.getDigitomiDomain())
+                .digitomiApi(site.getDigitomiApi())
+                .digitomiKey(site.getDigitomiKey())
+                .digitomiReturnUrl(site.getDigitomiReturnUrl())
+                .build();
     }
 }

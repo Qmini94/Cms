@@ -1,12 +1,10 @@
 package kr.co.itid.cms.dto.common.site;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@Builder
 public class SiteResponse {
     private Integer idx;
     private String siteName;

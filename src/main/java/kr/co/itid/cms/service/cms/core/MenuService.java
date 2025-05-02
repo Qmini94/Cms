@@ -18,9 +18,9 @@ public interface MenuService {
     List<MenuResponse> getRootMenus() throws Exception;
 
     /**
-     * 특정 이름을 가진 드라이브의 모든 하위 메뉴 조회
+     * 특정 이름을 가진 드라이브의 모든 하위 메뉴 조회(필요한 몇가지의 필드만)
      * @param name 드라이브 이름
-     * @return &lt;MenuResponse&gt; 하위 메뉴 목록
+     * @return &lt;MenuResponse&gt; 하위 메뉴 목록(필요한 몇가지의 필드만)
      */
     List<MenuTreeResponse> getMenuTreeLiteByName(String name) throws Exception;
 

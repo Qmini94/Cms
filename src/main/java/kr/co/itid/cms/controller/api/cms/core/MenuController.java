@@ -37,10 +37,10 @@ public class MenuController {
     }
 
     /**
-     * 특정 이름을 가진 드라이브의 하위 메뉴를 조회합니다.
+     * 특정 이름을 가진 드라이브의 하위 메뉴를 가볍게 조회합니다.
      *
      * @param name 드라이브 또는 메뉴 이름 (필수, 공백 불가)
-     * @return ApiResponse&lt;List&lt;MenuResponse&gt;&gt; 하위 메뉴 목록을 포함한 응답
+     * @return ApiResponse&lt;List&lt;MenuResponse&gt;&gt; 트리 형태의 하위 메뉴 가벼운 응답
      * @throws Exception 하위 메뉴 조회 중 오류 발생 시
      */
     @GetMapping("/{name}")

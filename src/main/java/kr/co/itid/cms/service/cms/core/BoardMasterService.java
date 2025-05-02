@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.cms.core;
 
+import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
 import kr.co.itid.cms.entity.cms.core.BoardMaster;
 
 import java.util.List;
@@ -41,11 +42,11 @@ public interface BoardMasterService {
      * 게시판 정보를 저장하거나 수정합니다.
      * id가 없으면 신규 등록, 존재하면 수정 처리됩니다.
      *
-     * @param boardMaster 저장할 게시판 정보
+     * @param request 저장할 게시판 정보
      * @return BoardMaster 저장된 게시판 정보
      * @throws Exception 데이터 저장 중 오류 발생 시
      */
-    BoardMaster save(BoardMaster boardMaster) throws Exception;
+    BoardMaster save(BoardMasterRequest request) throws Exception;
 
     /**
      * 게시판을 삭제합니다.

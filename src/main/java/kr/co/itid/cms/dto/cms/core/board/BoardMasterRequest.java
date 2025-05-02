@@ -1,13 +1,15 @@
 package kr.co.itid.cms.dto.cms.core.board;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
-@Setter
 public class BoardMasterRequest {
 
     @NotBlank(message = "boardId is required")
