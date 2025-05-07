@@ -10,7 +10,7 @@ public class BoardMapper {
         entity.setBoardName(dto.getBoardName());
         entity.setDescription(dto.getDescription());
         entity.setUseYn(dto.getUseYn());
-        entity.setSkinType(dto.getSkinType());
+        entity.setBoardType(dto.getBoardType());
         entity.setExtendsOption(dto.getExtendsOption());
         return entity;
     }

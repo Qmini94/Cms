@@ -23,8 +23,8 @@ public class BoardMasterRequest {
 
     private Boolean useYn = true;
 
-    @Size(max = 50, message = "skinType max length is 50")
-    private String skinType;
+    @Size(max = 50, message = "BoardType max length is 50")
+    private String BoardType;
 
     private String extendsOption;
 }
