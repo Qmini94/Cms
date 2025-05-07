@@ -3,24 +3,20 @@ package kr.co.itid.cms.mapper.cms.core.menu;
 import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
 import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
 import kr.co.itid.cms.entity.cms.core.Menu;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 import java.util.List;
 
-public class MenuMapper {
-    public static MenuResponse toResponse(Menu menu) {
-        return new MenuResponse(
-                menu.getId(),
-                menu.getParentId(),
-                menu.getTitle(),
-                menu.getType(),
-                menu.getValue(),
-                menu.getDisplay() != null ? menu.getDisplay().name() : null,
-                menu.getPathUrl(),
-                menu.getPathId()
-        );
-    }
+@Mapper(componentModel = "spring")
+public interface MenuMapper {
 
-    public static MenuTreeResponse toLiteResponse(Menu menu, List<MenuTreeResponse> children) {
+    @Mapping(target = "display", expression = "java(menu.getDisplay() != null ? menu.getDisplay().name() : null)")
+    MenuResponse toResponse(Menu menu);
+
+    @Named("toLiteResponse")
+    default MenuTreeResponse toLiteResponse(Menu menu, List<MenuTreeResponse> children) {
         return MenuTreeResponse.builder()
                 .id(menu.getId())
                 .parentId(menu.getParentId())
@@ -34,7 +30,8 @@ public class MenuMapper {
                 .build();
     }
 
-    public static MenuTreeResponse toFullResponse(Menu menu, List<MenuTreeResponse> children) {
+    @Named("toFullResponse")
+    default MenuTreeResponse toFullResponse(Menu menu, List<MenuTreeResponse> children) {
         return MenuTreeResponse.builder()
                 .id(menu.getId())
                 .parentId(menu.getParentId())
@@ -61,4 +58,3 @@ public class MenuMapper {
                 .build();
     }
 }
-

@@ -21,6 +21,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
     private final SiteRepository siteRepository;
     private final LoggingUtil loggingUtil;
+    private final SiteMapper siteMapper;
 
     @Override
     public List<SiteResponse> getSiteAllData() throws Exception {
@@ -30,7 +31,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
             List<Site> sites = siteRepository.findAll();
             loggingUtil.logSuccess(Action.RETRIEVE, "All site data loaded");
             return sites.stream()
-                    .map(SiteMapper::toResponse)
+                    .map(siteMapper::toResponse)
                     .collect(Collectors.toList());
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "Database error while loading site data");

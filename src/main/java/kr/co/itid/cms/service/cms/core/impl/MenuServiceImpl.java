@@ -22,6 +22,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 
     private final MenuRepository menuRepository;
     private final LoggingUtil loggingUtil;
+    private final MenuMapper menuMapper;
 
     @Override
     public List<MenuResponse> getRootMenus() throws Exception {
@@ -32,7 +33,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             loggingUtil.logSuccess(Action.RETRIEVE, "Got all drives");
 
             return menus.stream()
-                    .map(MenuMapper::toResponse)
+                    .map(menuMapper::toResponse)
                     .toList();
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "Database error while getting drives");
@@ -87,13 +88,13 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 
     private List<MenuTreeResponse> buildMenuTreeLite(Long parentId) {
         return getChildren(parentId).stream()
-                .map(menu -> MenuMapper.toLiteResponse(menu, buildMenuTreeLite(menu.getId())))
+                .map(menu -> menuMapper.toLiteResponse(menu, buildMenuTreeLite(menu.getId())))
                 .toList();
     }
 
     private List<MenuTreeResponse> buildMenuTreeResponse(Long parentId) {
         return getChildren(parentId).stream()
-                .map(menu -> MenuMapper.toFullResponse(menu, buildMenuTreeResponse(menu.getId())))
+                .map(menu -> menuMapper.toFullResponse(menu, buildMenuTreeResponse(menu.getId())))
                 .toList();
     }
 
