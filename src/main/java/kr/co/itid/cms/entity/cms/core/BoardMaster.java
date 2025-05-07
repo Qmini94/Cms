@@ -29,8 +29,8 @@ public class BoardMaster {
     @Column(name = "use_yn")
     private Boolean useYn = true;
 
-    @Column(name = "skin_type", length = 50)
-    private String skinType;
+    @Column(name = "board_type", length = 50)
+    private String boardType;
 
     @Column(name = "reg_date", nullable = false)
     private Integer regDate = 0;

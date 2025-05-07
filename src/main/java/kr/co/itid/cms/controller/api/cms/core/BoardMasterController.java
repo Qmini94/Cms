@@ -22,7 +22,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/list/board")
+@RequestMapping("/api/board")
 @Validated
 public class BoardMasterController {
 
@@ -100,7 +100,6 @@ public class BoardMasterController {
         BoardMaster saved = boardMasterService.save(request);
         return ResponseEntity.ok(ApiResponse.success(saved));
     }
-
 
     /**
      * 게시판을 삭제합니다.
