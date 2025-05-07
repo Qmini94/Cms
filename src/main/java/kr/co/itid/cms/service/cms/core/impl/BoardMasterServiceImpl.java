@@ -58,9 +58,9 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
-    public BoardMasterResponse save(BoardMasterRequest request) throws Exception {
-        BoardMaster boardMaster = BoardMapper.toEntity(request);
-        boolean isNew = (boardMaster.getId() == null);
+    public BoardMasterResponse save(Long id, BoardMasterRequest request) throws Exception {
+        BoardMaster boardMaster = BoardMapper.toEntity(request, id);
+        boolean isNew = (id == null);
         Action action = isNew ? Action.CREATE : Action.UPDATE;
 
         loggingUtil.logAttempt(action, "Try to " + action.getValue() + " board: " + boardMaster.getBoardId());

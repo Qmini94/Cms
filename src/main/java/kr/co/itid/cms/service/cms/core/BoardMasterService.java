@@ -15,7 +15,7 @@ public interface BoardMasterService {
     /**
      * 전체 게시판 목록을 조회합니다.
      *
-     * @return List<BoardMasterResponse> 게시판 목록
+     * @return List&lt;BoardMasterResponse&gt; 게시판 목록
      * @throws Exception 데이터베이스 또는 시스템 오류 발생 시
      */
     List<BoardMasterResponse> getAllBoards() throws Exception;
@@ -24,7 +24,7 @@ public interface BoardMasterService {
      * 게시판 식별용 ID(board_id)로 게시판 정보를 조회합니다.
      *
      * @param boardId 게시판 식별용 ID
-     * @return Optional<BoardMasterResponse> 해당 게시판 정보
+     * @return Optional&lt;BoardMasterResponse&gt; 해당 게시판 정보
      * @throws Exception 데이터베이스 또는 시스템 오류 발생 시
      */
     Optional<BoardMasterResponse> getBoardByBoardId(String boardId) throws Exception;
@@ -33,11 +33,12 @@ public interface BoardMasterService {
      * 게시판 정보를 저장하거나 수정합니다.
      * id가 없으면 신규 등록, 존재하면 수정 처리됩니다.
      *
+     * @param id 저장할 게시판 ID
      * @param request 저장할 게시판 정보
      * @return BoardMasterResponse 저장된 게시판 정보
      * @throws Exception 데이터 저장 중 오류 발생 시
      */
-    BoardMasterResponse save(BoardMasterRequest request) throws Exception;
+    BoardMasterResponse save(Long id, BoardMasterRequest request) throws Exception;
 
     /**
      * 게시판을 삭제합니다.

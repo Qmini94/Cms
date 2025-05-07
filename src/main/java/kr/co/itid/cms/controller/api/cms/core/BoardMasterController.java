@@ -5,6 +5,7 @@ import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.BoardMasterService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -21,7 +22,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/board")
+@RequestMapping("/api/board")  // 복수형으로 리소스 이름 변경
 @Validated
 public class BoardMasterController {
 
@@ -34,7 +35,7 @@ public class BoardMasterController {
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<BoardMasterResponse>>> getAllBoards() throws Exception {
         List<BoardMasterResponse> list = boardMasterService.getAllBoards();
         return ResponseEntity.ok(ApiResponse.success(list));
@@ -48,7 +49,7 @@ public class BoardMasterController {
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
-    @GetMapping("/view/{boardId}")
+    @GetMapping("/{boardId}")
     public ResponseEntity<ApiResponse<BoardMasterResponse>> getBoardByBoardId(
             @PathVariable @NotBlank(message = "boardId는 필수입니다") String boardId) throws Exception {
 
@@ -58,19 +59,34 @@ public class BoardMasterController {
     }
 
     /**
-     * 게시판 정보를 등록하거나 수정합니다.
-     * id가 null이면 등록, 존재하면 수정으로 처리됩니다.
+     * 새 게시판을 등록합니다.
      *
      * @param request 유효성 검증된 게시판 요청 DTO
-     * @return ApiResponse&lt;BoardMasterResponse&gt; 저장된 게시판 정보
+     * @return ApiResponse&lt;BoardMasterResponse&gt; 생성된 게시판 정보
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('WRITE')")
-    @PostMapping("/save")
-    public ResponseEntity<ApiResponse<BoardMasterResponse>> saveBoard(@Valid @RequestBody BoardMasterRequest request) throws Exception {
+    @PostMapping
+    public ResponseEntity<ApiResponse<BoardMasterResponse>> createBoard(@Valid @RequestBody BoardMasterRequest request) throws Exception {
+        BoardMasterResponse created = boardMasterService.save(null, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created));
+    }
 
-        BoardMasterResponse saved = boardMasterService.save(request);
-        return ResponseEntity.ok(ApiResponse.success(saved));
+    /**
+     * 기존 게시판 정보를 수정합니다.
+     *
+     * @param id 수정할 게시판 ID
+     * @param request 유효성 검증된 게시판 요청 DTO
+     * @return ApiResponse&lt;BoardMasterResponse&gt; 수정된 게시판 정보
+     * @throws Exception 예외 발생 시 처리됨
+     */
+    @PreAuthorize("@permService.hasAccess('WRITE')")
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<BoardMasterResponse>> updateBoard(
+            @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id,
+            @Valid @RequestBody BoardMasterRequest request) throws Exception {
+        BoardMasterResponse updated = boardMasterService.save(id, request);
+        return ResponseEntity.ok(ApiResponse.success(updated));
     }
 
     /**
@@ -81,7 +97,7 @@ public class BoardMasterController {
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('REMOVE')")
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteBoard(
             @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id) throws Exception {
 

@@ -11,7 +11,6 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @Getter
 public class BoardMasterRequest {
-
     @NotBlank(message = "boardId is required")
     private String boardId;
 

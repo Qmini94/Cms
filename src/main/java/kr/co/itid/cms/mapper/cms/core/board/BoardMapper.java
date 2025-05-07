@@ -13,8 +13,9 @@ public class BoardMapper {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public static BoardMaster toEntity(BoardMasterRequest dto) {
+    public static BoardMaster toEntity(BoardMasterRequest dto, Long id) {
         BoardMaster entity = new BoardMaster();
+        entity.setId(id);
         entity.setBoardId(dto.getBoardId());
         entity.setBoardName(dto.getBoardName());
         entity.setDescription(dto.getDescription());
