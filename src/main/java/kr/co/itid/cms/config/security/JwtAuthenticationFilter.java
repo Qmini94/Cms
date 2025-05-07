@@ -30,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String uri = request.getRequestURI();
             String hostname = request.getHeader("X-Site-Hostname");
             hostname = StringUtils.hasText(hostname) ? hostname : "unknown";
+            String menuId = request.getHeader("X-Menu-Id");
 
             // DEBUG: 요청 정보 로그
             logger.info("[JWT] 요청 URI: " + uri); // DEBUG:
@@ -50,17 +51,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             claims.get("userName", String.class),
                             claims.get("userLevel", Integer.class),
                             token,
-                            hostname
+                            hostname,
+                            menuId
                     );
 
                 } catch (Exception e) {
                     logger.info("[JWT] 토큰 검증 실패 ({}): 게스트 처리" + e.getMessage()); // DEBUG:
-                    user = createGuestUser(request, hostname);
+                    user = createGuestUser(request, hostname, menuId);
                 }
 
             } else {
                 logger.info("[JWT] 토큰 없음 → 게스트 처리"); // DEBUG:
-                user = createGuestUser(request, hostname);
+                user = createGuestUser(request, hostname, menuId);
             }
 
             // DEBUG: 최종 인증 유저 정보 출력
@@ -86,7 +88,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private JwtAuthenticatedUser createGuestUser(HttpServletRequest request, String hostname) {
+    private JwtAuthenticatedUser createGuestUser(HttpServletRequest request, String hostname, String menuId) {
         String originHost = request.getServerName();
         int originPort = request.getServerPort();
         String origin = (originPort != 80 && originPort != 443)
@@ -102,7 +104,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     "개발관리자",
                     1, // 관리자 레벨
                     "dev-token",
-                    hostname
+                    hostname,
+                    menuId
             );
         }
 
@@ -113,7 +116,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "게스트",
                 11,
                 "not has token",
-                hostname
+                hostname,
+                menuId
         );
     }
 

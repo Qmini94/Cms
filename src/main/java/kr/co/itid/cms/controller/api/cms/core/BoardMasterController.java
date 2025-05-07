@@ -31,14 +31,12 @@ public class BoardMasterController {
     /**
      * 전체 게시판 목록을 조회합니다.
      *
-     * @param menuId 접근 권한 검증용 메뉴 ID (양수 필수)
      * @return ApiResponse&lt;List&lt;BoardMaster&gt;&gt; 전체 게시판 목록
      * @throws Exception 예외 발생 시 처리됨
      */
-    @PreAuthorize("@permService.hasAccess(#menuId, 'VIEW')")
+    @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<BoardMaster>>> getAllBoards(
-            @RequestParam @Positive(message = "menuId는 1 이상의 값이어야 합니다") long menuId) throws Exception {
+    public ResponseEntity<ApiResponse<List<BoardMaster>>> getAllBoards() throws Exception {
 
         List<BoardMaster> list = boardMasterService.getAllBoards();
         return ResponseEntity.ok(ApiResponse.success(list));
@@ -47,15 +45,13 @@ public class BoardMasterController {
     /**
      * 게시판을 고유번호(ID)로 조회합니다.
      *
-     * @param menuId 접근 권한 검증용 메뉴 ID (양수 필수)
      * @param id 게시판 고유번호 (양수 필수)
      * @return ApiResponse&lt;BoardMaster&gt; 게시판 정보
      * @throws Exception 예외 발생 시 처리됨
      */
-    @PreAuthorize("@permService.hasAccess(#menuId, 'VIEW')")
+    @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardMaster>> getBoardById(
-            @RequestParam @Positive(message = "menuId는 1 이상의 값이어야 합니다") long menuId,
             @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id) throws Exception {
 
         return boardMasterService.getBoardById(id)
@@ -66,15 +62,13 @@ public class BoardMasterController {
     /**
      * 게시판을 boardId로 조회합니다.
      *
-     * @param menuId 접근 권한 검증용 메뉴 ID (양수 필수)
      * @param boardId 게시판 식별 ID (비어 있을 수 없음)
      * @return ApiResponse&lt;BoardMaster&gt; 게시판 정보
      * @throws Exception 예외 발생 시 처리됨
      */
-    @PreAuthorize("@permService.hasAccess(#menuId, 'VIEW')")
+    @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping("/code/{boardId}")
     public ResponseEntity<ApiResponse<BoardMaster>> getBoardByBoardId(
-            @RequestParam @Positive(message = "menuId는 1 이상의 값이어야 합니다") long menuId,
             @PathVariable @NotBlank(message = "boardId는 필수입니다") String boardId) throws Exception {
 
         return boardMasterService.getBoardByBoardId(boardId)
@@ -86,16 +80,13 @@ public class BoardMasterController {
      * 게시판 정보를 등록하거나 수정합니다.
      * id가 null이면 등록, 존재하면 수정으로 처리됩니다.
      *
-     * @param menuId 접근 권한 검증용 메뉴 ID (양수 필수)
      * @param request 유효성 검증된 게시판 요청 DTO
      * @return ApiResponse&lt;BoardMaster&gt; 저장된 게시판 정보
      * @throws Exception 예외 발생 시 처리됨
      */
-    @PreAuthorize("@permService.hasAccess(#menuId, 'WRITE')")
+    @PreAuthorize("@permService.hasAccess('WRITE')")
     @PostMapping("/save")
-    public ResponseEntity<ApiResponse<BoardMaster>> saveBoard(
-            @RequestParam @Positive(message = "menuId는 1 이상의 값이어야 합니다") long menuId,
-            @Valid @RequestBody BoardMasterRequest request) throws Exception {
+    public ResponseEntity<ApiResponse<BoardMaster>> saveBoard(@Valid @RequestBody BoardMasterRequest request) throws Exception {
 
         BoardMaster saved = boardMasterService.save(request);
         return ResponseEntity.ok(ApiResponse.success(saved));
@@ -104,16 +95,13 @@ public class BoardMasterController {
     /**
      * 게시판을 삭제합니다.
      *
-     * @param menuId 접근 권한 검증용 메뉴 ID (양수 필수)
      * @param id 삭제할 게시판 고유번호 (양수 필수)
      * @return ApiResponse&lt;Void&gt; 삭제 성공 여부
      * @throws Exception 예외 발생 시 처리됨
      */
-    @PreAuthorize("@permService.hasAccess(#menuId, 'REMOVE')")
+    @PreAuthorize("@permService.hasAccess('REMOVE')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteBoard(
-            @RequestParam @Positive(message = "menuId는 1 이상의 값이어야 합니다") long menuId,
-            @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id) throws Exception {
+    public ResponseEntity<ApiResponse<Void>> deleteBoard(@PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id) throws Exception {
 
         boardMasterService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null));

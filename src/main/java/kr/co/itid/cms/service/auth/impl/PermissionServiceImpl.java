@@ -22,7 +22,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    public boolean hasAccess(long menuId, String permission) throws Exception {
+    public boolean hasAccess(String permission) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Check access: menuId=" + menuId + ", permission=" + permission);
 
         try {
@@ -40,7 +40,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 return true;
             }
 
-            boolean result = permissionResolverService.resolvePermission(user, menuId, permission);
+            boolean result = permissionResolverService.resolvePermission(user, permission);
 
             if (result) {
                 loggingUtil.logSuccess(Action.RETRIEVE, "Permission granted: user=" + user.userId());

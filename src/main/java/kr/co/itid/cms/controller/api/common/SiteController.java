@@ -33,10 +33,9 @@ public class SiteController {
      * @return ApiResponse&lt;List&lt;SiteResponse&gt;&gt; 사이트 목록을 포함한 응답
      * @throws Exception 데이터 조회 중 오류 발생 시
      */
-    @PreAuthorize("@permService.hasAccess(#menuId, 'VIEW')")
+    @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData(
-            @RequestParam @Positive(message = "menuId는 1 이상의 값이어야 합니다") long menuId) throws Exception {
+    public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData() throws Exception {
 
         List<SiteResponse> sites = siteService.getSiteAllData();
         return ResponseEntity.ok(ApiResponse.success(sites));

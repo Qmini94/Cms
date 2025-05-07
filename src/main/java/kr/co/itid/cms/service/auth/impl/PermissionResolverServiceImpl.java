@@ -26,7 +26,8 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
     private final RedisTemplate<String, MenuPermissionData> redisTemplate;
 
     @Override
-    public boolean resolvePermission(JwtAuthenticatedUser user, long menuId, String permission) throws Exception {
+    public boolean resolvePermission(JwtAuthenticatedUser user, String permission) throws Exception {
+        long menuId = Long.parseLong(user.menuId());
         String redisKey = getCacheKey(menuId);
         MenuPermissionData cached;
 
