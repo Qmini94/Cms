@@ -23,8 +23,6 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
     @Override
     public boolean hasAccess(String permission) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Check access: menuId=" + menuId + ", permission=" + permission);
-
         try {
             // 1. 현재 사용자 가져오기
             JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
@@ -34,6 +32,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
             // 3. (갱신 후) 최신 인증 정보로 사용자 객체 재조회
             user = SecurityUtil.getCurrentUser();
+            loggingUtil.logAttempt(Action.RETRIEVE, "Check access: menuId=" + user.menuId() + ", permission=" + permission);
 
             if (user.isAdmin()) {
                 loggingUtil.logSuccess(Action.RETRIEVE, "Admin override access granted for user=" + user.userId());

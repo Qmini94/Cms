@@ -181,7 +181,8 @@ public class JwtTokenProvider {
                 claims.get("userName", String.class),
                 claims.get("userLevel", Integer.class),
                 newToken,
-                user.hostname()
+                user.hostname(),
+                user.menuId()
         );
 
         UsernamePasswordAuthenticationToken authentication =
