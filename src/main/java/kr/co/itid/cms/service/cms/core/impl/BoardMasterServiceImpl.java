@@ -60,16 +60,16 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
-    public void save(Long id, BoardMasterRequest request) throws Exception {
-        BoardMaster boardMaster = boardMapper.toEntity(request, id); // 주입된 매퍼 사용
-        boolean isNew = (id == null);
+    public void save(Long idx, BoardMasterRequest request) throws Exception {
+        BoardMaster boardMaster = boardMapper.toEntity(request, idx); // 주입된 매퍼 사용
+        boolean isNew = (idx == null);
         Action action = isNew ? Action.CREATE : Action.UPDATE;
 
         loggingUtil.logAttempt(action, "Try to " + action.getValue() + " board: " + boardMaster.getBoardId());
 
         try {
             BoardMaster saved = boardMasterRepository.save(boardMaster);
-            loggingUtil.logSuccess(action, "Board " + action.getValue() + "d: id=" + saved.getId());
+            loggingUtil.logSuccess(action, "Board " + action.getValue() + "d: idx=" + saved.getIdx());
         } catch (DataAccessException e) {
             loggingUtil.logFail(action, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);
@@ -80,12 +80,12 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
-    public void delete(Long id) throws Exception {
-        loggingUtil.logAttempt(Action.DELETE, "Try to delete board: id=" + id);
+    public void delete(Long idx) throws Exception {
+        loggingUtil.logAttempt(Action.DELETE, "Try to delete board: idx=" + idx);
 
         try {
-            boardMasterRepository.deleteById(id);
-            loggingUtil.logSuccess(Action.DELETE, "Board deleted: id=" + id);
+            boardMasterRepository.deleteById(idx);
+            loggingUtil.logSuccess(Action.DELETE, "Board deleted: idx=" + idx);
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.DELETE, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);

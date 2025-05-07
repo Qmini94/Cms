@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class BoardMasterListResponse {
-    private Long id;
+    private Long idx;
     private String boardId;
     private String boardName;
     private String description;

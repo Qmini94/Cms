@@ -83,12 +83,12 @@ public class BoardMasterController {
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('WRITE')")
-    @PutMapping("/{id}")
+    @PutMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> updateBoard(
-            @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id,
+            @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long idx,
             @Valid @RequestBody BoardMasterRequest request) throws Exception {
 
-        boardMasterService.save(id, request);
+        boardMasterService.save(idx, request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -100,11 +100,11 @@ public class BoardMasterController {
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('REMOVE')")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> deleteBoard(
-            @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id) throws Exception {
+            @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long idx) throws Exception {
 
-        boardMasterService.delete(id);
+        boardMasterService.delete(idx);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

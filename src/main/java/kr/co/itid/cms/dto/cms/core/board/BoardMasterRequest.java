@@ -15,7 +15,7 @@ import javax.validation.constraints.Size;
 @Builder
 @Getter
 public class BoardMasterRequest {
-    private Long id;
+    private Long idx;
 
     @NotBlank(message = "boardId is required")
     @Size(max = 50, message = "boardId must be less than 50 characters")

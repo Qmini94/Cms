@@ -15,10 +15,10 @@ public interface BoardMapper {
 
     DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    @Mapping(target = "id", source = "id")
+    @Mapping(target = "idx", source = "idx")
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "updatedDate", ignore = true)
-    BoardMaster toEntity(BoardMasterRequest request, Long id);
+    BoardMaster toEntity(BoardMasterRequest request, Long idx);
 
     @Mapping(target = "createdDate", expression = "java(formatDateTime(entity.getCreatedDate()))")
     @Mapping(target = "updatedDate", expression = "java(formatDateTime(entity.getUpdatedDate()))")

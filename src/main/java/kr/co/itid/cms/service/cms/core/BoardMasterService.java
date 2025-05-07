@@ -32,20 +32,20 @@ public interface BoardMasterService {
 
     /**
      * 게시판 정보를 저장하거나 수정합니다.
-     * id가 없으면 신규 등록, 존재하면 수정 처리됩니다.
+     * idx가 없으면 신규 등록, 존재하면 수정 처리됩니다.
      *
-     * @param id 저장할 게시판 ID
+     * @param idx 저장할 게시판 ID
      * @param request 저장할 게시판 정보
      * @return BoardMasterResponse 저장된 게시판 정보
      * @throws Exception 데이터 저장 중 오류 발생 시
      */
-    void save(Long id, BoardMasterRequest request) throws Exception;
+    void save(Long idx, BoardMasterRequest request) throws Exception;
 
     /**
      * 게시판을 삭제합니다.
      *
-     * @param id 삭제할 게시판 ID
+     * @param idx 삭제할 게시판 ID
      * @throws Exception 데이터 삭제 중 오류 발생 시
      */
-    void delete(Long id) throws Exception;
+    void delete(Long idx) throws Exception;
 }

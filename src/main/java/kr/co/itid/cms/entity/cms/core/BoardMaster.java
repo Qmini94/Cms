@@ -20,7 +20,7 @@ public class BoardMaster {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long idx;
 
     @Column(name = "board_id", nullable = false, unique = true, length = 50)
     private String boardId;
