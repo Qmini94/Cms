@@ -9,7 +9,7 @@ public class BoardMasterResponse {
     private Long id;
     private String boardId;
     private String boardName;
-    private Boolean useYn;
-    private String regDate;
+    private Boolean isUse;
+    private String createdDate;
     private String updatedDate;
 }

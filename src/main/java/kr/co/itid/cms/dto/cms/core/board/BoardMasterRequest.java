@@ -21,7 +21,7 @@ public class BoardMasterRequest {
     @Size(max = 2000, message = "Description too long")
     private String description;
 
-    private Boolean useYn = true;
+    private Boolean isUse = true;
 
     @Size(max = 50, message = "BoardType max length is 50")
     private String BoardType;

@@ -50,12 +50,12 @@ public class VisitorMigrationServiceImpl extends EgovAbstractServiceImpl impleme
 
                     String value = redisTemplate.opsForValue().get(key);
                     if (value == null) continue;
-                    int count = Integer.parseInt(value);
+                    int cnt = Integer.parseInt(value);
 
                     if ("web".equals(deviceType)) {
-                        webMap.merge(compoundKey, count, Integer::sum);
+                        webMap.merge(compoundKey, cnt, Integer::sum);
                     } else if ("mobile".equals(deviceType)) {
-                        mobileMap.merge(compoundKey, count, Integer::sum);
+                        mobileMap.merge(compoundKey, cnt, Integer::sum);
                     }
 
                     compoundKeyToRedisKeys
@@ -77,17 +77,17 @@ public class VisitorMigrationServiceImpl extends EgovAbstractServiceImpl impleme
                 String[] parts = compoundKey.split("\\|");
                 String date = parts[0];
                 String hostname = parts[1];
-                int webCount = webMap.getOrDefault(compoundKey, 0);
-                int mobileCount = mobileMap.getOrDefault(compoundKey, 0);
+                int webcnt = webMap.getOrDefault(compoundKey, 0);
+                int mobilecnt = mobileMap.getOrDefault(compoundKey, 0);
 
                 try {
                     jdbcTemplate.update("""
-                        INSERT INTO visit_site (visit_date, hostname, web_count, mobile_count)
+                        INSERT INTO visit_site (visit_date, hostname, web_cnt, mobile_cnt)
                         VALUES (?, ?, ?, ?)
                         ON DUPLICATE KEY UPDATE
-                            web_count = web_count + VALUES(web_count),
-                            mobile_count = mobile_count + VALUES(mobile_count)
-                    """, LocalDate.parse(date), hostname, webCount, mobileCount);
+                            web_cnt = web_cnt + VALUES(web_cnt),
+                            mobile_cnt = mobile_cnt + VALUES(mobile_cnt)
+                    """, LocalDate.parse(date), hostname, webcnt, mobilecnt);
 
                     // 쿼리 성공한 경우에만 삭제할 키에 추가
                     keysToDelete.addAll(compoundKeyToRedisKeys.getOrDefault(compoundKey, Collections.emptyList()));

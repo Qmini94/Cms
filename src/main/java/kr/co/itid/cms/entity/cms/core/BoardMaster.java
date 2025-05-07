@@ -3,8 +3,11 @@ package kr.co.itid.cms.entity.cms.core;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "board_master")
@@ -26,17 +29,19 @@ public class BoardMaster {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "use_yn")
-    private Boolean useYn = true;
+    @Column(name = "is_use")
+    private Boolean isUse = true;
 
     @Column(name = "board_type", length = 50)
     private String boardType;
 
-    @Column(name = "reg_date", nullable = false)
-    private Integer regDate = 0;
+    @CreatedDate
+    @Column(name = "created_date", nullable = false)
+    private LocalDateTime createdDate;
 
+    @LastModifiedDate
     @Column(name = "updated_date", nullable = false)
-    private Integer updatedDate = 0;
+    private LocalDateTime updatedDate;
 
     @Column(name = "extends_option", columnDefinition = "TEXT")
     private String extendsOption;
