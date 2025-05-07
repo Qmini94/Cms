@@ -31,7 +31,7 @@ public class MenuController {
      * @return ApiResponse&lt;List&lt;MenuResponse&gt;&gt; 드라이브 메뉴 목록을 포함한 응답
      * @throws Exception 메뉴 조회 중 오류 발생 시
      */
-    @GetMapping("/drives")
+    @GetMapping("/drive")
     public ResponseEntity<ApiResponse<List<MenuResponse>>> getRootMenus() throws Exception {
         List<MenuResponse> menus = menuService.getRootMenus();
         return ResponseEntity.ok(ApiResponse.success(menus));
@@ -44,7 +44,7 @@ public class MenuController {
      * @return ApiResponse&lt;List&lt;MenuResponse&gt;&gt; 트리 형태의 하위 메뉴 가벼운 응답
      * @throws Exception 하위 메뉴 조회 중 오류 발생 시
      */
-    @GetMapping("/lite/{name}")
+    @GetMapping("/{name}/lite")
     public ResponseEntity<ApiResponse<List<MenuTreeLiteResponse>>> getChildrenByName(
             @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name) throws Exception {
 
@@ -59,7 +59,7 @@ public class MenuController {
      * @return ApiResponse&lt;List&lt;MenuTreeResponse&gt;&gt; 트리 형태의 하위 메뉴 응답
      * @throws Exception 트리 조회 중 오류 발생 시
      */
-    @GetMapping("/tree/{name}")
+    @GetMapping("/{name}/tree")
     public ResponseEntity<ApiResponse<List<MenuTreeResponse>>> getChildrenTreeByName(
             @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name) throws Exception {
 

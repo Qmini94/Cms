@@ -71,7 +71,7 @@ public class AuthController {
      * @return 로그아웃 성공 여부를 나타내는 응답 객체
      * @throws Exception 로그아웃 처리 중 오류가 발생한 경우
      */
-    @PostMapping("/logout")
+    @DeleteMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout() throws Exception {
         authService.logout();
 
