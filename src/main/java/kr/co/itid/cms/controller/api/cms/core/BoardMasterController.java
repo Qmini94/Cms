@@ -1,9 +1,8 @@
 package kr.co.itid.cms.controller.api.cms.core;
 
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
+import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
-import kr.co.itid.cms.entity.cms.core.BoardMaster;
-import kr.co.itid.cms.mapper.cms.core.board.BoardMapper;
 import kr.co.itid.cms.service.cms.core.BoardMasterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,44 +30,26 @@ public class BoardMasterController {
     /**
      * 전체 게시판 목록을 조회합니다.
      *
-     * @return ApiResponse&lt;List&lt;BoardMaster&gt;&gt; 전체 게시판 목록
+     * @return ApiResponse&lt;List&lt;BoardMasterResponse&gt;&gt; 전체 게시판 목록
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<BoardMaster>>> getAllBoards() throws Exception {
-
-        List<BoardMaster> list = boardMasterService.getAllBoards();
+    public ResponseEntity<ApiResponse<List<BoardMasterResponse>>> getAllBoards() throws Exception {
+        List<BoardMasterResponse> list = boardMasterService.getAllBoards();
         return ResponseEntity.ok(ApiResponse.success(list));
-    }
-
-    /**
-     * 게시판을 고유번호(ID)로 조회합니다.
-     *
-     * @param id 게시판 고유번호 (양수 필수)
-     * @return ApiResponse&lt;BoardMaster&gt; 게시판 정보
-     * @throws Exception 예외 발생 시 처리됨
-     */
-    @PreAuthorize("@permService.hasAccess('VIEW')")
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<BoardMaster>> getBoardById(
-            @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id) throws Exception {
-
-        return boardMasterService.getBoardById(id)
-                .map(board -> ResponseEntity.ok(ApiResponse.success(board)))
-                .orElse(ResponseEntity.ok(ApiResponse.error(404, "Not found")));
     }
 
     /**
      * 게시판을 boardId로 조회합니다.
      *
      * @param boardId 게시판 식별 ID (비어 있을 수 없음)
-     * @return ApiResponse&lt;BoardMaster&gt; 게시판 정보
+     * @return ApiResponse&lt;BoardMasterResponse&gt; 게시판 정보
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
-    @GetMapping("/code/{boardId}")
-    public ResponseEntity<ApiResponse<BoardMaster>> getBoardByBoardId(
+    @GetMapping("/view/{boardId}")
+    public ResponseEntity<ApiResponse<BoardMasterResponse>> getBoardByBoardId(
             @PathVariable @NotBlank(message = "boardId는 필수입니다") String boardId) throws Exception {
 
         return boardMasterService.getBoardByBoardId(boardId)
@@ -81,14 +62,14 @@ public class BoardMasterController {
      * id가 null이면 등록, 존재하면 수정으로 처리됩니다.
      *
      * @param request 유효성 검증된 게시판 요청 DTO
-     * @return ApiResponse&lt;BoardMaster&gt; 저장된 게시판 정보
+     * @return ApiResponse&lt;BoardMasterResponse&gt; 저장된 게시판 정보
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('WRITE')")
     @PostMapping("/save")
-    public ResponseEntity<ApiResponse<BoardMaster>> saveBoard(@Valid @RequestBody BoardMasterRequest request) throws Exception {
+    public ResponseEntity<ApiResponse<BoardMasterResponse>> saveBoard(@Valid @RequestBody BoardMasterRequest request) throws Exception {
 
-        BoardMaster saved = boardMasterService.save(request);
+        BoardMasterResponse saved = boardMasterService.save(request);
         return ResponseEntity.ok(ApiResponse.success(saved));
     }
 
@@ -100,8 +81,9 @@ public class BoardMasterController {
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('REMOVE')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteBoard(@PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id) throws Exception {
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteBoard(
+            @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id) throws Exception {
 
         boardMasterService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null));

@@ -1,6 +1,7 @@
 package kr.co.itid.cms.service.cms.core.impl;
 
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
+import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
 import kr.co.itid.cms.entity.cms.core.BoardMaster;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.mapper.cms.core.board.BoardMapper;
@@ -23,13 +24,13 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     private final LoggingUtil loggingUtil;
 
     @Override
-    public List<BoardMaster> getAllBoards() throws Exception {
+    public List<BoardMasterResponse> getAllBoards() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board list");
 
         try {
             List<BoardMaster> list = boardMasterRepository.findAll();
             loggingUtil.logSuccess(Action.RETRIEVE, "Board list loaded");
-            return list;
+            return BoardMapper.toResponseList(list);
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);
@@ -40,30 +41,13 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
-    public Optional<BoardMaster> getBoardById(Long id) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board by ID: " + id);
-
-        try {
-            Optional<BoardMaster> board = boardMasterRepository.findById(id);
-            loggingUtil.logSuccess(Action.RETRIEVE, "Board loaded: id=" + id);
-            return board;
-        } catch (DataAccessException e) {
-            loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
-            throw processException("DB error. " + e.getMessage(), e);
-        } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Unknown error: " + e.getMessage());
-            throw processException("Something went wrong. " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public Optional<BoardMaster> getBoardByBoardId(String boardId) throws Exception {
+    public Optional<BoardMasterResponse> getBoardByBoardId(String boardId) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board by boardId: " + boardId);
 
         try {
             Optional<BoardMaster> board = boardMasterRepository.findByBoardId(boardId);
             loggingUtil.logSuccess(Action.RETRIEVE, "Board loaded: boardId=" + boardId);
-            return board;
+            return board.map(BoardMapper::toResponse);
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);
@@ -74,7 +58,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
-    public BoardMaster save(BoardMasterRequest request) throws Exception {
+    public BoardMasterResponse save(BoardMasterRequest request) throws Exception {
         BoardMaster boardMaster = BoardMapper.toEntity(request);
         boolean isNew = (boardMaster.getId() == null);
         Action action = isNew ? Action.CREATE : Action.UPDATE;
@@ -84,7 +68,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
         try {
             BoardMaster saved = boardMasterRepository.save(boardMaster);
             loggingUtil.logSuccess(action, "Board " + action.getValue() + "d: id=" + saved.getId());
-            return saved;
+            return BoardMapper.toResponse(saved);
         } catch (DataAccessException e) {
             loggingUtil.logFail(action, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);

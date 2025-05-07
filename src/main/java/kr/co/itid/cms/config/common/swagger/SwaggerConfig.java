@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
 
     private static final String X_SITE_HOSTNAME = "X-Site-Hostname";
+    private static final String X_MENU_ID = "X-Menu-Id";
 
     @Bean
     public OpenAPI customOpenAPI() {
@@ -19,14 +20,24 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("API 문서")
                         .version("1.0.0")
-                        .description("X-Site-Hostname 헤더 포함 설정"))
-                .addSecurityItem(new SecurityRequirement().addList(X_SITE_HOSTNAME))
+                        .description("X-Site-Hostname, X-Menu-Id 헤더 포함 설정"))
+                .addSecurityItem(new SecurityRequirement()
+                        .addList(X_SITE_HOSTNAME)
+                        .addList(X_MENU_ID)
+                )
                 .components(new Components()
                         .addSecuritySchemes(X_SITE_HOSTNAME,
                                 new SecurityScheme()
                                         .name(X_SITE_HOSTNAME)
                                         .type(SecurityScheme.Type.APIKEY)
                                         .in(SecurityScheme.In.HEADER)
-                                        .description("요청 영역 구분자 (예: www, admin 등)")));
+                                        .description("요청 영역 구분자 (예: www, admin 등)"))
+                        .addSecuritySchemes(X_MENU_ID,
+                                new SecurityScheme()
+                                        .name(X_MENU_ID)
+                                        .type(SecurityScheme.Type.APIKEY)
+                                        .in(SecurityScheme.In.HEADER)
+                                        .description("권한 검증용 메뉴 ID"))
+                );
     }
 }

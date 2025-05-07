@@ -1,7 +1,7 @@
 package kr.co.itid.cms.service.cms.core;
 
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
-import kr.co.itid.cms.entity.cms.core.BoardMaster;
+import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,38 +15,29 @@ public interface BoardMasterService {
     /**
      * 전체 게시판 목록을 조회합니다.
      *
-     * @return List&lt;BoardMaster&gt; 게시판 목록
+     * @return List<BoardMasterResponse> 게시판 목록
      * @throws Exception 데이터베이스 또는 시스템 오류 발생 시
      */
-    List<BoardMaster> getAllBoards() throws Exception;
-
-    /**
-     * 게시판 ID(PK)로 게시판 정보를 조회합니다.
-     *
-     * @param id 게시판 고유번호 (PK)
-     * @return Optional&lt;BoardMaster&gt; 해당 게시판 정보
-     * @throws Exception 데이터베이스 또는 시스템 오류 발생 시
-     */
-    Optional<BoardMaster> getBoardById(Long id) throws Exception;
+    List<BoardMasterResponse> getAllBoards() throws Exception;
 
     /**
      * 게시판 식별용 ID(board_id)로 게시판 정보를 조회합니다.
      *
      * @param boardId 게시판 식별용 ID
-     * @return Optional&lt;BoardMaster&gt; 해당 게시판 정보
+     * @return Optional<BoardMasterResponse> 해당 게시판 정보
      * @throws Exception 데이터베이스 또는 시스템 오류 발생 시
      */
-    Optional<BoardMaster> getBoardByBoardId(String boardId) throws Exception;
+    Optional<BoardMasterResponse> getBoardByBoardId(String boardId) throws Exception;
 
     /**
      * 게시판 정보를 저장하거나 수정합니다.
      * id가 없으면 신규 등록, 존재하면 수정 처리됩니다.
      *
      * @param request 저장할 게시판 정보
-     * @return BoardMaster 저장된 게시판 정보
+     * @return BoardMasterResponse 저장된 게시판 정보
      * @throws Exception 데이터 저장 중 오류 발생 시
      */
-    BoardMaster save(BoardMasterRequest request) throws Exception;
+    BoardMasterResponse save(BoardMasterRequest request) throws Exception;
 
     /**
      * 게시판을 삭제합니다.
