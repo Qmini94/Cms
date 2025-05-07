@@ -1,6 +1,7 @@
 package kr.co.itid.cms.mapper.cms.core.menu;
 
 import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
+import kr.co.itid.cms.dto.cms.core.menu.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
 import kr.co.itid.cms.entity.cms.core.Menu;
 import org.mapstruct.Mapper;
@@ -15,9 +16,9 @@ public interface MenuMapper {
     @Mapping(target = "display", expression = "java(menu.getDisplay() != null ? menu.getDisplay().name() : null)")
     MenuResponse toResponse(Menu menu);
 
-    @Named("toLiteResponse")
-    default MenuTreeResponse toLiteResponse(Menu menu, List<MenuTreeResponse> children) {
-        return MenuTreeResponse.builder()
+    @Named("toLiteTreeResponse")
+    default MenuTreeLiteResponse toLiteTreeResponse(Menu menu, List<MenuTreeLiteResponse> children) {
+        return MenuTreeLiteResponse.builder()
                 .id(menu.getId())
                 .parentId(menu.getParentId())
                 .title(menu.getTitle())

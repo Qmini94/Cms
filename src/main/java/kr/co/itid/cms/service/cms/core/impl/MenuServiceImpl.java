@@ -1,6 +1,7 @@
 package kr.co.itid.cms.service.cms.core.impl;
 
 import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
+import kr.co.itid.cms.dto.cms.core.menu.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
 import kr.co.itid.cms.entity.cms.core.Menu;
 import kr.co.itid.cms.enums.Action;
@@ -45,7 +46,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     }
 
     @Override
-    public List<MenuTreeResponse> getMenuTreeLiteByName(String name) throws Exception {
+    public List<MenuTreeLiteResponse> getMenuTreeLiteByName(String name) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree (lite) for: " + name);
 
         try {
@@ -86,9 +87,9 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         }
     }
 
-    private List<MenuTreeResponse> buildMenuTreeLite(Long parentId) {
+    private List<MenuTreeLiteResponse> buildMenuTreeLite(Long parentId) {
         return getChildren(parentId).stream()
-                .map(menu -> menuMapper.toLiteResponse(menu, buildMenuTreeLite(menu.getId())))
+                .map(menu -> menuMapper.toLiteTreeResponse(menu, buildMenuTreeLite(menu.getId())))
                 .toList();
     }
 

@@ -1,6 +1,7 @@
 package kr.co.itid.cms.controller.api.cms.core;
 
 import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
+import kr.co.itid.cms.dto.cms.core.menu.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.MenuService;
@@ -43,11 +44,11 @@ public class MenuController {
      * @return ApiResponse&lt;List&lt;MenuResponse&gt;&gt; 트리 형태의 하위 메뉴 가벼운 응답
      * @throws Exception 하위 메뉴 조회 중 오류 발생 시
      */
-    @GetMapping("/{name}")
-    public ResponseEntity<ApiResponse<List<MenuTreeResponse>>> getChildrenByName(
+    @GetMapping("/lite/{name}")
+    public ResponseEntity<ApiResponse<List<MenuTreeLiteResponse>>> getChildrenByName(
             @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name) throws Exception {
 
-        List<MenuTreeResponse> children = menuService.getMenuTreeLiteByName(name);
+        List<MenuTreeLiteResponse> children = menuService.getMenuTreeLiteByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
 

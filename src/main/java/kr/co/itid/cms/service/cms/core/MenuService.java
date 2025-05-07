@@ -1,6 +1,7 @@
 package kr.co.itid.cms.service.cms.core;
 
 import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
+import kr.co.itid.cms.dto.cms.core.menu.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public interface MenuService {
      * @param name 드라이브 이름
      * @return &lt;MenuResponse&gt; 하위 메뉴 목록(필요한 몇가지의 필드만)
      */
-    List<MenuTreeResponse> getMenuTreeLiteByName(String name) throws Exception;
+    List<MenuTreeLiteResponse> getMenuTreeLiteByName(String name) throws Exception;
 
     /**
      * 특정 이름을 가진 드라이브의 모든 하위 메뉴 조회
