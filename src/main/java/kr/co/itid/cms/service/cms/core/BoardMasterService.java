@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.cms.core;
 
+import kr.co.itid.cms.dto.cms.core.board.BoardMasterListResponse;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
 
@@ -15,10 +16,10 @@ public interface BoardMasterService {
     /**
      * 전체 게시판 목록을 조회합니다.
      *
-     * @return List&lt;BoardMasterResponse&gt; 게시판 목록
+     * @return List&lt;BoardMasterListResponse&gt; 게시판 목록
      * @throws Exception 데이터베이스 또는 시스템 오류 발생 시
      */
-    List<BoardMasterResponse> getAllBoards() throws Exception;
+    List<BoardMasterListResponse> getAllBoards() throws Exception;
 
     /**
      * 게시판 식별용 ID(board_id)로 게시판 정보를 조회합니다.
@@ -38,7 +39,7 @@ public interface BoardMasterService {
      * @return BoardMasterResponse 저장된 게시판 정보
      * @throws Exception 데이터 저장 중 오류 발생 시
      */
-    BoardMasterResponse save(Long id, BoardMasterRequest request) throws Exception;
+    void save(Long id, BoardMasterRequest request) throws Exception;
 
     /**
      * 게시판을 삭제합니다.

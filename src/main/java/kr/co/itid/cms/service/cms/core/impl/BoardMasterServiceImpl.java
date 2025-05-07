@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.cms.core.impl;
 
+import kr.co.itid.cms.dto.cms.core.board.BoardMasterListResponse;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
 import kr.co.itid.cms.entity.cms.core.BoardMaster;
@@ -21,16 +22,17 @@ import java.util.Optional;
 public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements BoardMasterService {
 
     private final BoardMasterRepository boardMasterRepository;
+    private final BoardMapper boardMapper;
     private final LoggingUtil loggingUtil;
 
     @Override
-    public List<BoardMasterResponse> getAllBoards() throws Exception {
+    public List<BoardMasterListResponse> getAllBoards() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board list");
 
         try {
             List<BoardMaster> list = boardMasterRepository.findAll();
             loggingUtil.logSuccess(Action.RETRIEVE, "Board list loaded");
-            return BoardMapper.toResponseList(list);
+            return boardMapper.toResponseList(list);
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);
@@ -47,7 +49,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
         try {
             Optional<BoardMaster> board = boardMasterRepository.findByBoardId(boardId);
             loggingUtil.logSuccess(Action.RETRIEVE, "Board loaded: boardId=" + boardId);
-            return board.map(BoardMapper::toResponse);
+            return board.map(boardMapper::toResponse);
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);
@@ -58,8 +60,8 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
-    public BoardMasterResponse save(Long id, BoardMasterRequest request) throws Exception {
-        BoardMaster boardMaster = BoardMapper.toEntity(request, id);
+    public void save(Long id, BoardMasterRequest request) throws Exception {
+        BoardMaster boardMaster = boardMapper.toEntity(request, id); // 주입된 매퍼 사용
         boolean isNew = (id == null);
         Action action = isNew ? Action.CREATE : Action.UPDATE;
 
@@ -68,7 +70,6 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
         try {
             BoardMaster saved = boardMasterRepository.save(boardMaster);
             loggingUtil.logSuccess(action, "Board " + action.getValue() + "d: id=" + saved.getId());
-            return BoardMapper.toResponse(saved);
         } catch (DataAccessException e) {
             loggingUtil.logFail(action, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);

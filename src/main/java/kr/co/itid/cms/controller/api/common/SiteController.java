@@ -34,7 +34,7 @@ public class SiteController {
      * @throws Exception 데이터 조회 중 오류 발생 시
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData() throws Exception {
 
         List<SiteResponse> sites = siteService.getSiteAllData();

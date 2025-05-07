@@ -1,5 +1,6 @@
 package kr.co.itid.cms.controller.api.cms.core;
 
+import kr.co.itid.cms.dto.cms.core.board.BoardMasterListResponse;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
@@ -36,8 +37,8 @@ public class BoardMasterController {
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<BoardMasterResponse>>> getAllBoards() throws Exception {
-        List<BoardMasterResponse> list = boardMasterService.getAllBoards();
+    public ResponseEntity<ApiResponse<List<BoardMasterListResponse>>> getAllBoards() throws Exception {
+        List<BoardMasterListResponse> list = boardMasterService.getAllBoards();
         return ResponseEntity.ok(ApiResponse.success(list));
     }
 
@@ -67,9 +68,10 @@ public class BoardMasterController {
      */
     @PreAuthorize("@permService.hasAccess('WRITE')")
     @PostMapping
-    public ResponseEntity<ApiResponse<BoardMasterResponse>> createBoard(@Valid @RequestBody BoardMasterRequest request) throws Exception {
-        BoardMasterResponse created = boardMasterService.save(null, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created));
+    public ResponseEntity<ApiResponse<Void>> createBoard(@Valid @RequestBody BoardMasterRequest request) throws Exception {
+
+        boardMasterService.save(null, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
     }
 
     /**
@@ -82,11 +84,12 @@ public class BoardMasterController {
      */
     @PreAuthorize("@permService.hasAccess('WRITE')")
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<BoardMasterResponse>> updateBoard(
+    public ResponseEntity<ApiResponse<Void>> updateBoard(
             @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long id,
             @Valid @RequestBody BoardMasterRequest request) throws Exception {
-        BoardMasterResponse updated = boardMasterService.save(id, request);
-        return ResponseEntity.ok(ApiResponse.success(updated));
+
+        boardMasterService.save(id, request);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     /**

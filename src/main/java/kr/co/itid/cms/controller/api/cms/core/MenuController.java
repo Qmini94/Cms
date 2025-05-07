@@ -30,7 +30,7 @@ public class MenuController {
      * @return ApiResponse&lt;List&lt;MenuResponse&gt;&gt; 드라이브 메뉴 목록을 포함한 응답
      * @throws Exception 메뉴 조회 중 오류 발생 시
      */
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<MenuResponse>>> getRootMenus() throws Exception {
         List<MenuResponse> menus = menuService.getRootMenus();
         return ResponseEntity.ok(ApiResponse.success(menus));
