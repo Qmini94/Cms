@@ -3,7 +3,7 @@ package kr.co.itid.cms.mapper.cms.core.board;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterListResponse;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
 import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
-import kr.co.itid.cms.entity.cms.core.BoardMaster;
+import kr.co.itid.cms.entity.cms.core.board.BoardMaster;
 import org.mapstruct.*;
 
 import java.time.LocalDateTime;

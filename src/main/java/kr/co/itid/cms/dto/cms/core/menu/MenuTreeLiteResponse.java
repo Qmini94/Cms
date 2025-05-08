@@ -1,6 +1,6 @@
 package kr.co.itid.cms.dto.cms.core.menu;
 
-import kr.co.itid.cms.entity.cms.core.Menu.Display;
+import kr.co.itid.cms.entity.cms.core.menu.Menu.Display;
 import lombok.Builder;
 import lombok.Getter;
 

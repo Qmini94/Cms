@@ -1,7 +1,7 @@
 package kr.co.itid.cms.mapper.common;
 
-import kr.co.itid.cms.dto.common.site.SiteResponse;
-import kr.co.itid.cms.entity.common.Site;
+import kr.co.itid.cms.dto.cms.core.site.SiteResponse;
+import kr.co.itid.cms.entity.cms.core.site.Site;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
