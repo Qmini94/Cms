@@ -93,7 +93,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String origin = request.getHeader("Origin");
         logger.info("[JWT] 현재 Origin 헤더: " + origin);
 
-        if ("http://localhost:3000".equalsIgnoreCase(origin)) {
+        if ("https://localhost:3000".equalsIgnoreCase(origin)) {
             logger.info("[JWT] 로컬 개발환경 접근 → 관리자 권한 임시 부여");
             return new JwtAuthenticatedUser(
                     0L,
