@@ -35,6 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // DEBUG: 요청 정보 로그
             logger.info("[JWT] 요청 URI: " + uri); // DEBUG:
             logger.info("[JWT] X-Site-Hostname: " + hostname); // DEBUG:
+            logger.info("[JWT] X-Menu-Id: " + menuId); // DEBUG:
             logger.info("[JWT] 토큰 존재 여부: " + StringUtils.hasText(token)); // DEBUG:
 
             JwtAuthenticatedUser user = null;
