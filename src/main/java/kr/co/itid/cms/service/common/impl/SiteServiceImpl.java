@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
     private final SiteMapper siteMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public List<SiteResponse> getSiteAllData() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get all site data");
 

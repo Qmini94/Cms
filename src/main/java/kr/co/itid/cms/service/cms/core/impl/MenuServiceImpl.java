@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -26,6 +27,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     private final MenuMapper menuMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public List<MenuResponse> getRootMenus() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get all drives");
 
@@ -46,6 +48,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MenuTreeLiteResponse> getMenuTreeLiteByName(String name) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree (lite) for: " + name);
 
@@ -67,6 +70,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MenuTreeResponse> getMenuTreeByName(String name) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree for: " + name);
 

@@ -106,7 +106,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             );
         }
 
-        // 기본 게스트
         return new JwtAuthenticatedUser(
                 -1L,
                 "GUEST",

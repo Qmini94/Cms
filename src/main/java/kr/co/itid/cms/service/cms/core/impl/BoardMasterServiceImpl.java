@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     private final LoggingUtil loggingUtil;
 
     @Override
+    @Transactional(readOnly = true)
     public List<BoardMasterListResponse> getAllBoards() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board list");
 
@@ -43,6 +45,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<BoardMasterResponse> getBoardByBoardId(String boardId) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board by boardId: " + boardId);
 
@@ -60,6 +63,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
+    @Transactional
     public void save(Long idx, BoardMasterRequest request) throws Exception {
         BoardMaster boardMaster = boardMapper.toEntity(request, idx); // 주입된 매퍼 사용
         boolean isNew = (idx == null);
@@ -80,6 +84,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
+    @Transactional
     public void delete(Long idx) throws Exception {
         loggingUtil.logAttempt(Action.DELETE, "Try to delete board: idx=" + idx);
 

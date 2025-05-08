@@ -105,7 +105,6 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     }
 
     @Override
-    @Transactional(readOnly = true)
     public UserInfoResponse getUserInfoFromToken(HttpServletRequest request) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try get user info from token");
 

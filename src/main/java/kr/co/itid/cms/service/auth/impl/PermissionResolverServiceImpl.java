@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -26,6 +27,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
     private final RedisTemplate<String, MenuPermissionData> redisTemplate;
 
     @Override
+    @Transactional(readOnly = true)
     public boolean resolvePermission(JwtAuthenticatedUser user, String permission) throws Exception {
         long menuId = Long.parseLong(user.menuId());
         String redisKey = getCacheKey(menuId);
