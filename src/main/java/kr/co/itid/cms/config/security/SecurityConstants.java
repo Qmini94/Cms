@@ -15,7 +15,7 @@ public class SecurityConstants {
 
     // 쿠키 보안 속성
     public static final boolean HTTP_ONLY = true;  // HTTP 전용: 클라이언트 스크립트 접근 불가
-    public static final boolean SECURE = false;    // HTTPS 전용: HTTPS를 통해서만 전송 (개발 환경에서는 false, 운영 환경에서는 true로 설정)
+    public static final boolean SECURE = true;    // HTTPS 전용: HTTPS를 통해서만 전송 (개발 환경에서는 false, 운영 환경에서는 true로 설정)
 
     // 쿠키 이름 설정: 클라이언트에서 사용할 토큰 쿠키 이름
     public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";   // 액세스 토큰 쿠키 이름
