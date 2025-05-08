@@ -17,6 +17,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     private final LoggingUtil loggingUtil;
 
     @Override
+    @Transactional
     public TokenResponse login(String userId, String password) throws Exception {
         loggingUtil.logAttempt(Action.LOGIN, "Try login: " + userId);
 
@@ -103,6 +105,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserInfoResponse getUserInfoFromToken(HttpServletRequest request) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try get user info from token");
 

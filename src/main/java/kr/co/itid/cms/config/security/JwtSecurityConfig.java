@@ -48,6 +48,7 @@ public class JwtSecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",     // 개발용 프론트 주소
+                "https://localhost:3000",     // 개발용 프론트 주소
                 "https://cms.itid.co.kr"     // 운영용 프론트 주소
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
