@@ -90,16 +90,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private JwtAuthenticatedUser createGuestUser(HttpServletRequest request, String hostname, String menuId) {
-        String originHost = request.getServerName();
-        int originPort = request.getServerPort();
-        String origin = (originPort != 80 && originPort != 443)
-                ? originHost + ":" + originPort
-                : originHost;
-        logger.info("[JWT] 현재 origin: " + origin); // DEBUG:
+        String origin = request.getHeader("Origin");
+        logger.info("[JWT] 현재 Origin 헤더: " + origin);
 
-        // DEBUG: 개발 환경 프론트에서 접근 시 관리자 권한 부여
-        if ("localhost:3000".equalsIgnoreCase(origin)) {
-            logger.info("[JWT] 로컬 개발환경 접근 → 관리자 권한 임시 부여"); // DEBUG:
+        if ("http://localhost:3000".equalsIgnoreCase(origin)) {
+            logger.info("[JWT] 로컬 개발환경 접근 → 관리자 권한 임시 부여");
             return new JwtAuthenticatedUser(
                     0L,
                     "DEV_ADMIN",
