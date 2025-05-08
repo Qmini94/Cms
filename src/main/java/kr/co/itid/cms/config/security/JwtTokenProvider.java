@@ -141,7 +141,7 @@ public class JwtTokenProvider {
                 .secure(SECURE)
                 .path("/")
                 .maxAge(Duration.ofSeconds(accessTokenValidity))
-                .sameSite(SAME_SITE_NONE)  //Strict, Lax
+                .sameSite(SAME_SITE_LAX)  //Strict, Lax
                 .build();
     }
 

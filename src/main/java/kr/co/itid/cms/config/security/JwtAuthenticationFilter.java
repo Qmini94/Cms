@@ -95,6 +95,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String origin = (originPort != 80 && originPort != 443)
                 ? originHost + ":" + originPort
                 : originHost;
+        logger.info("[JWT] 현재 origin: " + origin); // DEBUG:
 
         // DEBUG: 개발 환경 프론트에서 접근 시 관리자 권한 부여
         if ("localhost:3000".equalsIgnoreCase(origin)) {
