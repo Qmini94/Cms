@@ -219,8 +219,4 @@ public class JwtTokenProvider {
     public void addTokenToBlacklist(String userJti) {
         redisTemplate.opsForValue().set(BLACKLIST_KEY_PREFIX + userJti, "true", accessTokenValidity, TimeUnit.SECONDS);
     }
-
-    public void deleteUserToBlacklist(String userId) {
-        redisTemplate.delete(BLACKLIST_KEY_PREFIX + userId);
-    }
 }

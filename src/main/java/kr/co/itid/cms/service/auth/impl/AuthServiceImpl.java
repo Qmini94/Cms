@@ -12,7 +12,6 @@ import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
-import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,8 +53,6 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
             member.setLastLoginDate(LocalDateTime.now());
             memberRepository.save(member);
-
-            jwtTokenProvider.deleteUserToBlacklist(userId);
 
             loggingUtil.logSuccess(Action.LOGIN, "Login success: " + userId);
             return new TokenResponse(accessToken);
@@ -100,8 +97,8 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
         try {
             String userJti = jwtTokenProvider.getJti(token);
-            jwtTokenProvider.addTokenToBlacklist(userJti); // 블랙리스트 등록
-            loggingUtil.logSuccess(Action.LOGOUT, "Logout success: " + userJti);
+            jwtTokenProvider.addTokenToBlacklist(userJti);
+            loggingUtil.logSuccess(Action.LOGOUT, "Logout success: " + user.userId());
         } catch (BadCredentialsException e) {
             loggingUtil.logFail(Action.LOGOUT, "Invalid token: " + token);
             throw processException("Invalid token", e);

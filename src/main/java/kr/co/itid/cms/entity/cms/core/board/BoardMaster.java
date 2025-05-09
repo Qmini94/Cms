@@ -31,27 +31,16 @@ public class BoardMaster {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "is_use")
+    @Column(name = "is_use", columnDefinition = "TINYINT(1) DEFAULT 1")
     private Boolean isUse = true;
 
     @Column(name = "board_type", length = 50)
     private String boardType;
 
-    @CreatedDate
-    @Column(name = "created_date", nullable = false, updatable = false)
-    private LocalDateTime createdDate;
-
-    @LastModifiedDate
-    @Column(name = "updated_date", nullable = false)
-    private LocalDateTime updatedDate;
-
-    @Column(name = "is_admin_approval")
+    @Column(name = "is_admin_approval", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isAdminApproval = false;
 
-    @Column(name = "is_privacy_option")
-    private Boolean isPrivacyOption = false;
-
-    @Column(name = "is_privacy_default")
+    @Column(name = "is_privacy_default", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isPrivacyDefault = false;
 
     @Column(name = "max_file_upload")
@@ -72,96 +61,47 @@ public class BoardMaster {
     @Column(name = "max_image_size")
     private Integer maxImageSize = 0;
 
-    @Column(name = "is_sms_alert")
+    @Column(name = "is_sms_alert", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isSmsAlert = false;
 
-    @Column(name = "is_required_fields")
+    @Column(name = "is_required_fields", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isRequiredFields = false;
 
-    @Column(name = "is_file_required")
-    private Boolean isFileRequired = false;
-
-    @Column(name = "is_admin_reply")
-    private Boolean isAdminReply = false;
-
-    @Column(name = "is_reply_sms_alert")
-    private Boolean isReplySmsAlert = false;
-
-    @Column(name = "is_show_file_image")
-    private Boolean isShowFileImage = false;
-
-    @Column(name = "is_comment")
+    @Column(name = "is_comment", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isComment = false;
 
-    @Column(name = "is_admin_excel_export")
-    private Boolean isAdminExcelExport = false;
-
-    @Column(name = "is_list_attachment")
-    private Boolean isListAttachment = false;
-
-    @Column(name = "is_use_period")
+    @Column(name = "is_use_period", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isUsePeriod = false;
 
-    @Column(name = "is_author_posts_view")
+    @Column(name = "is_author_posts_view", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isAuthorPostsView = false;
 
-    @Column(name = "is_admin_deleted_view")
+    @Column(name = "is_admin_deleted_view", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isAdminDeletedView = false;
 
     @Column(name = "list_count")
     private Integer listCount = 10;
 
-    @Column(name = "is_list_count_search")
-    private Boolean isListCountSearch = false;
-
-    @Column(name = "page_list_count")
-    private Integer pageListCount = 10;
-
-    @Column(name = "is_content_cut")
-    private Boolean isContentCut = false;
-
-    @Column(name = "post_display_period")
-    private Integer postDisplayPeriod = 0;
-
-    @Column(name = "is_hide_name")
-    private Boolean isHideName = false;
-
-    @Column(name = "is_show_post_name")
-    private Boolean isShowPostName = true;
-
-    @Column(name = "is_show_post_title")
-    private Boolean isShowPostTitle = true;
-
-    @Column(name = "is_show_author")
+    @Column(name = "is_show_author", columnDefinition = "TINYINT(1) DEFAULT 1")
     private Boolean isShowAuthor = true;
 
-    @Column(name = "is_show_date")
+    @Column(name = "is_show_date", columnDefinition = "TINYINT(1) DEFAULT 1")
     private Boolean isShowDate = true;
 
-    @Column(name = "is_search_field_control")
+    @Column(name = "is_search_field_control", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isSearchFieldControl = false;
 
-    @Column(name = "is_use_status")
-    private Boolean isUseStatus = false;
-
-    @Column(name = "is_status_management")
-    private Boolean isStatusManagement = false;
-
-    @Column(name = "is_top_post")
+    @Column(name = "is_top_post", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isTopPost = false;
-
-    @Column(name = "is_top_limit")
-    private Boolean isTopLimit = false;
-
-    @Column(name = "top_limit_count")
-    private Integer topLimitCount = 0;
-
-    @Column(name = "is_receive_posts")
-    private Boolean isReceivePosts = false;
-
-    @Column(name = "is_send_posts")
-    private Boolean isSendPosts = false;
 
     @Column(name = "extends_option", columnDefinition = "TEXT")
     private String extendsOption;
+
+    @CreatedDate
+    @Column(name = "created_date", nullable = false, updatable = false)
+    private LocalDateTime createdDate;
+
+    @LastModifiedDate
+    @Column(name = "updated_date", nullable = false)
+    private LocalDateTime updatedDate;
 }

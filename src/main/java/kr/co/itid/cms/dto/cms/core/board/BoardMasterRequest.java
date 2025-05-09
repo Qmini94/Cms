@@ -15,6 +15,7 @@ import javax.validation.constraints.Size;
 @Builder
 @Getter
 public class BoardMasterRequest {
+
     private Long idx;
 
     @NotBlank(message = "boardId is required")
@@ -34,7 +35,6 @@ public class BoardMasterRequest {
     private String boardType;
 
     private Boolean isAdminApproval = false;
-    private Boolean isPrivacyOption = false;
     private Boolean isPrivacyDefault = false;
 
     @Max(value = 100, message = "Maximum file upload count should not exceed 100")
@@ -57,13 +57,7 @@ public class BoardMasterRequest {
 
     private Boolean isSmsAlert = false;
     private Boolean isRequiredFields = false;
-    private Boolean isFileRequired = false;
-    private Boolean isAdminReply = false;
-    private Boolean isReplySmsAlert = false;
-    private Boolean isShowFileImage = false;
     private Boolean isComment = false;
-    private Boolean isAdminExcelExport = false;
-    private Boolean isListAttachment = false;
     private Boolean isUsePeriod = false;
     private Boolean isAuthorPostsView = false;
     private Boolean isAdminDeletedView = false;
@@ -72,33 +66,10 @@ public class BoardMasterRequest {
     @Max(value = 100, message = "List count should not exceed 100")
     private Integer listCount = 10;
 
-    private Boolean isListCountSearch = false;
-
-    @Min(value = 1, message = "Page list count should be at least 1")
-    @Max(value = 100, message = "Page list count should not exceed 100")
-    private Integer pageListCount = 10;
-
-    private Boolean isContentCut = false;
-
-    @Max(value = 3650, message = "Post display period should not exceed 3650 days (10 years)")
-    private Integer postDisplayPeriod = 0;
-
-    private Boolean isHideName = false;
-    private Boolean isShowPostName = true;
-    private Boolean isShowPostTitle = true;
     private Boolean isShowAuthor = true;
     private Boolean isShowDate = true;
     private Boolean isSearchFieldControl = false;
-    private Boolean isUseStatus = false;
-    private Boolean isStatusManagement = false;
     private Boolean isTopPost = false;
-    private Boolean isTopLimit = false;
-
-    @Max(value = 100, message = "Top limit count should not exceed 100")
-    private Integer topLimitCount = 0;
-
-    private Boolean isReceivePosts = false;
-    private Boolean isSendPosts = false;
 
     @Size(max = 10000, message = "Extends option is too long")
     private String extendsOption;
