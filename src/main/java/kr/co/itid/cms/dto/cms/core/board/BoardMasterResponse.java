@@ -13,7 +13,7 @@ public class BoardMasterResponse {
     private Boolean isUse;
     private String boardType;
     private Boolean isAdminApproval;
-    private Boolean isPrivacyDefault;
+    private Boolean isPrivacyOption;
     private Integer maxFileUpload;
     private Integer maxTotalFileSize;
     private String restrictedFiles;

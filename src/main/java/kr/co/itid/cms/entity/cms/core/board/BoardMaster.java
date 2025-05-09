@@ -40,8 +40,8 @@ public class BoardMaster {
     @Column(name = "is_admin_approval", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isAdminApproval = false;
 
-    @Column(name = "is_privacy_default", columnDefinition = "TINYINT(1) DEFAULT 0")
-    private Boolean isPrivacyDefault = false;
+    @Column(name = "is_privacy_option", columnDefinition = "TINYINT(1) DEFAULT 0")
+    private Boolean isPrivacyOption = false;
 
     @Column(name = "max_file_upload")
     private Integer maxFileUpload = 0;

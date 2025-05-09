@@ -31,9 +31,4 @@ public interface BoardMapper {
         if (dateTime == null) return null;
         return dateTime.format(FORMATTER);
     }
-
-    @AfterMapping
-    default void setDefaultValues(BoardMasterRequest request, @MappingTarget BoardMaster entity) {
-        // 날짜 필드는 JPA가 자동으로 처리하도록 무시합니다
-    }
 }

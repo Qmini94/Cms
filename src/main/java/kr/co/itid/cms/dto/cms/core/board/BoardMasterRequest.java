@@ -35,7 +35,7 @@ public class BoardMasterRequest {
     private String boardType;
 
     private Boolean isAdminApproval = false;
-    private Boolean isPrivacyDefault = false;
+    private Boolean isPrivacyOption = false;
 
     @Max(value = 100, message = "Maximum file upload count should not exceed 100")
     private Integer maxFileUpload = 0;

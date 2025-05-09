@@ -44,7 +44,6 @@ public class Site {
     @Column(name = "ums_key")
     private String umsKey;
 
-
     @Column(name = "privacy_check")
     private String privacyCheck;
 
