@@ -30,7 +30,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static kr.co.itid.cms.config.common.redis.RedisConstants.BLACKLIST_KEY_PREFIX;
-import static kr.co.itid.cms.config.common.redis.RedisConstants.CHANGED_CLAIM_KEY_PREFIX;
 import static kr.co.itid.cms.config.security.SecurityConstants.*;
 
 @Component
@@ -58,6 +57,8 @@ public class JwtTokenProvider {
         Date issuedAt = Date.from(now.toInstant());
         Date expiration = Date.from(now.plusSeconds(accessTokenValidity).toInstant());
 
+        claims.putIfAbsent("jti", UUID.randomUUID().toString());
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userId)
@@ -76,21 +77,13 @@ public class JwtTokenProvider {
 
         String userId = oldClaims.getSubject();
 
-        // 먼저 changedClaim:{userId} Redis에 있는지 확인
-        Boolean needFreshClaims = redisTemplate.hasKey(CHANGED_CLAIM_KEY_PREFIX + userId);
-
-        Map<String, Object> claims;
-
-        if (Boolean.TRUE.equals(needFreshClaims)) {
-            //Redis에 changedClaim 있으면, DB에서 새로 조회해서 claims 만들기
-            Optional<Member> optionalMember = memberService.findByUserId(userId);
-            Member member = optionalMember.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
-            claims = getClaims(member);
-
-            //changedClaim Redis 키 삭제
-            redisTemplate.delete(CHANGED_CLAIM_KEY_PREFIX + userId);
-        } else {
-            claims = new HashMap<>(oldClaims);
+        // 예약 필드는 제외하고 필요한 claims만 복사
+        Map<String, Object> claims = new HashMap<>();
+        for (Map.Entry<String, Object> entry : oldClaims.entrySet()) {
+            String key = entry.getKey();
+            if (!Set.of("sub", "iat", "exp", "nbf", "iss", "aud").contains(key)) {
+                claims.put(key, entry.getValue());
+            }
         }
 
         return createToken(userId, claims);
@@ -145,14 +138,15 @@ public class JwtTokenProvider {
                 .build();
     }
 
-    public String getUserId(String token) {
+    public String getJti(String token) {
         try {
-            Jws<Claims> claims = Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(token);
+                    .parseClaimsJws(token)
+                    .getBody();
 
-            return claims.getBody().getSubject();
+            return claims.get("jti", String.class);
         } catch (Exception e) {
             return null;
         }
@@ -215,15 +209,15 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
 
-            String userId = claims.getSubject();
-            return userId != null && Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_KEY_PREFIX + userId));
+            String jti = claims.get("jti", String.class);
+            return jti != null && Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_KEY_PREFIX + jti));
         } catch (JwtException | IllegalArgumentException e) {
             return true;
         }
     }
 
-    public void addUserToBlacklist(String userId) {
-        redisTemplate.opsForValue().set(BLACKLIST_KEY_PREFIX + userId, "true", accessTokenValidity, TimeUnit.SECONDS);
+    public void addTokenToBlacklist(String userJti) {
+        redisTemplate.opsForValue().set(BLACKLIST_KEY_PREFIX + userJti, "true", accessTokenValidity, TimeUnit.SECONDS);
     }
 
     public void deleteUserToBlacklist(String userId) {

@@ -27,14 +27,6 @@ public interface AuthService {
     void logout() throws Exception;
 
     /**
-     * 관리자에 의한 강제 로그아웃 메소드
-     *
-     * @param userId 사용자 ID
-     * @param token 엑세스 토큰 (nullable)
-     */
-    void forceLogoutByAdmin(String userId, String token) throws Exception;
-
-    /**
      * 토큰 기반 사용자 정보 조회 메소드
      *
      * @param request HttpServletRequest 객체

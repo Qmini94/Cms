@@ -68,43 +68,6 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     }
 
     @Override
-    public void logout() throws Exception {
-        JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
-        String token = user.token();
-
-        loggingUtil.logAttempt(Action.LOGOUT, "Try logout: " + token);
-
-        try {
-            String userId = jwtTokenProvider.getUserId(token);
-            jwtTokenProvider.addUserToBlacklist(userId); // 블랙리스트 등록
-            loggingUtil.logSuccess(Action.LOGOUT, "Logout success: " + userId);
-        } catch (BadCredentialsException e) {
-            loggingUtil.logFail(Action.LOGOUT, "Invalid token: " + token);
-            throw processException("Invalid token", e);
-        } catch (Exception e) {
-            loggingUtil.logFail(Action.LOGOUT, "Logout error: " + e.getMessage());
-            throw processException("Logout error", e);
-        }
-    }
-
-    @Override
-    public void forceLogoutByAdmin(String userId, @Nullable String token) throws Exception {
-        loggingUtil.logAttempt(Action.FORCE, "Try force logout: " + userId);
-
-        try {
-            if (token != null) {
-                jwtTokenProvider.addUserToBlacklist(userId);
-                loggingUtil.logSuccess(Action.FORCE, "Force logout with token: " + userId);
-            } else {
-                loggingUtil.logSuccess(Action.FORCE, "Force logout without token: " + userId);
-            }
-        } catch (Exception e) {
-            loggingUtil.logFail(Action.FORCE, "Force logout error: " + e.getMessage());
-            throw processException("Force logout error", e);
-        }
-    }
-
-    @Override
     public UserInfoResponse getUserInfoFromToken(HttpServletRequest request) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try get user info from token");
 
@@ -125,6 +88,26 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Failed to get user info: " + e.getMessage());
             throw processException("Failed to retrieve user info", e);
+        }
+    }
+
+    @Override
+    public void logout() throws Exception {
+        JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
+        String token = user.token();
+
+        loggingUtil.logAttempt(Action.LOGOUT, "Try logout: " + token);
+
+        try {
+            String userJti = jwtTokenProvider.getJti(token);
+            jwtTokenProvider.addTokenToBlacklist(userJti); // 블랙리스트 등록
+            loggingUtil.logSuccess(Action.LOGOUT, "Logout success: " + userJti);
+        } catch (BadCredentialsException e) {
+            loggingUtil.logFail(Action.LOGOUT, "Invalid token: " + token);
+            throw processException("Invalid token", e);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.LOGOUT, "Logout error: " + e.getMessage());
+            throw processException("Logout error", e);
         }
     }
 }
