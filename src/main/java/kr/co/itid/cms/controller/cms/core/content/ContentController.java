@@ -27,40 +27,38 @@ public class ContentController {
     private final ContentService contentService;
 
     /**
-     * menu_idx 별로 가장 최근 등록된 콘텐츠 1개씩 조회
+     * 전체 콘텐츠 중 sort=0인 대표 콘텐츠 목록 조회
      *
-     * @return 최신 콘텐츠 목록
-     * @throws Exception 데이터 조회 중 오류 발생 시
+     * @return 대표 콘텐츠 리스트
+     * @throws Exception 예외 발생 시
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ContentResponse>>> getLatestContentsPerMenu() throws Exception {
-        List<ContentResponse> list = contentService.getLatestContentsPerMenu();
+    public ResponseEntity<ApiResponse<List<ContentResponse>>> getTopSortedContents() throws Exception {
+        List<ContentResponse> list = contentService.getTopSortedContents();
         return ResponseEntity.ok(ApiResponse.success(list));
     }
 
     /**
-     * 특정 menu_idx에 해당하는 전체 콘텐츠 조회
+     * 특정 parentId 그룹의 하위 콘텐츠 목록 조회
      *
-     * @param menuIdx 메뉴 고유번호
-     * @return 해당 메뉴의 콘텐츠 목록
-     * @throws Exception 데이터 조회 중 오류 발생 시
+     * @param parentId 대표 콘텐츠 ID
+     * @return 해당 그룹의 하위 콘텐츠 리스트
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
-    @GetMapping("/{menuIdx}")
-    public ResponseEntity<ApiResponse<List<ContentResponse>>> getContentsByMenuIdx(
-            @PathVariable @Positive(message = "menuIdx는 양수여야 합니다") Integer menuIdx) throws Exception {
+    @GetMapping("/group/{parentId}")
+    public ResponseEntity<ApiResponse<List<ContentResponse>>> getGroupedContents(
+            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Integer parentId) throws Exception {
 
-        List<ContentResponse> list = contentService.getContentsByMenuIdx(menuIdx);
+        List<ContentResponse> list = contentService.getContentsByParentId(parentId);
         return ResponseEntity.ok(ApiResponse.success(list));
     }
 
     /**
-     * 특정 콘텐츠 idx로 전체 정보 조회 (본문 포함)
+     * 특정 콘텐츠 상세 조회
      *
-     * @param idx 콘텐츠 고유번호
+     * @param idx 콘텐츠 ID
      * @return 콘텐츠 상세 정보
-     * @throws Exception 데이터 조회 중 오류 발생 시
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping("/{idx}/view")
@@ -72,26 +70,37 @@ public class ContentController {
     }
 
     /**
-     * 콘텐츠 등록 (해당 menuIdx의 다른 콘텐츠는 is_use=false 처리)
+     * 대표 콘텐츠(루트) 등록
      *
-     * @param request 콘텐츠 등록 요청 객체
-     * @return 성공 응답
-     * @throws Exception 저장 처리 중 오류 발생 시
+     * @param request 등록 요청 DTO
      */
     @PreAuthorize("@permService.hasAccess('WRITE')")
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> createContents(@Valid @RequestBody ContentRequest request) throws Exception {
-        contentService.create(request);
+    public ResponseEntity<ApiResponse<Void>> createRootContent(
+            @Valid @RequestBody ContentRequest request) throws Exception {
+
+        contentService.createRootContent(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
+    }
+
+    /**
+     * 하위 콘텐츠 등록 (parentId 콘텐츠 그룹에 소속)
+     *
+     * @param parentId 루트 콘텐츠 ID
+     * @param request 하위 콘텐츠 등록 요청
+     */
+    @PreAuthorize("@permService.hasAccess('WRITE')")
+    @PostMapping("/{parentId}")
+    public ResponseEntity<ApiResponse<Void>> createChildContent(
+            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Integer parentId,
+            @Valid @RequestBody ContentRequest request) throws Exception {
+
+        contentService.createChildContent(parentId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
     }
 
     /**
      * 콘텐츠 수정
-     *
-     * @param idx 수정할 콘텐츠 ID
-     * @param request 수정 요청 객체
-     * @return 성공 응답
-     * @throws Exception 수정 처리 중 오류 발생 시
      */
     @PreAuthorize("@permService.hasAccess('WRITE')")
     @PutMapping("/{idx}")
@@ -102,4 +111,33 @@ public class ContentController {
         contentService.update(idx, request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    /**
+     * 단일 콘텐츠 삭제
+     *
+     * @param idx 삭제할 콘텐츠 ID
+     */
+    @PreAuthorize("@permService.hasAccess('REMOVE')")
+    @DeleteMapping("/{idx}")
+    public ResponseEntity<ApiResponse<Void>> deleteContent(
+            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Integer idx) throws Exception {
+
+        contentService.deleteByIdx(idx);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * 콘텐츠 그룹 전체 삭제 (루트 포함)
+     *
+     * @param parentId 삭제할 그룹의 루트 ID
+     */
+    @PreAuthorize("@permService.hasAccess('REMOVE')")
+    @DeleteMapping("/group/{parentId}")
+    public ResponseEntity<ApiResponse<Void>> deleteGroupContent(
+            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Integer parentId) throws Exception {
+
+        contentService.deleteByParentId(parentId);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
 }

@@ -7,10 +7,12 @@ import lombok.Getter;
 @Builder
 public class ContentResponse {
     private Integer idx;
-    private Integer menuIdx;
+    private Integer parentId;
+    private Integer sort;
     private Boolean isUse;
-    private String subject;
+    private String title;
     private String content;
+    private String hostname;
     private String createdDate;
     private String createdBy;
     private String updatedDate;

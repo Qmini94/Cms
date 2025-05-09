@@ -17,7 +17,7 @@ public interface ContentMapper {
     @Mapping(target = "isUse", constant = "true")
     @Mapping(target = "createdDate", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "updatedDate", ignore = true)
-    Content toEntity(ContentRequest request, @Context Integer idx);
+    Content toEntity(ContentRequest request);
 
     @Mapping(target = "createdDate", expression = "java(formatDateTime(entity.getCreatedDate()))")
     @Mapping(target = "updatedDate", expression = "java(formatDateTime(entity.getUpdatedDate()))")
@@ -25,9 +25,6 @@ public interface ContentMapper {
 
     List<ContentResponse> toResponseList(List<Content> entities);
 
-    /**
-     * 수정 시 기존 엔티티에 request 값만 덮어씀
-     */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "updatedDate", expression = "java(java.time.LocalDateTime.now())")
     void updateEntity(@MappingTarget Content entity, ContentRequest request);

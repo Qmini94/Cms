@@ -1,32 +1,31 @@
 package kr.co.itid.cms.repository.cms.core.content;
 
-import io.lettuce.core.dynamic.annotation.Param;
 import kr.co.itid.cms.entity.cms.core.content.Content;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
 public interface ContentRepository extends JpaRepository<Content, Integer> {
 
-    List<Content> findByMenuIdxOrderByCreatedDateDesc(Integer menuIdx);
+    /**
+     * sort가 0이면서 사용 중인 콘텐츠 목록 (대표 콘텐츠)
+     */
+    List<Content> findBySortAndIsUseTrue(int sort);
 
-    @Query(value = """
-        SELECT *
-        FROM content c
-        WHERE c.created_date = (
-            SELECT MAX(c2.created_date)
-            FROM content c2
-            WHERE c2.menu_idx = c.menu_idx
-        )
-        ORDER BY c.menu_idx
-        """, nativeQuery = true)
-    List<Content> findLatestContentPerMenu();
+    /**
+     * 특정 parentId 그룹의 콘텐츠 목록 (정렬 순서대로)
+     */
+    List<Content> findByParentIdOrderBySortAsc(Integer parentId);
 
-    // 📌 [3] 수정 쿼리
-    @Modifying(clearAutomatically = true)
-    @Query("UPDATE Content c SET c.isUse = false WHERE c.menuIdx = :menuIdx")
-    void updateIsUseFalseByMenuIdx(@Param("menuIdx") Integer menuIdx);
+    /**
+     * 특정 parentId에 속한 콘텐츠의 최대 sort값 조회
+     */
+    @Query("SELECT MAX(c.sort) FROM Content c WHERE c.parentId = :parentId")
+    Integer findMaxSortByParentId(Integer parentId);
+
+    /**
+     * 대표 콘텐츠 및 그 하위 콘텐츠 전체 삭제 (parentId 또는 idx가 일치하는 경우)
+     */
+    void deleteAllByParentIdOrIdx(Integer parentId, Integer idx);
 }
-

@@ -22,8 +22,11 @@ public class Content {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idx;
 
-    @Column(name = "menu_idx")
-    private Integer menuIdx;
+    @Column(name = "parent_id")
+    private Integer parentId;
+
+    @Column(name = "sort", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer sort = 0;
 
     @Column(name = "is_use", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isUse = false;
@@ -34,6 +37,9 @@ public class Content {
     @Lob
     @Column(nullable = false)
     private String content;
+
+    @Column(name = "hostname", nullable = false, length = 30)
+    private String hostname;
 
     @Column(name = "updated_by", length = 30)
     private String updatedBy;
