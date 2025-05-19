@@ -92,7 +92,7 @@ public class JwtTokenProvider {
     public Map<String, Object> getClaims(Member member) {
         Map<String, Object> claims = new HashMap<>();
 
-        int idx = member.getIdx();
+        Long idx = member.getIdx();
         int userLevel = member.getUserLevel();
         String userName = member.getUserName();
 

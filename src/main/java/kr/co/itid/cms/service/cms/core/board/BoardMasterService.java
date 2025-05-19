@@ -39,7 +39,7 @@ public interface BoardMasterService {
      * @return BoardMasterResponse 저장된 게시판 정보
      * @throws Exception 데이터 저장 중 오류 발생 시
      */
-    void save(Long idx, BoardMasterRequest request) throws Exception;
+    void saveBoard(Long idx, BoardMasterRequest request) throws Exception;
 
     /**
      * 게시판을 삭제합니다.
@@ -47,5 +47,5 @@ public interface BoardMasterService {
      * @param idx 삭제할 게시판 ID
      * @throws Exception 데이터 삭제 중 오류 발생 시
      */
-    void delete(Long idx) throws Exception;
+    void deleteBoard(Long idx) throws Exception;
 }

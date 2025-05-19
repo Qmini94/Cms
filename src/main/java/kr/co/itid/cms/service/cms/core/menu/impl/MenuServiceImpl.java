@@ -3,6 +3,7 @@ package kr.co.itid.cms.service.cms.core.menu.impl;
 import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
 import kr.co.itid.cms.dto.cms.core.menu.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
+import kr.co.itid.cms.dto.cms.core.menu.MenuTypeValueResponse;
 import kr.co.itid.cms.entity.cms.core.menu.Menu;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.mapper.cms.core.menu.MenuMapper;
@@ -25,6 +26,41 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     private final MenuRepository menuRepository;
     private final LoggingUtil loggingUtil;
     private final MenuMapper menuMapper;
+
+    @Override
+    @Transactional(readOnly = true)
+    public MenuResponse getMenuById(Long id) throws Exception {
+        Menu menu = getMenuEntityById(id);
+        return menuMapper.toResponse(menu);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MenuTypeValueResponse getMenuRenderById(Long id) throws Exception {
+        Menu menu = getMenuEntityById(id);
+        return menuMapper.toTypeValueResponse(menu);
+    }
+
+    /**
+     * 공통 내부 처리 로직 (예외/로깅 포함)
+     */
+    private Menu getMenuEntityById(Long id) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu by id: " + id);
+
+        try {
+            Menu menu = menuRepository.findById(id)
+                    .orElseThrow(() -> processException("Menu not found: " + id));
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "Got menu by id: " + id);
+            return menu;
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Database error while getting menu");
+            throw processException("Cannot access database", e);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Unexpected error while getting menu");
+            throw processException("Unexpected error", e);
+        }
+    }
 
     @Override
     @Transactional(readOnly = true)

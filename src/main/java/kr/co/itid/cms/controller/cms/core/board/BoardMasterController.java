@@ -70,7 +70,7 @@ public class BoardMasterController {
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> createBoard(@Valid @RequestBody BoardMasterRequest request) throws Exception {
 
-        boardMasterService.save(null, request);
+        boardMasterService.saveBoard(null, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
     }
 
@@ -88,7 +88,7 @@ public class BoardMasterController {
             @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long idx,
             @Valid @RequestBody BoardMasterRequest request) throws Exception {
 
-        boardMasterService.save(idx, request);
+        boardMasterService.saveBoard(idx, request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -104,7 +104,7 @@ public class BoardMasterController {
     public ResponseEntity<ApiResponse<Void>> deleteBoard(
             @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long idx) throws Exception {
 
-        boardMasterService.delete(idx);
+        boardMasterService.deleteBoard(idx);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

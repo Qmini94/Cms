@@ -48,7 +48,7 @@ public class ContentController {
     @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping("/group/{parentId}")
     public ResponseEntity<ApiResponse<List<ContentResponse>>> getGroupedContents(
-            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Integer parentId) throws Exception {
+            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Long parentId) throws Exception {
 
         List<ContentResponse> list = contentService.getContentsByParentId(parentId);
         return ResponseEntity.ok(ApiResponse.success(list));
@@ -63,9 +63,9 @@ public class ContentController {
     @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping("/{idx}/view")
     public ResponseEntity<ApiResponse<ContentResponse>> getContentsDetail(
-            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Integer idx) throws Exception {
+            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx) throws Exception {
 
-        ContentResponse content = contentService.getByIdx(idx);
+        ContentResponse content = contentService.getContentByIdx(idx);
         return ResponseEntity.ok(ApiResponse.success(content));
     }
 
@@ -92,7 +92,7 @@ public class ContentController {
     @PreAuthorize("@permService.hasAccess('WRITE')")
     @PostMapping("/{parentId}")
     public ResponseEntity<ApiResponse<Void>> createChildContent(
-            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Integer parentId,
+            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Long parentId,
             @Valid @RequestBody ContentRequest request) throws Exception {
 
         contentService.createChildContent(parentId, request);
@@ -105,10 +105,10 @@ public class ContentController {
     @PreAuthorize("@permService.hasAccess('WRITE')")
     @PutMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> updateContents(
-            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Integer idx,
+            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx,
             @Valid @RequestBody ContentRequest request) throws Exception {
 
-        contentService.update(idx, request);
+        contentService.updateContent(idx, request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -120,9 +120,9 @@ public class ContentController {
     @PreAuthorize("@permService.hasAccess('REMOVE')")
     @DeleteMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> deleteContent(
-            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Integer idx) throws Exception {
+            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx) throws Exception {
 
-        contentService.deleteByIdx(idx);
+        contentService.deleteContentByIdx(idx);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -134,9 +134,9 @@ public class ContentController {
     @PreAuthorize("@permService.hasAccess('REMOVE')")
     @DeleteMapping("/group/{parentId}")
     public ResponseEntity<ApiResponse<Void>> deleteGroupContent(
-            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Integer parentId) throws Exception {
+            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Long parentId) throws Exception {
 
-        contentService.deleteByParentId(parentId);
+        contentService.deleteContentByParentId(parentId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

@@ -30,7 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String uri = request.getRequestURI();
             String hostname = request.getHeader("X-Site-Hostname");
             hostname = StringUtils.hasText(hostname) ? hostname : "unknown";
-            String menuId = request.getHeader("X-Menu-Id");
+            Long menuId = Long.valueOf(request.getHeader("X-Menu-Id"));
 
             // DEBUG: 요청 정보 로그
             logger.info("[JWT] 요청 URI: " + uri); // DEBUG:
@@ -89,7 +89,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private JwtAuthenticatedUser createGuestUser(HttpServletRequest request, String hostname, String menuId) {
+    private JwtAuthenticatedUser createGuestUser(HttpServletRequest request, String hostname, Long menuId) {
         String origin = request.getHeader("Origin");
         logger.info("[JWT] 현재 Origin 헤더: " + origin);
 

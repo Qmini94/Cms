@@ -1,17 +1,16 @@
 package kr.co.itid.cms.dto.cms.core.menu;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 @Getter
-@RequiredArgsConstructor
+@Builder
 public class MenuResponse {
-    private final Long id;
-    private final Long parentId;
-    private final String title;
-    private final String type;
-    private final String value;
-    private final String display;
-    private final String pathUrl;
-    private final String pathId;
+    private Long id;
+    private Long parentId;
+    private String title;
+    private String type;
+    private String value;
+    private String display;
+    private String pathUrl;
+    private String pathId;
 }

@@ -3,6 +3,7 @@ package kr.co.itid.cms.mapper.cms.core.menu;
 import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
 import kr.co.itid.cms.dto.cms.core.menu.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
+import kr.co.itid.cms.dto.cms.core.menu.MenuTypeValueResponse;
 import kr.co.itid.cms.entity.cms.core.menu.Menu;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,6 +16,10 @@ public interface MenuMapper {
 
     @Mapping(target = "display", expression = "java(menu.getDisplay() != null ? menu.getDisplay().name() : null)")
     MenuResponse toResponse(Menu menu);
+
+    @Mapping(target = "type", source = "type")
+    @Mapping(target = "value", source = "value")
+    MenuTypeValueResponse toTypeValueResponse(Menu menu);
 
     @Named("toLiteTreeResponse")
     default MenuTreeLiteResponse toLiteTreeResponse(Menu menu, List<MenuTreeLiteResponse> children) {

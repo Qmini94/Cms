@@ -26,7 +26,7 @@ public interface ContentService {
      * @return 해당 그룹의 하위 콘텐츠 리스트
      * @throws Exception DB 조회 또는 매핑 오류 발생 시
      */
-    List<ContentResponse> getContentsByParentId(Integer parentId) throws Exception;
+    List<ContentResponse> getContentsByParentId(Long parentId) throws Exception;
 
     /**
      * 특정 콘텐츠를 idx로 상세 조회합니다.
@@ -35,7 +35,7 @@ public interface ContentService {
      * @return ContentResponse
      * @throws Exception DB 조회 실패 또는 데이터 없음
      */
-    ContentResponse getByIdx(Integer idx) throws Exception;
+    ContentResponse getContentByIdx(Long idx) throws Exception;
 
     /**
      * 대표 콘텐츠(루트 콘텐츠)를 생성합니다.
@@ -54,7 +54,7 @@ public interface ContentService {
      * @param request 콘텐츠 등록 요청 객체
      * @throws Exception DB 저장 실패 또는 유효성 오류
      */
-    void createChildContent(Integer parentId, ContentRequest request) throws Exception;
+    void createChildContent(Long parentId, ContentRequest request) throws Exception;
 
     /**
      * 콘텐츠를 수정합니다.
@@ -63,7 +63,7 @@ public interface ContentService {
      * @param request 수정 요청 객체
      * @throws Exception DB 조회 또는 저장 실패 시
      */
-    void update(Integer idx, ContentRequest request) throws Exception;
+    void updateContent(Long idx, ContentRequest request) throws Exception;
 
     /**
      * 단일 콘텐츠를 삭제합니다.
@@ -71,7 +71,7 @@ public interface ContentService {
      * @param idx 삭제할 콘텐츠 ID
      * @throws Exception DB 삭제 실패 또는 존재하지 않을 경우
      */
-    void deleteByIdx(Integer idx) throws Exception;
+    void deleteContentByIdx(Long idx) throws Exception;
 
     /**
      * 루트 콘텐츠 + 그에 속한 모든 하위 콘텐츠를 삭제합니다.
@@ -79,5 +79,5 @@ public interface ContentService {
      * @param parentId 삭제할 그룹 ID
      * @throws Exception DB 삭제 실패 또는 트랜잭션 오류 발생 시
      */
-    void deleteByParentId(Integer parentId) throws Exception;
+    void deleteContentByParentId(Long parentId) throws Exception;
 }

@@ -20,10 +20,10 @@ public class Content {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idx;
+    private Long idx;
 
     @Column(name = "parent_id")
-    private Integer parentId;
+    private Long parentId;
 
     @Column(name = "sort", nullable = false, columnDefinition = "INT DEFAULT 0")
     private Integer sort = 0;

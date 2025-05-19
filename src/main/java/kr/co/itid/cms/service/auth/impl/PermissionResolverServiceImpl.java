@@ -29,7 +29,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
     @Override
     @Transactional(readOnly = true)
     public boolean resolvePermission(JwtAuthenticatedUser user, String permission) throws Exception {
-        long menuId = Long.parseLong(user.menuId());
+        Long menuId = user.menuId();
         String redisKey = getCacheKey(menuId);
         MenuPermissionData cached;
 
@@ -53,12 +53,12 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
         return cached.hasPermission(user.userIdx(), user.userLevel(), permission);
     }
 
-    private MenuPermissionData buildMenuPermission(long menuId) throws Exception {
+    private MenuPermissionData buildMenuPermission(Long menuId) throws Exception {
         MenuPermissionData permissionData = new MenuPermissionData();
         permissionData.setMenuId(menuId);
         permissionData.setLastUpdate(new Date());
 
-        List<Integer> menuHierarchy;
+        List<Long> menuHierarchy;
         try {
             menuHierarchy = findMenuHierarchy(menuId);
         } catch (Exception e) {
@@ -83,7 +83,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
 
             try {
                 if ("id".equalsIgnoreCase(perm.getType())) {
-                    int idx = Integer.parseInt(
+                    Long idx = Long.parseLong(
                             Optional.ofNullable(perm.getValue())
                                     .orElseThrow(() -> new IllegalArgumentException("Login idx is null"))
                     );
@@ -93,7 +93,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
                             Optional.ofNullable(perm.getValue())
                                     .orElseThrow(() -> new IllegalArgumentException("Login level is null"))
                     );
-                    permissionData.addPermissionEntry(sort, -1, level, permissionSet);
+                    permissionData.addPermissionEntry(sort, -1L, level, permissionSet);
                 }
             } catch (Exception e) {
                 throw processException("Fail to parse permission data", e);
@@ -103,7 +103,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
         return permissionData;
     }
 
-    private List<Integer> findMenuHierarchy(long menuId) throws Exception {
+    private List<Long> findMenuHierarchy(Long menuId) throws Exception {
         String path;
         try {
             path = menuRepository.findById(menuId)
@@ -113,10 +113,10 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
             throw processException("Fail to get menu path", e);
         }
 
-        List<Integer> hierarchy = new ArrayList<>();
+        List<Long> hierarchy = new ArrayList<>();
         try {
             for (String id : path.split("\\.")) {
-                hierarchy.add(Integer.parseInt(id));
+                hierarchy.add(Long.parseLong(id));
             }
         } catch (NumberFormatException e) {
             throw processException("Menu path format error", e);
@@ -140,7 +140,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
         return permissions;
     }
 
-    private String getCacheKey(long menuId) {
+    private String getCacheKey(Long menuId) {
         return PERMISSION_KEY_PREFIX + menuId;
     }
 
@@ -149,7 +149,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
      * TODO: 삭제할때 싱위, 하위 ID들 캐쉬 같이 삭제해야함.
      * @param menuId 삭제할 메뉴 ID
      */
-    public void invalidateMenuPermission(long menuId) {
+    public void invalidateMenuPermission(Long menuId) {
         try {
             redisTemplate.delete(getCacheKey(menuId));
         } catch (Exception e) {

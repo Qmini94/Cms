@@ -16,7 +16,7 @@ import java.util.*;
 @AllArgsConstructor
 public class MenuPermissionData implements Serializable {
 
-    private long menuId;
+    private Long menuId;
 
     private Date lastUpdate; // 캐시 마지막 갱신 시점
 
@@ -36,7 +36,7 @@ public class MenuPermissionData implements Serializable {
      * @param targetPermission 확인할 권한
      * @return 권한이 있을 경우 true
      */
-    public boolean hasPermission(long userIdx, int level, String targetPermission) {
+    public boolean hasPermission(Long userIdx, int level, String targetPermission) {
         boolean levelAllowed = false;
 
         for (Map.Entry<Integer, List<PermissionEntry>> entry : sortedPermissionMap.entrySet()) {
@@ -60,7 +60,7 @@ public class MenuPermissionData implements Serializable {
     /**
      * 정렬 순서에 따라 권한 엔트리를 추가
      */
-    public void addPermissionEntry(int sort, long userIdx, Integer level, Set<String> permissions) {
+    public void addPermissionEntry(int sort, Long userIdx, Integer level, Set<String> permissions) {
         sortedPermissionMap.computeIfAbsent(sort, k -> new ArrayList<>())
                 .add(new PermissionEntry(userIdx, level, permissions));
     }

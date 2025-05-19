@@ -20,10 +20,10 @@ public class Permission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idx;
+    private Long idx;
 
     @Column(name = "menu_id", nullable = false)
-    private Integer menuId;
+    private Long menuId;
 
     @Column(nullable = false, columnDefinition = "enum('id','name','department','level','all')")
     private String type;

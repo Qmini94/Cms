@@ -12,8 +12,8 @@ import java.util.List;
 public class MenuTreeResponse {
     private Long id;
     private Long parentId;
-    private Long position;
-    private Long level;
+    private Integer position;
+    private Integer level;
     private String title;
     private String name;
     private String type;

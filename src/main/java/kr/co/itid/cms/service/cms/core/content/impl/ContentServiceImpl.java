@@ -43,7 +43,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional(readOnly = true)
-    public List<ContentResponse> getContentsByParentId(Integer parentId) throws Exception {
+    public List<ContentResponse> getContentsByParentId(Long parentId) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get group contents by parentId=" + parentId);
 
         try {
@@ -58,7 +58,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional(readOnly = true)
-    public ContentResponse getByIdx(Integer idx) throws Exception {
+    public ContentResponse getContentByIdx(Long idx) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get content by idx=" + idx);
 
         try {
@@ -104,7 +104,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional
-    public void createChildContent(Integer parentId, ContentRequest request) throws Exception {
+    public void createChildContent(Long parentId, ContentRequest request) throws Exception {
         loggingUtil.logAttempt(Action.CREATE, "Try to create child content: parentId=" + parentId);
 
         try {
@@ -133,7 +133,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional
-    public void update(Integer idx, ContentRequest request) throws Exception {
+    public void updateContent(Long idx, ContentRequest request) throws Exception {
         loggingUtil.logAttempt(Action.UPDATE, "Try to update content: idx=" + idx);
 
         try {
@@ -162,7 +162,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional
-    public void deleteByIdx(Integer idx) throws Exception {
+    public void deleteContentByIdx(Long idx) throws Exception {
         loggingUtil.logAttempt(Action.DELETE, "Try to delete content: idx=" + idx);
 
         try {
@@ -179,7 +179,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional
-    public void deleteByParentId(Integer parentId) throws Exception {
+    public void deleteContentByParentId(Long parentId) throws Exception {
         loggingUtil.logAttempt(Action.DELETE, "Try to delete group contents: parentId=" + parentId);
 
         try {

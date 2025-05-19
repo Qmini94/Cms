@@ -64,7 +64,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
 
     @Override
     @Transactional
-    public void save(Long idx, BoardMasterRequest request) throws Exception {
+    public void saveBoard(Long idx, BoardMasterRequest request) throws Exception {
         BoardMaster boardMaster = boardMapper.toEntity(request, idx); // 주입된 매퍼 사용
         boolean isNew = (idx == null);
         Action action = isNew ? Action.CREATE : Action.UPDATE;
@@ -88,7 +88,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
 
     @Override
     @Transactional
-    public void delete(Long idx) throws Exception {
+    public void deleteBoard(Long idx) throws Exception {
         loggingUtil.logAttempt(Action.DELETE, "Try to delete board: idx=" + idx);
 
         try {
