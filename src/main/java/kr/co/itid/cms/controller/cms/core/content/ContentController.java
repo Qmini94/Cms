@@ -65,7 +65,7 @@ public class ContentController {
     public ResponseEntity<ApiResponse<ContentResponse>> getContentsDetail(
             @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx) throws Exception {
 
-        ContentResponse content = contentService.getContentByIdx(idx);
+        ContentResponse content = contentService.getContentByParentId(idx);
         return ResponseEntity.ok(ApiResponse.success(content));
     }
 

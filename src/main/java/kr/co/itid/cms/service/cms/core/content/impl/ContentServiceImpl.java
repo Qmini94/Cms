@@ -58,13 +58,14 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional(readOnly = true)
-    public ContentResponse getContentByIdx(Long idx) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get content by idx=" + idx);
+    public ContentResponse getContentByParentId(Long parentId) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get content by parentId=" + parentId);
 
         try {
-            Content content = contentRepository.findById(idx)
-                    .orElseThrow(() -> new IllegalArgumentException("Content not found: " + idx));
-            loggingUtil.logSuccess(Action.RETRIEVE, "Content loaded: idx=" + idx);
+            Content content = contentRepository.findFirstByParentIdAndIsUseTrue(parentId)
+                    .orElseThrow(() -> new IllegalArgumentException("Content not found for parentId=" + parentId));
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "Content loaded: idx=" + content.getIdx());
             return contentMapper.toResponse(content);
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, e.getMessage());
@@ -120,6 +121,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
             child.setSort(nextSort);
             child.setIsUse(true);
 
+            contentRepository.updateIsUseFalseByParentId(parentId);
             contentRepository.save(child);
             loggingUtil.logSuccess(Action.CREATE, "Child content created: parentId=" + parentId);
         } catch (IllegalArgumentException e) {
@@ -147,6 +149,9 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
             // 서버에서만 채워야 하는 정보
             content.setUpdatedBy(user.userId());
             content.setHostname(user.hostname());
+            if (Boolean.TRUE.equals(request.getIsUse())) {
+                contentRepository.updateIsUseFalseByParentId(content.getParentId());
+            }
 
             contentRepository.save(content);
 

@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class MenuTypeValueResponse {
+    private String name;
     private String type;
     private String value;
 }

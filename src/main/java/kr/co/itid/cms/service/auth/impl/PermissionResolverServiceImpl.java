@@ -57,7 +57,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
         MenuPermissionData permissionData = new MenuPermissionData();
         permissionData.setMenuId(menuId);
         permissionData.setLastUpdate(new Date());
-
+        System.out.println(permissionData);
         List<Long> menuHierarchy;
         try {
             menuHierarchy = findMenuHierarchy(menuId);

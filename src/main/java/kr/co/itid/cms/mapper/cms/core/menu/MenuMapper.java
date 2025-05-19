@@ -17,6 +17,7 @@ public interface MenuMapper {
     @Mapping(target = "display", expression = "java(menu.getDisplay() != null ? menu.getDisplay().name() : null)")
     MenuResponse toResponse(Menu menu);
 
+    @Mapping(target = "name", source = "name")
     @Mapping(target = "type", source = "type")
     @Mapping(target = "value", source = "value")
     MenuTypeValueResponse toTypeValueResponse(Menu menu);
