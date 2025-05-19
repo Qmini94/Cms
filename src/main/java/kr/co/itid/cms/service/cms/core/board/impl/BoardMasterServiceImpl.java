@@ -74,6 +74,9 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
         try {
             BoardMaster saved = boardMasterRepository.save(boardMaster);
             loggingUtil.logSuccess(action, "Board " + action.getValue() + "d: idx=" + saved.getIdx());
+        } catch (IllegalArgumentException e) {
+            loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
+            throw processException("Invalid input detected", e);
         } catch (DataAccessException e) {
             loggingUtil.logFail(action, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);
@@ -91,6 +94,9 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
         try {
             boardMasterRepository.deleteById(idx);
             loggingUtil.logSuccess(Action.DELETE, "Board deleted: idx=" + idx);
+        } catch (IllegalArgumentException e) {
+            loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
+            throw processException("Invalid input detected", e);
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.DELETE, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);

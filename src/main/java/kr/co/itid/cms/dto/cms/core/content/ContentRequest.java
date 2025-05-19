@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
 
 /**
  * 콘텐츠 등록/수정 요청 DTO
@@ -30,14 +29,4 @@ public class ContentRequest {
 
     @NotBlank(message = "본문은 필수입니다")
     private String content;
-
-    @NotBlank(message = "hostname은 필수입니다")
-    @Size(max = 30, message = "hostname은 최대 30자까지 가능합니다")
-    private String hostname;
-
-    @Size(max = 30, message = "작성자 ID는 최대 30자까지 가능합니다")
-    private String createdBy;
-
-    @Size(max = 30, message = "수정자 ID는 최대 30자까지 가능합니다")
-    private String updatedBy;
 }

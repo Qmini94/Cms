@@ -56,6 +56,9 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
             loggingUtil.logSuccess(Action.LOGIN, "Login success: " + userId);
             return new TokenResponse(accessToken);
+        } catch (IllegalArgumentException e) {
+            loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
+            throw processException("Invalid input detected", e);
         } catch (UsernameNotFoundException | BadCredentialsException e) {
             throw e;
         } catch (Exception e) {

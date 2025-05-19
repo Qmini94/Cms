@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.cms.core.content.impl;
 
+import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.dto.cms.core.content.ContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.ContentResponse;
 import kr.co.itid.cms.entity.cms.core.content.Content;
@@ -8,6 +9,7 @@ import kr.co.itid.cms.mapper.cms.core.content.ContentMapper;
 import kr.co.itid.cms.repository.cms.core.content.ContentRepository;
 import kr.co.itid.cms.service.cms.core.content.ContentService;
 import kr.co.itid.cms.util.LoggingUtil;
+import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.stereotype.Service;
@@ -76,8 +78,12 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
         loggingUtil.logAttempt(Action.CREATE, "Try to create root content");
 
         try {
+            JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
+
             // Step 1. toEntity + 강제 설정
             Content root = contentMapper.toEntity(request);
+            root.setHostname(user.hostname());
+            root.setCreatedBy(user.userId());
             root.setSort(0);
             root.setIsUse(true);
 
@@ -87,6 +93,9 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
             contentRepository.save(saved);
 
             loggingUtil.logSuccess(Action.CREATE, "Root content created: idx=" + saved.getIdx());
+        } catch (IllegalArgumentException e) {
+            loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
+            throw processException("Invalid input detected", e);
         } catch (Exception e) {
             loggingUtil.logFail(Action.CREATE, e.getMessage());
             throw processException("Failed to create root content", e);
@@ -99,17 +108,23 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
         loggingUtil.logAttempt(Action.CREATE, "Try to create child content: parentId=" + parentId);
 
         try {
+            JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
             // Step 1. max(sort) + 1 계산
             int nextSort = Optional.ofNullable(contentRepository.findMaxSortByParentId(parentId)).orElse(0) + 1;
 
             // Step 2. entity 생성
             Content child = contentMapper.toEntity(request);
+            child.setHostname(user.hostname());
+            child.setCreatedBy(user.userId());
             child.setParentId(parentId);
             child.setSort(nextSort);
             child.setIsUse(true);
 
             contentRepository.save(child);
             loggingUtil.logSuccess(Action.CREATE, "Child content created: parentId=" + parentId);
+        } catch (IllegalArgumentException e) {
+            loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
+            throw processException("Invalid input detected", e);
         } catch (Exception e) {
             loggingUtil.logFail(Action.CREATE, e.getMessage());
             throw processException("Failed to create child content", e);
@@ -122,13 +137,23 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
         loggingUtil.logAttempt(Action.UPDATE, "Try to update content: idx=" + idx);
 
         try {
+            JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
+
             Content content = contentRepository.findById(idx)
                     .orElseThrow(() -> new IllegalArgumentException("Content not found: " + idx));
 
             contentMapper.updateEntity(content, request);
+
+            // 서버에서만 채워야 하는 정보
+            content.setUpdatedBy(user.userId());
+            content.setHostname(user.hostname());
+
             contentRepository.save(content);
 
             loggingUtil.logSuccess(Action.UPDATE, "Content updated: idx=" + idx);
+        } catch (IllegalArgumentException e) {
+            loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
+            throw processException("Invalid input detected", e);
         } catch (Exception e) {
             loggingUtil.logFail(Action.UPDATE, e.getMessage());
             throw processException("Failed to update content", e);
@@ -143,6 +168,9 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
         try {
             contentRepository.deleteById(idx);
             loggingUtil.logSuccess(Action.DELETE, "Content deleted: idx=" + idx);
+        } catch (IllegalArgumentException e) {
+            loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
+            throw processException("Invalid input detected", e);
         } catch (Exception e) {
             loggingUtil.logFail(Action.DELETE, e.getMessage());
             throw processException("Failed to delete content", e);
@@ -157,6 +185,9 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
         try {
             contentRepository.deleteAllByParentIdOrIdx(parentId, parentId);
             loggingUtil.logSuccess(Action.DELETE, "Group contents deleted: parentId=" + parentId);
+        } catch (IllegalArgumentException e) {
+            loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
+            throw processException("Invalid input detected", e);
         } catch (Exception e) {
             loggingUtil.logFail(Action.DELETE, e.getMessage());
             throw processException("Failed to delete group contents", e);
