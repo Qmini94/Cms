@@ -30,7 +30,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String uri = request.getRequestURI();
             String hostname = request.getHeader("X-Site-Hostname");
             hostname = StringUtils.hasText(hostname) ? hostname : "unknown";
-            Long menuId = Long.valueOf(request.getHeader("X-Menu-Id"));
+            String menuIdHeader = request.getHeader("X-Menu-Id");
+            Long menuId = StringUtils.hasText(menuIdHeader) ? Long.valueOf(menuIdHeader) : null;
 
             // DEBUG: 요청 정보 로그
             logger.info("[JWT] 요청 URI: " + uri); // DEBUG:
