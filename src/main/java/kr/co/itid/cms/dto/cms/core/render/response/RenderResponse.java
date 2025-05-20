@@ -7,5 +7,6 @@ import lombok.Getter;
 @Builder
 public class RenderResponse {
     private String type;
+    private String boardId;
     private Object data;
 }

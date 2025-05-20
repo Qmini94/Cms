@@ -43,10 +43,12 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
             }
 
             Object data;
+            String boardId = null;
             switch (menu.getType()) {
                 case "module":
                     List<BoardResponse> boards = boardService.getBoardList(menu.getValue());
                     data = boards;
+                    boardId = menu.getValue();
                     break;
                 case "content":
                     data = contentService.getContentByParentId(Long.parseLong(menu.getValue()));
@@ -58,6 +60,7 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
             loggingUtil.logSuccess(Action.RETRIEVE, "Rendered content for type: " + menu.getType());
             return RenderResponse.builder()
                     .type(menu.getType())
+                    .boardId(boardId)
                     .data(data)
                     .build();
         } catch (DataAccessException e) {
