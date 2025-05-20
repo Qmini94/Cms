@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.cms.core.menu;
+package kr.co.itid.cms.dto.cms.core.menu.response;
 
 import lombok.*;
 

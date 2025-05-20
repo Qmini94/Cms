@@ -1,11 +1,10 @@
 package kr.co.itid.cms.service.cms.core.board;
 
-import kr.co.itid.cms.dto.cms.core.board.BoardMasterListResponse;
-import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
-import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterListResponse;
+import kr.co.itid.cms.dto.cms.core.board.request.BoardMasterRequest;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 게시판 마스터 관리 서비스 인터페이스입니다.
@@ -28,7 +27,7 @@ public interface BoardMasterService {
      * @return Optional&lt;BoardMasterResponse&gt; 해당 게시판 정보
      * @throws Exception 데이터베이스 또는 시스템 오류 발생 시
      */
-    Optional<BoardMasterResponse> getBoardByBoardId(String boardId) throws Exception;
+    BoardMasterResponse getBoardByBoardId(String boardId) throws Exception;
 
     /**
      * 게시판 정보를 저장하거나 수정합니다.

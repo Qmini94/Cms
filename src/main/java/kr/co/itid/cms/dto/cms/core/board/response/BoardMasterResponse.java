@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.cms.core.board;
+package kr.co.itid.cms.dto.cms.core.board.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +11,7 @@ public class BoardMasterResponse {
     private String boardName;
     private String description;
     private Boolean isUse;
-    private String boardType;
+    private Integer boardType;
     private Boolean isAdminApproval;
     private Boolean isPrivacyOption;
     private Integer maxFileUpload;

@@ -1,0 +1,107 @@
+package kr.co.itid.cms.controller.cms.core.board;
+
+import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
+import kr.co.itid.cms.dto.common.ApiResponse;
+import kr.co.itid.cms.service.cms.core.board.BoardService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+import java.util.List;
+
+/**
+ * 게시글 정보를 다루는 API 컨트롤러입니다.
+ * 게시글 목록 조회, 단건 조회, 등록, 수정, 삭제 기능을 제공합니다.
+ */
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/board")
+@Validated
+public class BoardController {
+
+    private final BoardService boardService;
+
+    /**
+     * 게시글 목록을 조회합니다.
+     *
+     * @param boardId 게시판 식별자 (쿼리 파라미터)
+     * @return ApiResponse&lt;List&lt;BoardResponse&gt;&gt; 게시글 목록
+     */
+    @PreAuthorize("@permService.hasAccess('VIEW')")
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<BoardResponse>>> getBoardList(
+            @RequestParam @NotBlank(message = "boardId는 필수입니다") String boardId) throws Exception {
+
+        List<BoardResponse> boards = boardService.getBoardList(boardId);
+        return ResponseEntity.ok(ApiResponse.success(boards));
+    }
+
+    /**
+     * 게시글 단건을 조회합니다.
+     *
+     * @param idx 게시글 고유 ID
+     * @return ApiResponse&lt;BoardResponse&gt; 게시글 정보
+     */
+    @PreAuthorize("@permService.hasAccess('VIEW')")
+    @GetMapping("/{idx}")
+    public ResponseEntity<ApiResponse<BoardResponse>> getBoard(
+            @PathVariable @Positive(message = "게시글 ID는 1 이상의 값이어야 합니다") Long idx) throws Exception {
+
+        BoardResponse board = boardService.getBoard(idx);
+        return ResponseEntity.ok(ApiResponse.success(board));
+    }
+
+    /**
+     * 게시글을 등록합니다.
+     *
+     * @param request 게시글 등록 요청 DTO
+     * @return ApiResponse&lt;Void&gt; 등록 완료 응답
+     */
+    @PreAuthorize("@permService.hasAccess('WRITE')")
+    @PostMapping
+    public ResponseEntity<ApiResponse<Void>> createBoard(
+            @Valid @RequestBody BoardRequest request) throws Exception {
+
+        boardService.saveBoard(null, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
+    }
+
+    /**
+     * 게시글을 수정합니다.
+     *
+     * @param idx 수정할 게시글 고유 ID
+     * @param request 게시글 수정 요청 DTO
+     * @return ApiResponse&lt;Void&gt; 수정 완료 응답
+     */
+    @PreAuthorize("@permService.hasAccess('WRITE')")
+    @PutMapping("/{idx}")
+    public ResponseEntity<ApiResponse<Void>> updateBoard(
+            @PathVariable @Positive(message = "게시글 ID는 1 이상의 값이어야 합니다") Long idx,
+            @Valid @RequestBody BoardRequest request) throws Exception {
+
+        boardService.saveBoard(idx, request);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * 게시글을 삭제합니다.
+     *
+     * @param idx 삭제할 게시글 고유 ID
+     * @return ApiResponse&lt;Void&gt; 삭제 완료 응답
+     */
+    @PreAuthorize("@permService.hasAccess('REMOVE')")
+    @DeleteMapping("/{idx}")
+    public ResponseEntity<ApiResponse<Void>> deleteBoard(
+            @PathVariable @Positive(message = "게시글 ID는 1 이상의 값이어야 합니다") Long idx) throws Exception {
+
+        boardService.deleteBoard(idx);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+}

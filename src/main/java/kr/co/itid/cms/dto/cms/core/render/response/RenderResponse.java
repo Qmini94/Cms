@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.cms.core.render;
+package kr.co.itid.cms.dto.cms.core.render.response;
 
 import lombok.Builder;
 import lombok.Getter;

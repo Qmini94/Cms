@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.cms.core.board;
+package kr.co.itid.cms.dto.cms.core.board.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,8 +31,8 @@ public class BoardMasterRequest {
 
     private Boolean isUse = true;
 
-    @Size(max = 50, message = "게시판 유형은 50자 이내여야 합니다.")
-    private String boardType;
+    @Min(value = 1, message = "게시판 유형을 선택하셔야 합니다.")
+    private Integer boardType;
 
     private Boolean isAdminApproval = false;
     private Boolean isPrivacyOption = false;

@@ -1,9 +1,9 @@
 package kr.co.itid.cms.service.cms.core.render.impl;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
-import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
-import kr.co.itid.cms.dto.cms.core.menu.MenuTypeValueResponse;
-import kr.co.itid.cms.dto.cms.core.render.RenderResponse;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuTypeValueResponse;
+import kr.co.itid.cms.dto.cms.core.render.response.RenderResponse;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
 import kr.co.itid.cms.service.cms.core.content.ContentService;
@@ -16,8 +16,6 @@ import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -45,11 +43,9 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
             Object data;
             switch (menu.getType()) {
                 case "module":
-                    Optional<BoardMasterResponse> option = boardMasterService.getBoardByBoardId(menu.getValue());
-                    if (option.isPresent()) {
-                        //TODO: 옵션처리에 맞게 DB에서 board_id? name에 해당하는 데이터 가져오기. 엔티티부터 컨트롤러까지 개발진행.
-                    }
-                    data = option;
+                    BoardMasterResponse boardMaster = boardMasterService.getBoardByBoardId(menu.getValue());
+                    //TODO: 옵션처리에 맞게 DB에서 board_id? name에 해당하는 데이터 가져오기. 엔티티부터 컨트롤러까지 개발진행.
+                    data = boardMaster;
                     break;
                 case "content":
                     data = contentService.getContentByParentId(Long.parseLong(menu.getValue()));

@@ -1,9 +1,9 @@
 package kr.co.itid.cms.mapper.cms.core.menu;
 
-import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
-import kr.co.itid.cms.dto.cms.core.menu.MenuTreeLiteResponse;
-import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
-import kr.co.itid.cms.dto.cms.core.menu.MenuTypeValueResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeLiteResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuTypeValueResponse;
 import kr.co.itid.cms.entity.cms.core.menu.Menu;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

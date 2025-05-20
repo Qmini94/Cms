@@ -1,11 +1,11 @@
 package kr.co.itid.cms.service.cms.core.board.impl;
 
-import kr.co.itid.cms.dto.cms.core.board.BoardMasterListResponse;
-import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
-import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterListResponse;
+import kr.co.itid.cms.dto.cms.core.board.request.BoardMasterRequest;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
 import kr.co.itid.cms.entity.cms.core.board.BoardMaster;
 import kr.co.itid.cms.enums.Action;
-import kr.co.itid.cms.mapper.cms.core.board.BoardMapper;
+import kr.co.itid.cms.mapper.cms.core.board.BoardMasterMapper;
 import kr.co.itid.cms.repository.cms.core.board.BoardMasterRepository;
 import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
 import kr.co.itid.cms.util.LoggingUtil;
@@ -16,14 +16,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service("boardMasterService")
 @RequiredArgsConstructor
 public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements BoardMasterService {
 
     private final BoardMasterRepository boardMasterRepository;
-    private final BoardMapper boardMapper;
+    private final BoardMasterMapper boardMapper;
     private final LoggingUtil loggingUtil;
 
     @Override
@@ -46,13 +45,14 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<BoardMasterResponse> getBoardByBoardId(String boardId) throws Exception {
+    public BoardMasterResponse getBoardByBoardId(String boardId) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board by boardId: " + boardId);
 
         try {
-            Optional<BoardMaster> board = boardMasterRepository.findByBoardId(boardId);
-            loggingUtil.logSuccess(Action.RETRIEVE, "Board loaded: boardId=" + boardId);
-            return board.map(boardMapper::toResponse);
+            BoardMaster entity = boardMasterRepository.findByBoardId(boardId)
+                    .orElseThrow(() -> new IllegalArgumentException("게시판 모듈이 존재하지 않습니다: " + boardId));
+
+            return boardMapper.toResponse(entity);
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
             throw processException("DB error. " + e.getMessage(), e);

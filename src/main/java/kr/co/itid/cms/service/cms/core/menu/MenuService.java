@@ -1,9 +1,9 @@
 package kr.co.itid.cms.service.cms.core.menu;
 
-import kr.co.itid.cms.dto.cms.core.menu.MenuResponse;
-import kr.co.itid.cms.dto.cms.core.menu.MenuTreeLiteResponse;
-import kr.co.itid.cms.dto.cms.core.menu.MenuTreeResponse;
-import kr.co.itid.cms.dto.cms.core.menu.MenuTypeValueResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeLiteResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuTypeValueResponse;
 
 import java.util.List;
 

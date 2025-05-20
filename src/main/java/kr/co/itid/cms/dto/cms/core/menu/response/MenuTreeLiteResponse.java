@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.cms.core.menu;
+package kr.co.itid.cms.dto.cms.core.menu.response;
 
 import kr.co.itid.cms.entity.cms.core.menu.Menu.Display;
 import lombok.Builder;

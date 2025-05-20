@@ -1,7 +1,7 @@
 package kr.co.itid.cms.service.cms.core.content;
 
-import kr.co.itid.cms.dto.cms.core.content.ContentRequest;
-import kr.co.itid.cms.dto.cms.core.content.ContentResponse;
+import kr.co.itid.cms.dto.cms.core.content.request.ContentRequest;
+import kr.co.itid.cms.dto.cms.core.content.response.ContentResponse;
 
 import java.util.List;
 

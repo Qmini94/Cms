@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.cms.core.content;
+package kr.co.itid.cms.dto.cms.core.content.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,8 +1,8 @@
 package kr.co.itid.cms.controller.cms.core.board;
 
-import kr.co.itid.cms.dto.cms.core.board.BoardMasterListResponse;
-import kr.co.itid.cms.dto.cms.core.board.BoardMasterRequest;
-import kr.co.itid.cms.dto.cms.core.board.BoardMasterResponse;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterListResponse;
+import kr.co.itid.cms.dto.cms.core.board.request.BoardMasterRequest;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/board")  // 복수형으로 리소스 이름 변경
+@RequestMapping("/api/boardMaster")  // 복수형으로 리소스 이름 변경
 @Validated
 public class BoardMasterController {
 
@@ -54,9 +54,8 @@ public class BoardMasterController {
     public ResponseEntity<ApiResponse<BoardMasterResponse>> getBoardByBoardId(
             @PathVariable @NotBlank(message = "boardId는 필수입니다") String boardId) throws Exception {
 
-        return boardMasterService.getBoardByBoardId(boardId)
-                .map(board -> ResponseEntity.ok(ApiResponse.success(board)))
-                .orElse(ResponseEntity.ok(ApiResponse.error(404, "Not found")));
+        BoardMasterResponse board = boardMasterService.getBoardByBoardId(boardId);
+        return ResponseEntity.ok(ApiResponse.success(board));
     }
 
     /**
