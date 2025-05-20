@@ -12,7 +12,5 @@ public class BoardResponse {
     private String boardId;
     private String title;
     private String regName;
-    private String openStatus;
-    private Boolean isApproved;
     private LocalDateTime createdDate;
 }

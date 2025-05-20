@@ -1,11 +1,11 @@
 package kr.co.itid.cms.service.cms.core.render.impl;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
-import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTypeValueResponse;
 import kr.co.itid.cms.dto.cms.core.render.response.RenderResponse;
 import kr.co.itid.cms.enums.Action;
-import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
+import kr.co.itid.cms.service.cms.core.board.BoardService;
 import kr.co.itid.cms.service.cms.core.content.ContentService;
 import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.service.cms.core.render.RenderService;
@@ -17,12 +17,14 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class RenderServiceImpl extends EgovAbstractServiceImpl implements RenderService {
 
     private final MenuService menuService;
-    private final BoardMasterService boardMasterService;
+    private final BoardService boardService;
     private final ContentService contentService;
     private final LoggingUtil loggingUtil;
 
@@ -43,9 +45,8 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
             Object data;
             switch (menu.getType()) {
                 case "module":
-                    BoardMasterResponse boardMaster = boardMasterService.getBoardByBoardId(menu.getValue());
-                    //TODO: 옵션처리에 맞게 DB에서 board_id? name에 해당하는 데이터 가져오기. 엔티티부터 컨트롤러까지 개발진행.
-                    data = boardMaster;
+                    List<BoardResponse> boards = boardService.getBoardList(menu.getValue());
+                    data = boards;
                     break;
                 case "content":
                     data = contentService.getContentByParentId(Long.parseLong(menu.getValue()));

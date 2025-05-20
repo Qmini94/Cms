@@ -11,6 +11,5 @@ public interface BoardMapper {
     Board toEntity(BoardRequest request);
 
     @Mapping(target = "regName", source = "regName")
-    @Mapping(target = "openStatus", expression = "java(board.getOpenStatus().name())")
     BoardResponse toResponse(Board board);
 }
