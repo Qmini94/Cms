@@ -1,7 +1,9 @@
 package kr.co.itid.cms.service.cms.core.board;
 
+import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -12,12 +14,13 @@ import java.util.List;
 public interface BoardService {
 
     /**
-     * 특정 게시판(boardId)의 전체 게시글 목록을 조회합니다.
+     * 게시글 목록을 검색 조건 및 페이징 옵션에 따라 조회합니다.
      *
-     * @param boardId 게시판 식별 ID
-     * @return List&lt;BoardResponse&gt; 게시글 목록
+     * @param option 게시글 검색 및 페이징 옵션 (boardId는 필수)
+     * @return Page&lt;BoardResponse&gt; 페이징 처리된 게시글 목록
+     * @throws Exception 게시글 조회 중 오류 발생 시
      */
-    List<BoardResponse> getBoardList(String boardId) throws Exception;
+    Page<BoardResponse> searchBoardList(BoardSearchOption option) throws Exception;
 
     /**
      * 게시글 고유 ID(idx)로 게시글 정보를 조회합니다.

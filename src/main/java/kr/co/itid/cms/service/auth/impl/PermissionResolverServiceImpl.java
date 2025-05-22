@@ -7,6 +7,7 @@ import kr.co.itid.cms.repository.cms.core.menu.MenuRepository;
 import kr.co.itid.cms.repository.cms.core.permission.PermissionRepository;
 import kr.co.itid.cms.service.auth.PermissionResolverService;
 import kr.co.itid.cms.service.auth.model.MenuPermissionData;
+import kr.co.itid.cms.service.auth.model.PermissionEntry;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,8 +29,22 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
 
     @Override
     @Transactional(readOnly = true)
-    public boolean resolvePermission(JwtAuthenticatedUser user, String permission) throws Exception {
+    public boolean hasPermission(JwtAuthenticatedUser user, String permission) throws Exception {
         Long menuId = user.menuId();
+        MenuPermissionData permissionData = getOrBuildPermissionData(menuId);
+
+        return permissionData.hasPermission(user.userIdx(), user.userLevel(), permission);
+    }
+
+    @Override
+    public PermissionEntry resolvePermissions(JwtAuthenticatedUser user) throws Exception {
+        Long menuId = user.menuId();
+        MenuPermissionData permissionData = getOrBuildPermissionData(menuId);
+
+        return permissionData.getEffectivePermissionEntryForUser(user);
+    }
+
+    private MenuPermissionData getOrBuildPermissionData(Long menuId) throws Exception {
         String redisKey = getCacheKey(menuId);
         MenuPermissionData cached;
 
@@ -46,11 +61,11 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
             } catch (Exception e) {
                 throw processException("Fail to build permission cache", e);
             }
-        }else{
+        } else {
             redisTemplate.expire(redisKey, PERMISSION_TTL);
         }
 
-        return cached.hasPermission(user.userIdx(), user.userLevel(), permission);
+        return cached;
     }
 
     private MenuPermissionData buildMenuPermission(Long menuId) throws Exception {

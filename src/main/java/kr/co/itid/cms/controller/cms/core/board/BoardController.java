@@ -1,10 +1,12 @@
 package kr.co.itid.cms.controller.cms.core.board;
 
+import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.board.BoardService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,15 +33,15 @@ public class BoardController {
     /**
      * 게시글 목록을 조회합니다.
      *
-     * @param boardId 게시판 식별자 (쿼리 파라미터)
-     * @return ApiResponse&lt;List&lt;BoardResponse&gt;&gt; 게시글 목록
+     * @param option 게시글 검색 및 페이징 옵션
+     * @return ApiResponse&lt;Page&lt;BoardResponse&gt;&gt; 게시글 목록
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<BoardResponse>>> getBoardList(
-            @RequestParam @NotBlank(message = "boardId는 필수입니다") String boardId) throws Exception {
+    public ResponseEntity<ApiResponse<Page<BoardResponse>>> getBoardList(
+            @Valid @ModelAttribute BoardSearchOption option) throws Exception {
 
-        List<BoardResponse> boards = boardService.getBoardList(boardId);
+        Page<BoardResponse> boards = boardService.searchBoardList(option);
         return ResponseEntity.ok(ApiResponse.success(boards));
     }
 

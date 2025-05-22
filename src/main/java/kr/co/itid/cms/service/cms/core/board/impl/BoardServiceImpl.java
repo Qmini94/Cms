@@ -1,27 +1,34 @@
 package kr.co.itid.cms.service.cms.core.board.impl;
 
+import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
 import kr.co.itid.cms.entity.cms.core.board.Board;
+import kr.co.itid.cms.entity.cms.core.board.BoardMaster;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.mapper.cms.core.board.BoardMapper;
+import kr.co.itid.cms.repository.cms.core.board.BoardMasterRepository;
 import kr.co.itid.cms.repository.cms.core.board.BoardRepository;
 import kr.co.itid.cms.service.cms.core.board.BoardService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service("boardService")
 @RequiredArgsConstructor
 public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardService {
 
     private final BoardRepository boardRepository;
+    private final BoardMasterRepository boardMasterRepository;
     private final BoardMapper boardMapper;
     private final LoggingUtil loggingUtil;
 
@@ -29,19 +36,24 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
 
     @Override
     @Transactional(readOnly = true)
-    public List<BoardResponse> getBoardList(String boardId) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board list by boardId: " + boardId);
+    public Page<BoardResponse> searchBoardList(BoardSearchOption option) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Attempting to search board list (boardId=" + option.getBoardId() + ")");
 
         try {
-            List<Board> list = boardRepository.findAllByBoardIdAndIsDeletedFalse(boardId);
-            loggingUtil.logSuccess(Action.RETRIEVE, "Board list loaded for boardId: " + boardId);
-            return list.stream().map(boardMapper::toResponse).toList();
-        } catch (DataAccessException e) {
-            loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
-            throw processException("DB error. " + e.getMessage(), e);
+            Pageable pageable = option.getPageable();
+            if (pageable == null) {
+                BoardMaster master = boardMasterRepository.findByBoardId(option.getBoardId())
+                        .orElseThrow(() -> new IllegalArgumentException("Board does not exist: boardId=" + option.getBoardId()));
+                pageable = PageRequest.of(0, master.getListCount(), Sort.by(Sort.Direction.DESC, "createdDate"));
+            }
+
+            Page<Board> resultPage = boardRepository.searchByCondition(option, pageable);
+            loggingUtil.logSuccess(Action.RETRIEVE, "Board list retrieved successfully (total=" + resultPage.getTotalElements() + ")");
+            return resultPage.map(boardMapper::toResponse);
+
         } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Unknown error: " + e.getMessage());
-            throw processException("Retrieve failed. " + e.getMessage(), e);
+            loggingUtil.logFail(Action.RETRIEVE, "Failed to retrieve board list: " + e.getMessage());
+            throw processException("Failed to retrieve board list", e);
         }
     }
 

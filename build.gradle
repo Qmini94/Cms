@@ -32,10 +32,15 @@ javadoc {
     }
 }
 
+// QueryDSL Q클래스 생성 경로
+def querydslDir = "$buildDir/generated/querydsl"
+
+// 다양한 Gradle 설정
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    querydsl.extendsFrom compileClasspath
 }
 
 repositories {
@@ -44,6 +49,7 @@ repositories {
         url 'https://maven.egovframe.go.kr/maven'
     }
 }
+
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -66,21 +72,81 @@ dependencies {
     // Swagger
     implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
 
+    // HTML Sanitizer
+    implementation 'com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20211018.1'
+
     // MapStruct
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
-    //HTML Sanitizer
-    implementation 'com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20211018.1'
+    // QueryDSL
+    implementation 'com.querydsl:querydsl-jpa:4.4.0'
+    querydsl 'com.querydsl:querydsl-apt:4.4.0:jpa'
+    querydsl 'com.querydsl:querydsl-codegen:4.4.0'  // 코드 생성 라이브러리 추가
+    querydsl 'javax.annotation:javax.annotation-api:1.3.2'
+    querydsl 'javax.persistence:javax.persistence-api:2.2'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'com.mysql:mysql-connector-j'
+
     annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+
+    runtimeOnly 'com.mysql:mysql-connector-j'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    //개발 환경
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += [querydslDir]
+        }
+    }
+}
+
+// QueryDSL Q클래스 생성 태스크
+task generateQueryDSL(type: JavaCompile) {
+    source = sourceSets.main.java
+    classpath = configurations.querydsl
+    options.annotationProcessorPath = configurations.querydsl
+    options.compilerArgs = [
+            "-proc:only",
+            "-processor", "com.querydsl.apt.jpa.JPAAnnotationProcessor"
+    ]
+    destinationDir = file(querydslDir)
+}
+
+// MapStruct 및 Lombok을 위한 컴파일 옵션
+tasks.withType(JavaCompile) {
+    if (it.name != 'generateQueryDSL') {
+        it.options.compilerArgs += [
+                "-Amapstruct.defaultComponentModel=spring",
+                "-Amapstruct.suppressGeneratorTimestamp=true"
+        ]
+    }
+}
+
+// compileJava 태스크가 generateQueryDSL 태스크 이후에 실행되도록 설정
+compileJava {
+    dependsOn generateQueryDSL
+}
+
+// Clean 태스크에 생성된 소스 삭제 포함
+clean {
+    delete file(querydslDir)
+}
+
+// 디버깅을 위한 태스크 실행 정보 표시
+tasks.withType(JavaCompile) {
+    doFirst {
+        if (it.name == 'generateQueryDSL') {
+            println "QueryDSL classpath: ${configurations.querydsl.files}"
+        }
+    }
 }
 
 configurations.all {

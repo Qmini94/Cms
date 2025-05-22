@@ -1,12 +1,13 @@
 package kr.co.itid.cms.service.cms.core.render.impl;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
-import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
+import kr.co.itid.cms.dto.auth.UserPermissionResponse;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTypeValueResponse;
 import kr.co.itid.cms.dto.cms.core.render.response.RenderResponse;
 import kr.co.itid.cms.enums.Action;
-import kr.co.itid.cms.service.cms.core.board.BoardService;
-import kr.co.itid.cms.service.cms.core.content.ContentService;
+import kr.co.itid.cms.service.auth.PermissionService;
+import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
 import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.service.cms.core.render.RenderService;
 import kr.co.itid.cms.util.LoggingUtil;
@@ -17,15 +18,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class RenderServiceImpl extends EgovAbstractServiceImpl implements RenderService {
 
     private final MenuService menuService;
-    private final BoardService boardService;
-    private final ContentService contentService;
+    private final PermissionService permissionService;
+    private final BoardMasterService boardMasterService;
     private final LoggingUtil loggingUtil;
 
     @Override
@@ -43,15 +42,17 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
             }
 
             Object data;
-            String boardId = null;
+            String value = menu.getValue();
+            UserPermissionResponse perm = permissionService.getPermissionByMenu(user);
+
             switch (menu.getType()) {
-                case "module":
-                    List<BoardResponse> boards = boardService.getBoardList(menu.getValue());
-                    data = boards;
-                    boardId = menu.getValue();
+                case "module": {
+                    BoardMasterResponse board = boardMasterService.getBoardByBoardId(menu.getValue());
+                    data = board;
                     break;
+                }
                 case "content":
-                    data = contentService.getContentByParentId(Long.parseLong(menu.getValue()));
+                    data = null;
                     break;
                 default:
                     throw processException("Unsupported render type: " + menu.getType());
@@ -60,8 +61,9 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
             loggingUtil.logSuccess(Action.RETRIEVE, "Rendered content for type: " + menu.getType());
             return RenderResponse.builder()
                     .type(menu.getType())
-                    .boardId(boardId)
+                    .value(value)
                     .data(data)
+                    .permission(perm)
                     .build();
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "DB error during render for menuId: " + menuId);

@@ -1,12 +1,12 @@
 package kr.co.itid.cms.dto.auth;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 
-@Data
-@AllArgsConstructor
+@Getter
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TokenResponse {
-    private String accessToken;
+    private final String accessToken;
 }

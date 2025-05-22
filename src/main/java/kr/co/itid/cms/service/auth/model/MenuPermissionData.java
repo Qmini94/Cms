@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.auth.model;
 
+import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -63,5 +64,33 @@ public class MenuPermissionData implements Serializable {
     public void addPermissionEntry(int sort, Long userIdx, Integer level, Set<String> permissions) {
         sortedPermissionMap.computeIfAbsent(sort, k -> new ArrayList<>())
                 .add(new PermissionEntry(userIdx, level, permissions));
+    }
+
+    /**
+     * 현재 사용자에게 적용되는 권한 엔트리를 반환합니다.
+     * 1. userIdx가 일치하면 즉시 반환
+     * 2. level 일치 항목 중 가장 마지막으로 일치한 엔트리를 반환
+     *
+     * @param user 인증된 사용자 객체
+     * @return PermissionEntry 해당 사용자에게 적용되는 권한
+     */
+    public PermissionEntry getEffectivePermissionEntryForUser(JwtAuthenticatedUser user) {
+        PermissionEntry levelMatch = null;
+
+        for (Map.Entry<Integer, List<PermissionEntry>> entry : sortedPermissionMap.entrySet()) {
+            for (PermissionEntry permissionEntry : entry.getValue()) {
+                if (permissionEntry.getUserIdx() != null &&
+                        permissionEntry.getUserIdx().equals(user.userIdx())) {
+                    return permissionEntry; // userIdx 완전 일치 → 즉시 반환
+                }
+
+                if (permissionEntry.getLevel() != null &&
+                        permissionEntry.getLevel().equals(user.userLevel())) {
+                    levelMatch = permissionEntry; // userLevel 일치 → 일단 기록
+                }
+            }
+        }
+
+        return levelMatch != null ? levelMatch : new PermissionEntry(); // 기본 권한 (빈 permissions)
     }
 }

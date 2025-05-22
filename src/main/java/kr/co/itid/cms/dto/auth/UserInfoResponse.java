@@ -1,16 +1,13 @@
 package kr.co.itid.cms.dto.auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Builder
 public class UserInfoResponse {
-    private String userName;
-    private String userId;
-    private String level;
-    private Integer idx;
-//    private Integer exp; TODO:만료시간 추가해야함.
+    private final String userName;
+    private final String userId;
+    private final String level;
+    private final Integer idx;
+    // private final Integer exp; // TODO: 만료시간
 }

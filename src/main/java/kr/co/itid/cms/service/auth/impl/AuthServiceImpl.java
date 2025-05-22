@@ -55,7 +55,9 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
             memberRepository.save(member);
 
             loggingUtil.logSuccess(Action.LOGIN, "Login success: " + userId);
-            return new TokenResponse(accessToken);
+            return TokenResponse.builder()
+                    .accessToken(accessToken)
+                    .build();
         } catch (IllegalArgumentException e) {
             loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
             throw processException("Invalid input detected", e);
@@ -75,16 +77,19 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
             JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
 
             if (user.isGuest()) {
-                return new UserInfoResponse(null, null, null, -1);
+                return UserInfoResponse.builder()
+                        .idx(-1)
+                        .build();
             }
 
             loggingUtil.logSuccess(Action.RETRIEVE, "User info retrieved from token");
-            return new UserInfoResponse(
-                    user.userName(),
-                    user.userId(),
-                    String.valueOf(user.userLevel()),
-                    user.userIdx().intValue()
-            );
+            return UserInfoResponse.builder()
+                    .userName(user.userName())
+                    .userId(user.userId())
+                    .level(String.valueOf(user.userLevel()))
+                    .idx(user.userIdx().intValue())
+                    .build();
+
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Failed to get user info: " + e.getMessage());
             throw processException("Failed to retrieve user info", e);

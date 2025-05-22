@@ -1,5 +1,6 @@
 package kr.co.itid.cms.dto.cms.core.render.response;
 
+import kr.co.itid.cms.dto.auth.UserPermissionResponse;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -7,6 +8,7 @@ import lombok.Getter;
 @Builder
 public class RenderResponse {
     private String type;
-    private String boardId;
+    private String value;
     private Object data;
+    private UserPermissionResponse permission;
 }
