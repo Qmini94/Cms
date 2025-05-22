@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.stereotype.Service;
 
+import static kr.co.itid.cms.constanrt.PermissionConstants.*;
+
 
 @Service("permService")
 @RequiredArgsConstructor
@@ -75,12 +77,13 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             loggingUtil.logSuccess(Action.RETRIEVE, "Resolved permissions for user=" + user.userId());
 
             return UserPermissionResponse.builder()
-                    .view(entry.getPermissions().contains("VIEW"))
-                    .write(entry.getPermissions().contains("WRITE"))
-                    .modify(entry.getPermissions().contains("MODIFY"))
-                    .remove(entry.getPermissions().contains("REMOVE"))
+                    .manage(entry.getPermissions().contains(MANAGE))
+                    .view(entry.getPermissions().contains(VIEW))
+                    .write(entry.getPermissions().contains(WRITE))
+                    .modify(entry.getPermissions().contains(MODIFY))
+                    .remove(entry.getPermissions().contains(REMOVE))
+                    .reply(entry.getPermissions().contains(REPLY))
                     .build();
-
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Permission resolution failed: " + e.getMessage());
             throw processException("Failed to resolve permissions", e);

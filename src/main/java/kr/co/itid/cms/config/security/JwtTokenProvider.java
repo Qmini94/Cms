@@ -29,8 +29,8 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static kr.co.itid.cms.config.common.redis.RedisConstants.BLACKLIST_KEY_PREFIX;
-import static kr.co.itid.cms.config.security.SecurityConstants.*;
+import static kr.co.itid.cms.constanrt.RedisConstants.BLACKLIST_KEY_PREFIX;
+import static kr.co.itid.cms.constanrt.SecurityConstants.*;
 
 @Component
 @RequiredArgsConstructor

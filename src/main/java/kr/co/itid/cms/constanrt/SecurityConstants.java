@@ -1,4 +1,4 @@
-package kr.co.itid.cms.config.security;
+package kr.co.itid.cms.constanrt;
 
 public class SecurityConstants {
     private SecurityConstants() {

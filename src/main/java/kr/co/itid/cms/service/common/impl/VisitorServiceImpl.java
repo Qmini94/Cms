@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 
-import static kr.co.itid.cms.config.common.redis.RedisConstants.PERMISSION_TTL;
+import static kr.co.itid.cms.constanrt.RedisConstants.PERMISSION_TTL;
 
 @Service("visitorService")
 @RequiredArgsConstructor

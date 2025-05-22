@@ -31,7 +31,7 @@ public class RenderController {
      * @return ApiResponse&lt;RenderResponse&gt; 렌더링된 데이터와 타입 정보를 포함한 응답
      * @throws Exception 렌더링 처리 중 오류 발생 시
      */
-    @PreAuthorize("@permService.hasAccess('VIEW')")
+    @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
     public ResponseEntity<ApiResponse<RenderResponse>> render() throws Exception {
         RenderResponse response = renderService.getRenderData();

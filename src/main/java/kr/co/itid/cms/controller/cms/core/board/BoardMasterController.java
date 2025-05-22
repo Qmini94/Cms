@@ -35,7 +35,7 @@ public class BoardMasterController {
      * @return ApiResponse&lt;List&lt;BoardMasterResponse&gt;&gt; 전체 게시판 목록
      * @throws Exception 예외 발생 시 처리됨
      */
-    @PreAuthorize("@permService.hasAccess('VIEW')")
+    @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<BoardMasterListResponse>>> getAllBoards() throws Exception {
         List<BoardMasterListResponse> list = boardMasterService.getAllBoards();
@@ -81,7 +81,7 @@ public class BoardMasterController {
      * @return ApiResponse&lt;BoardMasterResponse&gt; 수정된 게시판 정보
      * @throws Exception 예외 발생 시 처리됨
      */
-    @PreAuthorize("@permService.hasAccess('WRITE')")
+    @PreAuthorize("@permService.hasAccess('MODIFY')")
     @PutMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> updateBoard(
             @PathVariable @Positive(message = "게시판 ID는 1 이상의 값이어야 합니다") Long idx,

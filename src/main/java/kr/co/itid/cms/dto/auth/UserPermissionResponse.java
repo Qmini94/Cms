@@ -10,4 +10,7 @@ public class UserPermissionResponse {
     private boolean write;
     private boolean modify;
     private boolean remove;
+    private boolean manage;
+    private boolean access;
+    private boolean reply;
 }

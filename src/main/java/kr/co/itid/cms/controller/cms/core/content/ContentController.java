@@ -32,7 +32,7 @@ public class ContentController {
      * @return 대표 콘텐츠 리스트
      * @throws Exception 예외 발생 시
      */
-    @PreAuthorize("@permService.hasAccess('VIEW')")
+    @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<ContentResponse>>> getTopSortedContents() throws Exception {
         List<ContentResponse> list = contentService.getTopSortedContents();
@@ -45,7 +45,7 @@ public class ContentController {
      * @param parentId 대표 콘텐츠 ID
      * @return 해당 그룹의 하위 콘텐츠 리스트
      */
-    @PreAuthorize("@permService.hasAccess('VIEW')")
+    @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping("/group/{parentId}")
     public ResponseEntity<ApiResponse<List<ContentResponse>>> getGroupedContents(
             @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Long parentId) throws Exception {
@@ -102,7 +102,7 @@ public class ContentController {
     /**
      * 콘텐츠 수정
      */
-    @PreAuthorize("@permService.hasAccess('WRITE')")
+    @PreAuthorize("@permService.hasAccess('MODIFY')")
     @PutMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> updateContents(
             @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx,

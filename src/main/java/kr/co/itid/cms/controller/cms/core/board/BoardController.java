@@ -36,7 +36,7 @@ public class BoardController {
      * @param option 게시글 검색 및 페이징 옵션
      * @return ApiResponse&lt;Page&lt;BoardResponse&gt;&gt; 게시글 목록
      */
-    @PreAuthorize("@permService.hasAccess('VIEW')")
+    @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<BoardResponse>>> getBoardList(
             @Valid @ModelAttribute BoardSearchOption option) throws Exception {
@@ -82,7 +82,7 @@ public class BoardController {
      * @param request 게시글 수정 요청 DTO
      * @return ApiResponse&lt;Void&gt; 수정 완료 응답
      */
-    @PreAuthorize("@permService.hasAccess('WRITE')")
+    @PreAuthorize("@permService.hasAccess('MODIFY')")
     @PutMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> updateBoard(
             @PathVariable @Positive(message = "게시글 ID는 1 이상의 값이어야 합니다") Long idx,

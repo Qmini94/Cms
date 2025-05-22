@@ -1,4 +1,4 @@
-package kr.co.itid.cms.config.common.redis;
+package kr.co.itid.cms.constanrt;
 
 import java.time.Duration;
 

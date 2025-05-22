@@ -16,8 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-import static kr.co.itid.cms.config.common.redis.RedisConstants.PERMISSION_KEY_PREFIX;
-import static kr.co.itid.cms.config.common.redis.RedisConstants.PERMISSION_TTL;
+import static kr.co.itid.cms.constanrt.PermissionConstants.*;
+import static kr.co.itid.cms.constanrt.RedisConstants.PERMISSION_KEY_PREFIX;
+import static kr.co.itid.cms.constanrt.RedisConstants.PERMISSION_TTL;
 
 @Service("permissionResolverService")
 @RequiredArgsConstructor
@@ -72,7 +73,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
         MenuPermissionData permissionData = new MenuPermissionData();
         permissionData.setMenuId(menuId);
         permissionData.setLastUpdate(new Date());
-        System.out.println(permissionData);
+
         List<Long> menuHierarchy;
         try {
             menuHierarchy = findMenuHierarchy(menuId);
@@ -143,14 +144,14 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
     private List<String> extractAllowedPermissions(Permission perm) {
         List<String> permissions = new ArrayList<>();
 
-        if ("y".equalsIgnoreCase(perm.getView())) permissions.add("VIEW");
-        if ("y".equalsIgnoreCase(perm.getWrite())) permissions.add("WRITE");
-        if ("y".equalsIgnoreCase(perm.getModify())) permissions.add("MODIFY");
-        if ("y".equalsIgnoreCase(perm.getRemove())) permissions.add("REMOVE");
-        if ("y".equalsIgnoreCase(perm.getManage())) permissions.add("MANAGE");
-        if ("y".equalsIgnoreCase(perm.getAccess())) permissions.add("ACCESS");
-        if ("y".equalsIgnoreCase(perm.getReply())) permissions.add("REPLY");
-        if ("y".equalsIgnoreCase(perm.getAdmin())) permissions.add("ADMIN");
+        if ("y".equalsIgnoreCase(perm.getView())) permissions.add(VIEW);
+        if ("y".equalsIgnoreCase(perm.getWrite())) permissions.add(WRITE);
+        if ("y".equalsIgnoreCase(perm.getModify())) permissions.add(MODIFY);
+        if ("y".equalsIgnoreCase(perm.getRemove())) permissions.add(REMOVE);
+        if ("y".equalsIgnoreCase(perm.getManage())) permissions.add(MANAGE);
+        if ("y".equalsIgnoreCase(perm.getAccess())) permissions.add(ACCESS);
+        if ("y".equalsIgnoreCase(perm.getReply())) permissions.add(REPLY);
+        if ("y".equalsIgnoreCase(perm.getAdmin())) permissions.add(ADMIN);
 
         return permissions;
     }
