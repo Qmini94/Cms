@@ -22,8 +22,9 @@ public class RenderController {
     private final RenderService renderService;
 
     /**
-     * 현재 사용자의 menuId에 해당하는 메뉴의 타입(type)에 따라
-     * board 또는 contents 데이터를 렌더링하여 응답합니다.
+     * 현재 사용자의 menuId에 해당하는 메뉴의 타입(type),
+     * 타입에 따르는 board 또는 contents key값,
+     * 옵션, 사용자에 대한 권한데이터를 렌더링하여 응답합니다.
      *
      * 권한이 있는 사용자만 접근할 수 있으며,
      * JwtAuthenticatedUser에 포함된 menuId를 기준으로 렌더링 데이터를 제공합니다.

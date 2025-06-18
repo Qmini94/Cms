@@ -11,6 +11,7 @@ import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +27,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     private final LoggingUtil loggingUtil;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public List<BoardMasterListResponse> getAllBoards() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board list");
 
@@ -44,7 +45,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public BoardMasterResponse getBoardByBoardId(String boardId) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board by boardId: " + boardId);
 
@@ -63,7 +64,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = EgovBizException.class)
     public void saveBoard(Long idx, BoardMasterRequest request) throws Exception {
         BoardMaster boardMaster = boardMapper.toEntity(request, idx); // 주입된 매퍼 사용
         boolean isNew = (idx == null);
@@ -87,7 +88,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = EgovBizException.class)
     public void deleteBoard(Long idx) throws Exception {
         loggingUtil.logAttempt(Action.DELETE, "Try to delete board: idx=" + idx);
 

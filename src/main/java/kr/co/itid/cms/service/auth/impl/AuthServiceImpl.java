@@ -12,6 +12,7 @@ import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +33,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     private final LoggingUtil loggingUtil;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = EgovBizException.class)
     public TokenResponse login(String userId, String password) throws Exception {
         loggingUtil.logAttempt(Action.LOGIN, "Try login: " + userId);
 

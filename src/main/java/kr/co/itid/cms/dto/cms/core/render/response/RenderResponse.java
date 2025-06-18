@@ -9,6 +9,6 @@ import lombok.Getter;
 public class RenderResponse {
     private String type;
     private String value;
-    private Object data;
+    private Object option;
     private UserPermissionResponse permission;
 }

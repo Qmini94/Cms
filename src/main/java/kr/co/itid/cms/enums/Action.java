@@ -10,7 +10,8 @@ public enum Action {
     RETRIEVE("retrieve"),
     CREATE("create"),
     UPDATE("update"),
-    DELETE("delete");
+    DELETE("delete"),
+    VALIDATE("validate");
 
     private final String value;
 

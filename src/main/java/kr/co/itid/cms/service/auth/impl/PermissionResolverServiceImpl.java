@@ -10,6 +10,7 @@ import kr.co.itid.cms.service.auth.model.MenuPermissionData;
 import kr.co.itid.cms.service.auth.model.PermissionEntry;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
     private final RedisTemplate<String, MenuPermissionData> redisTemplate;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public boolean hasPermission(JwtAuthenticatedUser user, String permission) throws Exception {
         Long menuId = user.menuId();
         MenuPermissionData permissionData = getOrBuildPermissionData(menuId);
@@ -162,7 +163,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
 
     /**
      * 특정 메뉴 ID의 권한 캐시를 무효화합니다.
-     * TODO: 삭제할때 싱위, 하위 ID들 캐쉬 같이 삭제해야함.
+     * TODO: 삭제할때 하위 ID들 캐쉬 같이 삭제해야함.
      * @param menuId 삭제할 메뉴 ID
      */
     public void invalidateMenuPermission(Long menuId) {

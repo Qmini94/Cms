@@ -14,6 +14,7 @@ import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +29,7 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
     private final LoggingUtil loggingUtil;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public RenderResponse getRenderData() throws Exception {
         JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
         Long menuId = user.menuId();
@@ -41,18 +42,18 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
                 throw processException("Menu type/value is not defined");
             }
 
-            Object data;
+            Object option;
             String value = menu.getValue();
             UserPermissionResponse perm = permissionService.getPermissionByMenu(user);
 
             switch (menu.getType()) {
-                case "module": {
+                case "board": {
                     BoardMasterResponse board = boardMasterService.getBoardByBoardId(menu.getValue());
-                    data = board;
+                    option = board;
                     break;
                 }
                 case "content":
-                    data = null;
+                    option = null;
                     break;
                 default:
                     throw processException("Unsupported render type: " + menu.getType());
@@ -62,7 +63,7 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
             return RenderResponse.builder()
                     .type(menu.getType())
                     .value(value)
-                    .data(data)
+                    .option(option)
                     .permission(perm)
                     .build();
         } catch (DataAccessException e) {

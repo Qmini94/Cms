@@ -113,11 +113,15 @@ public class GlobalExceptionHandler {
      */
     private String extractMessage(Exception e, String defaultMessage) {
         if (e instanceof EgovBizException) {
+            EgovBizException bizEx = (EgovBizException) e;
+            String msg = bizEx.getMessageKey();
             Throwable cause = e.getCause();
             if (cause != null) {
-                return defaultMessage + ": " + cause.getMessage();
+                return defaultMessage + ": " + msg;
             }
+            return defaultMessage + ": " + msg;
         }
-        return defaultMessage + ": " + e.getMessage();
+
+        return defaultMessage + ": " + (e.getMessage() != null ? e.getMessage() : "");
     }
 }

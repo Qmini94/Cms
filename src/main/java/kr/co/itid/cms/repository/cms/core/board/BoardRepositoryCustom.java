@@ -9,5 +9,5 @@ import org.springframework.data.domain.Pageable;
  * 게시글 사용자 정의 쿼리 인터페이스
  */
 public interface BoardRepositoryCustom {
-    Page<Board> searchByCondition(BoardSearchOption option, Pageable pageable);
+    Page<Board> searchByCondition(String boardId, BoardSearchOption option, Pageable pageable);
 }

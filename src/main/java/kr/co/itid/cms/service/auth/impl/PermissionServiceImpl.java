@@ -68,7 +68,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             if (user.userLevel() == 1) {
                 loggingUtil.logSuccess(Action.RETRIEVE, "Admin full permission granted: user=" + user.userId());
                 return UserPermissionResponse.builder()
-                        .view(true).write(true).modify(true).remove(true)
+                        .view(true).write(true).modify(true).remove(true).manage(true).remove(true).reply(true)
                         .build();
             }
 

@@ -1,22 +1,23 @@
 package kr.co.itid.cms.controller.cms.core.board;
 
 import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
+import kr.co.itid.cms.dto.cms.core.board.PaginationOption;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.board.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
-import java.util.List;
 
 /**
  * 게시글 정보를 다루는 API 컨트롤러입니다.
@@ -39,9 +40,17 @@ public class BoardController {
     @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<BoardResponse>>> getBoardList(
-            @Valid @ModelAttribute BoardSearchOption option) throws Exception {
+            @Valid @ModelAttribute BoardSearchOption option,
+            @Valid @ModelAttribute PaginationOption pagination,
+            BindingResult bindingResult) throws Exception {
 
-        Page<BoardResponse> boards = boardService.searchBoardList(option);
+        if (bindingResult.hasErrors()) {
+            String errorMsg = bindingResult.getAllErrors().get(0).getDefaultMessage();
+            return ResponseEntity.badRequest().body(ApiResponse.error(400, errorMsg));
+        }
+
+        Pageable pageable = pagination.toPageable();
+        Page<BoardResponse> boards = boardService.searchBoardList(option, pageable);
         return ResponseEntity.ok(ApiResponse.success(boards));
     }
 

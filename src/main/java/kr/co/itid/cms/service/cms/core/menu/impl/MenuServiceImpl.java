@@ -12,6 +12,7 @@ import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,14 +29,14 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     private final MenuMapper menuMapper;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public MenuResponse getMenuById(Long id) throws Exception {
         Menu menu = getMenuEntityById(id);
         return menuMapper.toResponse(menu);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public MenuTypeValueResponse getMenuRenderById(Long id) throws Exception {
         Menu menu = getMenuEntityById(id);
         return menuMapper.toTypeValueResponse(menu);
@@ -63,7 +64,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public List<MenuResponse> getRootMenus() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get all drives");
 
@@ -84,7 +85,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public List<MenuTreeLiteResponse> getMenuTreeLiteByName(String name) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree (lite) for: " + name);
 
@@ -106,7 +107,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public List<MenuTreeResponse> getMenuTreeByName(String name) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree for: " + name);
 

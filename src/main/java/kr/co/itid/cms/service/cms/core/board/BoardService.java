@@ -4,8 +4,7 @@ import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
 import org.springframework.data.domain.Page;
-
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 /**
  * 게시글 관리 서비스 인터페이스입니다.
@@ -16,11 +15,12 @@ public interface BoardService {
     /**
      * 게시글 목록을 검색 조건 및 페이징 옵션에 따라 조회합니다.
      *
-     * @param option 게시글 검색 및 페이징 옵션 (boardId는 필수)
+     * @param option 게시글 검색 및 페이징 옵션
+     * @param pageable Pageable 객체
      * @return Page&lt;BoardResponse&gt; 페이징 처리된 게시글 목록
      * @throws Exception 게시글 조회 중 오류 발생 시
      */
-    Page<BoardResponse> searchBoardList(BoardSearchOption option) throws Exception;
+    Page<BoardResponse> searchBoardList(BoardSearchOption option, Pageable pageable) throws Exception;
 
     /**
      * 게시글 고유 ID(idx)로 게시글 정보를 조회합니다.

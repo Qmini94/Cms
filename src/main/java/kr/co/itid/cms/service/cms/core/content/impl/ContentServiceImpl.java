@@ -12,6 +12,7 @@ import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +28,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
     private final LoggingUtil loggingUtil;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public List<ContentResponse> getTopSortedContents() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get top-sorted contents");
 
@@ -42,7 +43,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public List<ContentResponse> getContentsByParentId(Long parentId) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get group contents by parentId=" + parentId);
 
@@ -57,7 +58,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public ContentResponse getContentByParentId(Long parentId) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get content by parentId=" + parentId);
 
@@ -74,7 +75,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = EgovBizException.class)
     public void createRootContent(ContentRequest request) throws Exception {
         loggingUtil.logAttempt(Action.CREATE, "Try to create root content");
 
@@ -104,7 +105,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = EgovBizException.class)
     public void createChildContent(Long parentId, ContentRequest request) throws Exception {
         loggingUtil.logAttempt(Action.CREATE, "Try to create child content: parentId=" + parentId);
 
@@ -134,7 +135,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = EgovBizException.class)
     public void updateContent(Long idx, ContentRequest request) throws Exception {
         loggingUtil.logAttempt(Action.UPDATE, "Try to update content: idx=" + idx);
 
@@ -166,7 +167,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = EgovBizException.class)
     public void deleteContentByIdx(Long idx) throws Exception {
         loggingUtil.logAttempt(Action.DELETE, "Try to delete content: idx=" + idx);
 
@@ -183,7 +184,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = EgovBizException.class)
     public void deleteContentByParentId(Long parentId) throws Exception {
         loggingUtil.logAttempt(Action.DELETE, "Try to delete group contents: parentId=" + parentId);
 

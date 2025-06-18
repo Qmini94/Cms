@@ -9,6 +9,7 @@ import kr.co.itid.cms.service.cms.core.site.SiteService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
     private final SiteMapper siteMapper;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public List<SiteResponse> getSiteAllData() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get all site data");
 
