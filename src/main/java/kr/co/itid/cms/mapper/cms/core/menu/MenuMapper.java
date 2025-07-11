@@ -28,6 +28,7 @@ public interface MenuMapper {
                 .id(menu.getId())
                 .parentId(menu.getParentId())
                 .title(menu.getTitle())
+                .name(menu.getName())
                 .type(menu.getType())
                 .value(menu.getValue())
                 .display(menu.getDisplay())

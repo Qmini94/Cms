@@ -13,6 +13,7 @@ public class MenuTreeLiteResponse {
     private Long id;
     private Long parentId;
     private String title;
+    private String name;
     private String type;
     private String value;
     private Display display;
