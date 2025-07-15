@@ -44,7 +44,7 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
 
             Object option;
             String value = menu.getValue();
-             UserPermissionResponse perm = permissionService.getPermissionByMenu(user);
+            UserPermissionResponse perm = permissionService.getPermissionByMenu(user);
 
             switch (menu.getType()) {
                 case "board": {
@@ -52,7 +52,7 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
                     option = board;
                     break;
                 }
-                case "content":
+                case "content", "script":
                     option = null;
                     break;
                 default:
