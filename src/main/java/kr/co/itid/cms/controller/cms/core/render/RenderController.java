@@ -38,4 +38,32 @@ public class RenderController {
         RenderResponse response = renderService.getRenderData();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    /**
+     * 상세 보기 권한 확인
+     */
+    @PreAuthorize("@permService.hasAccess('VIEW')")
+    @GetMapping("/view")
+    public ResponseEntity<ApiResponse<RenderResponse>> renderView() throws Exception {
+        RenderResponse response = renderService.getRenderData(); //TODO: 글 idx값을 가져와서 추가 처리해함.
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * 글쓰기 권한 확인
+     */
+    @PreAuthorize("@permService.hasAccess('WRITE')")
+    @GetMapping("/write")
+    public ResponseEntity<ApiResponse<Boolean>> checkWriteAccess() {
+        return ResponseEntity.ok(ApiResponse.success(true));
+    }
+
+    /**
+     * 수정 권한 확인
+     */
+    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @GetMapping("/modify")
+    public ResponseEntity<ApiResponse<Boolean>> checkModifyAccess() {
+        return ResponseEntity.ok(ApiResponse.success(true));
+    }
 }

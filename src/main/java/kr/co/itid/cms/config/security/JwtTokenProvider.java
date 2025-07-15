@@ -174,6 +174,7 @@ public class JwtTokenProvider {
                 claims.getSubject(),
                 claims.get("userName", String.class),
                 claims.get("userLevel", Integer.class),
+                claims.get("exp", Long.class),
                 newToken,
                 user.hostname(),
                 user.menuId()

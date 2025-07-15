@@ -7,6 +7,7 @@ public record JwtAuthenticatedUser(
         String userId,
         String userName,
         int userLevel,
+        Long exp,
         String token,
         String hostname,
         Long menuId

@@ -15,6 +15,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -52,6 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             claims.getSubject(),
                             claims.get("userName", String.class),
                             claims.get("userLevel", Integer.class),
+                            claims.get("exp", Long.class),
                             token,
                             hostname,
                             menuId
@@ -94,6 +97,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String origin = request.getHeader("Origin");
         logger.info("[JWT] 현재 Origin 헤더: " + origin);
 
+        long exp = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
+                .plusMinutes(30)
+                .toEpochSecond();
+
         if ("https://localhost:3000".equalsIgnoreCase(origin)) {
             logger.info("[JWT] 로컬 개발환경 접근 → 관리자 권한 임시 부여");
             return new JwtAuthenticatedUser(
@@ -101,6 +108,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     "DEV_ADMIN",
                     "개발관리자",
                     1, // 관리자 레벨
+                    exp,
                     "dev-token",
                     hostname,
                     menuId
@@ -112,6 +120,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "GUEST",
                 "게스트",
                 11,
+                exp,
                 "not has token",
                 hostname,
                 menuId

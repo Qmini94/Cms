@@ -89,6 +89,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
                     .userId(user.userId())
                     .level(String.valueOf(user.userLevel()))
                     .idx(user.userIdx().intValue())
+                    .exp(user.exp())
                     .build();
 
         } catch (Exception e) {
