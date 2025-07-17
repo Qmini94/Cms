@@ -45,10 +45,10 @@ public class MenuController {
      * @throws Exception 하위 메뉴 조회 중 오류 발생 시
      */
     @GetMapping("/{name}/lite")
-    public ResponseEntity<ApiResponse<List<MenuTreeLiteResponse>>> getChildrenByName(
+    public ResponseEntity<ApiResponse<MenuTreeLiteResponse>> getChildrenByName(
             @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name) throws Exception {
 
-        List<MenuTreeLiteResponse> children = menuService.getMenuTreeLiteByName(name);
+        MenuTreeLiteResponse children = menuService.getMenuTreeLiteByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
     }
 

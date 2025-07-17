@@ -52,7 +52,7 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
                     option = board;
                     break;
                 }
-                case "content", "script":
+                case "content", "script", "drive":
                     option = null;
                     break;
                 default:

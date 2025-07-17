@@ -85,7 +85,7 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
     }
 
     @Override
-    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
+    @Transactional(rollbackFor = EgovBizException.class) // readOnly 제거
     public BoardResponse getBoard(Long idx) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board: idx=" + idx);
 
@@ -94,6 +94,7 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
                     .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다: idx=" + idx));
 
             validateBoardOwnership(board);
+            board.increaseViewCount();
 
             loggingUtil.logSuccess(Action.RETRIEVE, "Board loaded: idx=" + idx);
             return boardMapper.toResponse(board);

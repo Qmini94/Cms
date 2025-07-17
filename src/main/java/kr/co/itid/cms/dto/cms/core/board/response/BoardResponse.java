@@ -11,5 +11,6 @@ public class BoardResponse {
     private Long idx;
     private String title;
     private String regName;
+    private int viewCount;
     private LocalDateTime createdDate;
 }

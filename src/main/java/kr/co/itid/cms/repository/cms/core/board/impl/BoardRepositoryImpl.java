@@ -44,6 +44,9 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
                     case "regName":
                         keywordBuilder.or(qBoard.regName.containsIgnoreCase(option.getKeyword()));
                         break;
+                    case "regId":
+                        keywordBuilder.or(qBoard.regId.containsIgnoreCase(option.getKeyword()));
+                        break;
                 }
             }
             condition.and(keywordBuilder);

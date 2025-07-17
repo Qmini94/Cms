@@ -116,6 +116,17 @@ public class Board {
     @Column(name = "contents_original", columnDefinition = "LONGTEXT")
     private String contentsOriginal;
 
+    @Column(name = "view_count", nullable = false)
+    private Integer viewCount = 0;
+
+    public void increaseViewCount() {
+        if (this.viewCount == null) {
+            this.viewCount = 1;
+        } else {
+            this.viewCount += 1;
+        }
+    }
+
     public enum AdminCommentTo {
         all, writer
     }
