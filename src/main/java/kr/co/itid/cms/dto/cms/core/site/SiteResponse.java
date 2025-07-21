@@ -8,6 +8,7 @@ import lombok.Getter;
 public class SiteResponse {
     private Integer idx;
     private String siteName;
+    private String siteHostName;
     private String siteDomain;
     private String sitePort;
     private String siteOption;

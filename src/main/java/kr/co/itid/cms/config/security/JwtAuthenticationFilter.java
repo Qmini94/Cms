@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.dto.common.ApiResponse;
+import kr.co.itid.cms.service.cms.core.site.SiteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +23,7 @@ import java.time.ZonedDateTime;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final SiteService siteService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -127,21 +129,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         );
     }
 
-    private boolean isAdminAccess(String uri, String hostname) {
-        boolean result = hostname != null
-                && hostname.contains("admin")
-                && !uri.startsWith("/api/auth/");
+    private boolean isAdminAccess(String uri, String hostname) throws Exception {
+        if (hostname == null || uri.startsWith("/api/auth/")) {
+            return false;
+        }
 
-        // DEBUG: 관리자 접근 여부 로그
-        logger.info("[JWT] 관리자 접근 판단: " + result); // DEBUG:
+        boolean result = siteService.isClosedSite(hostname);
 
+        logger.info("[JWT] 관리자 접근 판단 - siteHostName: " + hostname + ", result: " + result);
         return result;
     }
 
-    private boolean isUnauthorizedAdmin(JwtAuthenticatedUser user, String uri, String hostname) {
+    private boolean isUnauthorizedAdmin(JwtAuthenticatedUser user, String uri, String hostname) throws Exception {
         boolean unauthorized = isAdminAccess(uri, hostname) && !user.isAdmin();
-        // DEBUG: 관리자 권한 체크 로그
-        logger.info("[JWT] 관리자 권한 있음?: " + user.isAdmin() + ", 접근 차단?: " + unauthorized); // DEBUG:
+
+        logger.info("[JWT] 관리자 권한 있음?: " + user.isAdmin() + ", 접근 차단?: " + unauthorized);
         return unauthorized;
     }
 

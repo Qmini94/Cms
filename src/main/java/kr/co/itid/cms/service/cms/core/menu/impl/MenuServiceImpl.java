@@ -86,7 +86,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public MenuTreeLiteResponse getMenuTreeLiteByName(String name) throws Exception {
+    public List<MenuTreeLiteResponse> getMenuTreeLiteByName(String name) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree (lite) for: " + name);
 
         try {
@@ -94,7 +94,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                     .orElseThrow(() -> processException("Drive not found: " + name));
 
             loggingUtil.logSuccess(Action.RETRIEVE, "Got lite tree for: " + name);
-            return buildFullTreeLite(rootMenu);
+            return buildMenuTreeLite(rootMenu.getId());
         } catch (NoSuchElementException e) {
             throw e;
         } catch (DataAccessException e) {
@@ -128,19 +128,10 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         }
     }
 
-    // 기존: 하위 자식들만
     private List<MenuTreeLiteResponse> buildMenuTreeLite(Long parentId) {
         return getChildren(parentId).stream()
                 .map(menu -> menuMapper.toLiteTreeResponse(menu, buildMenuTreeLite(menu.getId())))
                 .toList();
-    }
-
-    // 수정: 자신 포함 + 하위 트리 구성
-    private MenuTreeLiteResponse buildFullTreeLite(Menu menu) {
-        List<MenuTreeLiteResponse> children = getChildren(menu.getId()).stream()
-                .map(child -> buildFullTreeLite(child))
-                .toList();
-        return menuMapper.toLiteTreeResponse(menu, children);
     }
 
     private List<MenuTreeResponse> buildMenuTreeResponse(Long parentId) {

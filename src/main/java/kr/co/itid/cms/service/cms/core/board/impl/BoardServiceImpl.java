@@ -4,6 +4,7 @@ import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardViewResponse;
 import kr.co.itid.cms.entity.cms.core.board.Board;
 import kr.co.itid.cms.entity.cms.core.board.BoardMaster;
 import kr.co.itid.cms.enums.Action;
@@ -14,6 +15,7 @@ import kr.co.itid.cms.service.cms.core.board.BoardService;
 import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
+import kr.co.itid.cms.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
@@ -36,6 +38,7 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
     private final BoardMasterRepository boardMasterRepository;
     private final BoardMapper boardMapper;
     private final LoggingUtil loggingUtil;
+    private final ValidationUtil validationUtil;
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
@@ -85,8 +88,8 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
     }
 
     @Override
-    @Transactional(rollbackFor = EgovBizException.class) // readOnly 제거
-    public BoardResponse getBoard(Long idx) throws Exception {
+    @Transactional(rollbackFor = EgovBizException.class)
+    public BoardViewResponse getBoard(Long idx) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board: idx=" + idx);
 
         try {
@@ -97,7 +100,7 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
             board.increaseViewCount();
 
             loggingUtil.logSuccess(Action.RETRIEVE, "Board loaded: idx=" + idx);
-            return boardMapper.toResponse(board);
+            return boardMapper.toResponseView(board);
 
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Failed to get board: " + e.getMessage());
@@ -108,6 +111,9 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
     @Override
     @Transactional(rollbackFor = EgovBizException.class)
     public void saveBoard(Long idx, BoardRequest request) throws Exception {
+        JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
+        validationUtil.validateBadWords(request, user);
+
         boolean isNew = (idx == null);
         Action action = isNew ? Action.CREATE : Action.UPDATE;
 
@@ -116,6 +122,13 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
         try {
             if (isNew) {
                 Board entity = boardMapper.toEntity(request);
+
+                String boardId = menuService.getMenuRenderById(user.menuId()).getValue();
+
+                entity.setBoardId(boardId);
+                entity.setRegId(user.userId());
+                entity.setRegName(user.userName());
+
                 validateBoardOwnership(entity);
                 boardRepository.save(entity);
                 loggingUtil.logSuccess(action, "Board created: boardId=" + entity.getBoardId());
@@ -124,7 +137,7 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
                         .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다: idx=" + idx));
                 validateBoardOwnership(board);
                 board.setTitle(request.getTitle());
-                board.setContents(request.getContents());
+                board.setContent(request.getContent());
                 board.setUpdatedDate(LocalDateTime.now());
                 // TODO: 필요한 필드 추가 반영
                 loggingUtil.logSuccess(action, "Board updated: idx=" + idx);
@@ -177,12 +190,12 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
         if (!actualBoardId.equals(expectedBoardId)) {
             loggingUtil.logFail(
                     Action.VALIDATE,
-                    "게시판 권한 불일치: user=" + user.userId() +
+                    "게시판 정보 불일치: user=" + user.userId() +
                             ", menuId=" + user.menuId() +
                             ", expectedBoardId=" + expectedBoardId +
                             ", actualBoardId=" + actualBoardId
             );
-            throw processException("게시판 권한이 없습니다.");
+            throw processException("게시판 정보가 불일치합니다.");
         }
     }
 

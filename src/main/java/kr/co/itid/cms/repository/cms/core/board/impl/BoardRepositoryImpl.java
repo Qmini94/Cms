@@ -38,8 +38,8 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
                     case "title":
                         keywordBuilder.or(qBoard.title.containsIgnoreCase(option.getKeyword()));
                         break;
-                    case "contents":
-                        keywordBuilder.or(qBoard.contents.containsIgnoreCase(option.getKeyword()));
+                    case "content":
+                        keywordBuilder.or(qBoard.content.containsIgnoreCase(option.getKeyword()));
                         break;
                     case "regName":
                         keywordBuilder.or(qBoard.regName.containsIgnoreCase(option.getKeyword()));

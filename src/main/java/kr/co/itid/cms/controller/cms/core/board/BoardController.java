@@ -4,6 +4,7 @@ import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
 import kr.co.itid.cms.dto.cms.core.board.PaginationOption;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardViewResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.board.BoardService;
 import lombok.RequiredArgsConstructor;
@@ -58,14 +59,14 @@ public class BoardController {
      * 게시글 단건을 조회합니다.
      *
      * @param idx 게시글 고유 ID
-     * @return ApiResponse&lt;BoardResponse&gt; 게시글 정보
+     * @return ApiResponse&lt;BoardViewResponse&gt; 게시글 정보
      */
     @PreAuthorize("@permService.hasAccess('VIEW')")
     @GetMapping("/{idx}")
-    public ResponseEntity<ApiResponse<BoardResponse>> getBoard(
+    public ResponseEntity<ApiResponse<BoardViewResponse>> getBoard(
             @PathVariable @Positive(message = "게시글 ID는 1 이상의 값이어야 합니다") Long idx) throws Exception {
 
-        BoardResponse board = boardService.getBoard(idx);
+        BoardViewResponse board = boardService.getBoard(idx);
         return ResponseEntity.ok(ApiResponse.success(board));
     }
 

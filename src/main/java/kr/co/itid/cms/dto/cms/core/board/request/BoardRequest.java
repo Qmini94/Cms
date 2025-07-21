@@ -24,8 +24,6 @@ public class BoardRequest {
     private String regName;
     private String regIp;
 
-    private Boolean isDeleted;
-
     @Size(max = 100, message = "태그는 100자 이하로 입력해주세요")
     private String searchTag;
 
@@ -63,7 +61,7 @@ public class BoardRequest {
     private String title;
 
     @NotBlank(message = "내용은 필수입니다")
-    private String contents;
+    private String content;
 
     private Long mainimageIdx;
 

@@ -3,6 +3,7 @@ package kr.co.itid.cms.service.cms.core.board;
 import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardViewResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -26,9 +27,9 @@ public interface BoardService {
      * 게시글 고유 ID(idx)로 게시글 정보를 조회합니다.
      *
      * @param idx 게시글 고유 ID
-     * @return BoardResponse 게시글 정보
+     * @return BoardViewResponse 게시글 정보
      */
-    BoardResponse getBoard(Long idx) throws Exception;
+    BoardViewResponse getBoard(Long idx) throws Exception;
 
     /**
      * 게시글을 저장하거나 수정합니다.

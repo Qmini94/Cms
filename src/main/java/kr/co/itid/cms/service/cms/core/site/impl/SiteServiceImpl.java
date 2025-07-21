@@ -44,4 +44,49 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
             throw processException("Unexpected error", e);
         }
     }
+
+    @Override
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
+    public String getSiteOptionByHostName(String siteHostName) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Get siteOption for host: " + siteHostName);
+
+        try {
+            return siteRepository.findBySiteHostName(siteHostName)
+                    .map(Site::getSiteOption)
+                    .orElse("open"); // 기본값은 open
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Failed to get siteOption for: " + siteHostName);
+            throw processException("Failed to get siteOption", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
+    public List<String> getBadWordsByHostName(String siteHostName) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Get badWords for host: " + siteHostName);
+
+        try {
+            String badText = siteRepository.findBySiteHostName(siteHostName)
+                    .map(Site::getBadText)
+                    .orElse(null);
+
+            if (badText == null || badText.trim().isEmpty()) {
+                return List.of();
+            }
+
+            return List.of(badText.split(",")).stream()
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Failed to get badWords for: " + siteHostName);
+            throw processException("Failed to get badWords", e);
+        }
+    }
+
+    @Override
+    public boolean isClosedSite(String siteHostName) throws Exception {
+        return "close".equalsIgnoreCase(getSiteOptionByHostName(siteHostName));
+    }
 }

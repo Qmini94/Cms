@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.cms.core.board.impl;
 
+import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterListResponse;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardMasterRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
@@ -9,6 +10,8 @@ import kr.co.itid.cms.mapper.cms.core.board.BoardMasterMapper;
 import kr.co.itid.cms.repository.cms.core.board.BoardMasterRepository;
 import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
 import kr.co.itid.cms.util.LoggingUtil;
+import kr.co.itid.cms.util.SecurityUtil;
+import kr.co.itid.cms.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
@@ -25,6 +28,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     private final BoardMasterRepository boardMasterRepository;
     private final BoardMasterMapper boardMapper;
     private final LoggingUtil loggingUtil;
+    private final ValidationUtil validationUtil;
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
@@ -66,6 +70,9 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     @Override
     @Transactional(rollbackFor = EgovBizException.class)
     public void saveBoard(Long idx, BoardMasterRequest request) throws Exception {
+        JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
+        validationUtil.validateBadWords(request, user);
+
         BoardMaster boardMaster = boardMapper.toEntity(request, idx); // 주입된 매퍼 사용
         boolean isNew = (idx == null);
         Action action = isNew ? Action.CREATE : Action.UPDATE;

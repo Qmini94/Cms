@@ -101,8 +101,8 @@ public class Board {
     @Column(name = "title", length = 255)
     private String title;
 
-    @Column(name = "contents", columnDefinition = "LONGTEXT")
-    private String contents;
+    @Column(name = "content", columnDefinition = "LONGTEXT")
+    private String content;
 
     @Column(name = "mainimage_idx")
     private Long mainimageIdx;

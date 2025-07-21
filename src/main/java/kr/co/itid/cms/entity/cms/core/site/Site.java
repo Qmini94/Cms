@@ -20,6 +20,9 @@ public class Site {
     @Column(name = "site_name")
     private String siteName;
 
+    @Column(name = "site_hostname")
+    private String siteHostName;
+
     @Column(name = "site_domain")
     private String siteDomain;
 

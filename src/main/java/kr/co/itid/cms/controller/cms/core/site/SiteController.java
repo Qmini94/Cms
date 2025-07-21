@@ -31,7 +31,6 @@ public class SiteController {
      * @return ApiResponse&lt;List&lt;SiteResponse&gt;&gt; 사이트 목록을 포함한 응답
      * @throws Exception 데이터 조회 중 오류 발생 시
      */
-    @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData() throws Exception {
 
