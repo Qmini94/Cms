@@ -13,8 +13,9 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
 
     Optional<Menu> findByNameOrderByPositionAsc(String name);
 
-    // 부모 ID로 하위 메뉴 조회
     List<Menu> findByParentIdOrderByPositionAsc(Long parentId);
 
     Optional<Menu> findById(Long id);
+
+    Optional<Menu> findByTypeAndName(String type, String name);
 }

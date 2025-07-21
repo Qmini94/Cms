@@ -35,4 +35,12 @@ public interface SiteService {
      * @return true = 닫힘("close"), false = 열림("open") 또는 찾을 수 없음
      */
     boolean isClosedSite(String siteHostName) throws Exception;
+
+    /**
+     * 사이트 호스트명으로 사이트 정보를 수정합니다.
+     * @param siteHostName 사이트 호스트명
+     * @param request 수정할 사이트 정보
+     * @return 수정된 사이트 응답
+     */
+    SiteResponse updateSiteByHostName(String siteHostName, SiteResponse request) throws Exception;
 }

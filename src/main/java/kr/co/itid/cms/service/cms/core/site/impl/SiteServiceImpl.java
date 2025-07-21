@@ -1,10 +1,12 @@
 package kr.co.itid.cms.service.cms.core.site.impl;
 
 import kr.co.itid.cms.dto.cms.core.site.SiteResponse;
+import kr.co.itid.cms.entity.cms.core.menu.Menu;
 import kr.co.itid.cms.entity.cms.core.site.Site;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.mapper.common.SiteMapper;
 import kr.co.itid.cms.repository.common.SiteRepository;
+import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.service.cms.core.site.SiteService;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteService {
 
+    private final MenuService menuService;
     private final SiteRepository siteRepository;
     private final LoggingUtil loggingUtil;
     private final SiteMapper siteMapper;
@@ -88,5 +91,45 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
     @Override
     public boolean isClosedSite(String siteHostName) throws Exception {
         return "close".equalsIgnoreCase(getSiteOptionByHostName(siteHostName));
+    }
+
+    @Override
+    @Transactional(rollbackFor = EgovBizException.class)
+    public SiteResponse updateSiteByHostName(String siteHostName, SiteResponse request) throws Exception {
+        loggingUtil.logAttempt(Action.UPDATE, "Try to update site by hostName: " + siteHostName);
+
+        try {
+            Site site = siteRepository.findBySiteHostName(siteHostName)
+                    .orElseThrow(() -> processException("해당 호스트명의 사이트가 존재하지 않습니다: " + siteHostName));
+
+            String domain = request.getSiteDomain();
+            String newHostName = domain != null && domain.contains(".")
+                    ? domain.substring(0, domain.indexOf("."))
+                    : domain;
+
+            // 메뉴 이름 변경 위임
+            try {
+                menuService.updateDriveMenuName(siteHostName, newHostName, request.getSiteName());
+            } catch (Exception menuEx) {
+                loggingUtil.logFail(Action.UPDATE, "Menu update failed during site update: " + menuEx.getMessage());
+                throw processException("사이트 수정 중 메뉴 이름 변경 실패", menuEx);
+            }
+
+            // 사이트 정보 수정
+            site.setSiteName(request.getSiteName());
+            site.setSiteDomain(domain);
+            site.setSiteOption(request.getSiteOption());
+            site.setBadTextOption(request.getBadTextOption());
+            site.setBadText(request.getBadText());
+            site.setSiteHostName(newHostName);
+
+            Site saved = siteRepository.save(site);
+            loggingUtil.logSuccess(Action.UPDATE, "Site updated successfully: " + newHostName);
+
+            return siteMapper.toResponse(saved);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.UPDATE, "Site update failed: " + e.getMessage());
+            throw processException("사이트 수정 실패", e);
+        }
     }
 }

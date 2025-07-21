@@ -50,4 +50,13 @@ public interface MenuService {
      * @return &lt;MenuResponse&gt; 하위 메뉴 목록
      */
     List<MenuTreeResponse> getMenuTreeByName(String name) throws Exception;
+
+    /**
+     * type이 'drive'이고 name이 oldName인 메뉴들의 name을 newName으로 변경합니다.
+     *
+     * @param oldName 기존 name 값 (예: 기존 siteHostName)
+     * @param newName 새로 변경할 name 값
+     * @throws Exception 처리 중 예외 발생 시
+     */
+    void updateDriveMenuName(String oldName, String newName, String siteName) throws Exception;
 }

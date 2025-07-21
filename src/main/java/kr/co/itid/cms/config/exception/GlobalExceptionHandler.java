@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
+    //e.printStackTrace() 디버깅시 사용
     // 400 - 잘못된 요청
     @ExceptionHandler({
             MissingServletRequestParameterException.class,

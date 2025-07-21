@@ -1,5 +1,6 @@
 package kr.co.itid.cms.entity.cms.core.menu;
 
+import kr.co.itid.cms.util.BooleanToEnumStringConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,7 +18,7 @@ public class Menu {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;  // 고유번호 (PK)
 
-    @Column(name = "parent_id", nullable = false)
+    @Column(name = "parent_id")
     private Long parentId;  // 상속메뉴
 
     @Column(name = "position", nullable = false)
@@ -43,15 +44,19 @@ public class Menu {
     private Display display;  // 표시 여부 (show, hide)
 
     @Column(name = "_opt_sns")
+    @Convert(converter = BooleanToEnumStringConverter.class)
     private Boolean optSns;  // SNS 여부
 
     @Column(name = "_opt_shot_url")
+    @Convert(converter = BooleanToEnumStringConverter.class)
     private Boolean optShortUrl;  // short_url 여부
 
     @Column(name = "_opt_qrcode")
+    @Convert(converter = BooleanToEnumStringConverter.class)
     private Boolean optQrcode;  // QR코드 여부
 
     @Column(name = "_opt_mobile")
+    @Convert(converter = BooleanToEnumStringConverter.class)
     private Boolean optMobile;  // 모바일 여부
 
     @Column(name = "_path_url", length = 255)

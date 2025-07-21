@@ -128,6 +128,38 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         }
     }
 
+    @Override
+    @Transactional(rollbackFor = EgovBizException.class)
+    public void updateDriveMenuName(String oldName, String newName, String siteName) throws Exception {
+        loggingUtil.logAttempt(Action.UPDATE, "Try to update drive menu name from '" + oldName + "' to '" + newName + "'");
+
+        try {
+            Menu menu = menuRepository.findByTypeAndName("drive", oldName)
+                    .orElseThrow(() -> processException("해당 조건의 드라이브 메뉴가 존재하지 않습니다: " + oldName));
+
+            menu.setName(newName);
+            menu.setTitle(siteName);
+
+            // pathUrl 도메인 앞부분 교체
+            String oldPathUrl = menu.getPathUrl();
+            if (oldPathUrl != null) {
+                int dotIndex = oldPathUrl.indexOf('.');
+                if (dotIndex > 0) {
+                    String replaced = newName + oldPathUrl.substring(dotIndex);
+                    menu.setPathUrl(replaced);
+                } else {
+                    menu.setPathUrl(newName);
+                }
+            }
+            menuRepository.save(menu);
+
+            loggingUtil.logSuccess(Action.UPDATE, "Drive menu name and pathUrl updated from '" + oldName + "' to '" + newName + "'");
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.UPDATE, "Failed to update drive menu name: " + e.getMessage());
+            throw processException("드라이브 메뉴 이름 변경 실패", e);
+        }
+    }
+
     private List<MenuTreeLiteResponse> buildMenuTreeLite(Long parentId) {
         return getChildren(parentId).stream()
                 .map(menu -> menuMapper.toLiteTreeResponse(menu, buildMenuTreeLite(menu.getId())))

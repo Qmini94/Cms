@@ -7,9 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,7 +17,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/list/site")
+@RequestMapping("/api/site")
 @Validated
 public class SiteController {
 
@@ -31,10 +29,27 @@ public class SiteController {
      * @return ApiResponse&lt;List&lt;SiteResponse&gt;&gt; 사이트 목록을 포함한 응답
      * @throws Exception 데이터 조회 중 오류 발생 시
      */
-    @GetMapping
+    @GetMapping("/list")
     public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData() throws Exception {
 
         List<SiteResponse> sites = siteService.getSiteAllData();
         return ResponseEntity.ok(ApiResponse.success(sites));
+    }
+
+    /**
+     * 특정 호스트명을 가진 사이트 정보를 수정합니다.
+     *
+     * @param siteHostName 수정할 사이트의 호스트명
+     * @param request 수정할 사이트 정보
+     * @return 수정된 사이트 응답
+     */
+    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @PutMapping("/{siteHostName}")
+    public ResponseEntity<ApiResponse<SiteResponse>> updateSiteByHostName(
+            @PathVariable String siteHostName,
+            @RequestBody @Validated SiteResponse request) throws Exception {
+
+        SiteResponse updated = siteService.updateSiteByHostName(siteHostName, request);
+        return ResponseEntity.ok(ApiResponse.success(updated));
     }
 }
