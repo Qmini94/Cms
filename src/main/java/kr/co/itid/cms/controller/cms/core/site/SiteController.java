@@ -83,6 +83,21 @@ public class SiteController {
     }
 
     /**
+     * 사이트를 소프트 복구합니다. (is_deleted = false)
+     *
+     * @param siteHostName 복구할 사이트의 호스트명
+     * @return 성공 여부
+     */
+    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @PutMapping("/{siteHostName}/restore")
+    public ResponseEntity<ApiResponse<Void>> restoreSite(
+            @PathVariable String siteHostName) throws Exception {
+
+        siteService.restoreSite(siteHostName);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
      * 사이트를 소프트 삭제합니다. (is_deleted = true)
      *
      * @param siteHostName 삭제할 사이트의 호스트명

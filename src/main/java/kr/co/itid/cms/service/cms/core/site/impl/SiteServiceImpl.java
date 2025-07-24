@@ -32,6 +32,21 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
+    public String getSiteOptionByHostName(String siteHostName) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Get siteOption for host: " + siteHostName);
+
+        try {
+            return siteRepository.findBySiteHostName(siteHostName)
+                    .map(Site::getSiteOption)
+                    .orElse("open"); // 기본값은 open
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Failed to get siteOption for: " + siteHostName);
+            throw processException("Failed to get siteOption", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public List<SiteResponse> getSitesIsDeletedFalse() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to retrieve active site data (isDeleted = false)");
 
@@ -73,21 +88,6 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public String getSiteOptionByHostName(String siteHostName) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Get siteOption for host: " + siteHostName);
-
-        try {
-            return siteRepository.findBySiteHostName(siteHostName)
-                    .map(Site::getSiteOption)
-                    .orElse("open"); // 기본값은 open
-        } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Failed to get siteOption for: " + siteHostName);
-            throw processException("Failed to get siteOption", e);
-        }
-    }
-
-    @Override
-    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public List<String> getBadWordsByHostName(String siteHostName) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Get badWords for host: " + siteHostName);
 
@@ -118,7 +118,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
     @Override
     @Transactional(rollbackFor = EgovBizException.class)
-    public Void saveSite(String siteHostName, SiteRequest request) throws Exception {
+    public void saveSite(String siteHostName, SiteRequest request) throws Exception {
         boolean isNew = (siteHostName == null);
         String domain = request.getSiteDomain();
         String newHostName = domain != null && domain.contains(".")
@@ -157,7 +157,6 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                 }
 
                 loggingUtil.logSuccess(Action.CREATE, "Site created successfully: " + newHostName);
-                return null;
 
             } catch (Exception e) {
                 loggingUtil.logFail(Action.CREATE, "Site creation failed: " + e.getMessage());
@@ -211,12 +210,30 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
                 siteRepository.save(site);
                 loggingUtil.logSuccess(Action.UPDATE, "Site updated successfully: " + newHostName);
-                return null;
 
             } catch (Exception e) {
                 loggingUtil.logFail(Action.UPDATE, "Site update failed: " + e.getMessage());
                 throw processException("사이트 수정 실패", e);
             }
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = EgovBizException.class)
+    public void restoreSite(String siteHostName) throws Exception {
+        loggingUtil.logAttempt(Action.UPDATE, "Try to restore site: " + siteHostName);
+
+        try {
+            Site site = siteRepository.findBySiteHostName(siteHostName)
+                    .orElseThrow(() -> processException("존재하지 않는 사이트입니다: " + siteHostName));
+
+            site.setIsDeleted(false);
+            siteRepository.save(site);
+
+            loggingUtil.logSuccess(Action.UPDATE, "Restored site: " + siteHostName);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.UPDATE, "Restore failed: " + e.getMessage());
+            throw processException("사이트 복구 실패", e);
         }
     }
 

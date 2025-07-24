@@ -11,6 +11,13 @@ import java.util.List;
 public interface SiteService {
 
     /**
+     * 사이트 호스트명으로 siteOption 값 조회
+     * @param siteHostName 사이트 호스트명 (예: "admin", "www", "business")
+     * @return siteOption 값 ("open" 또는 "close")
+     */
+    String getSiteOptionByHostName(String siteHostName) throws Exception;
+
+    /**
      * 삭제되지 않은 사이트 목록 조회
      * @return &lt;SiteResponse&gt; 사이트 데이터 목록
      */
@@ -21,13 +28,6 @@ public interface SiteService {
      * @return &lt;SiteResponse&gt; 사이트 데이터 목록
      */
     List<SiteResponse> getSiteAllData() throws Exception;
-
-    /**
-     * 사이트 호스트명으로 siteOption 값 조회
-     * @param siteHostName 사이트 호스트명 (예: "admin", "www", "business")
-     * @return siteOption 값 ("open" 또는 "close")
-     */
-    String getSiteOptionByHostName(String siteHostName) throws Exception;
 
     /**
      * 호스트명으로 금지어 배열 반환
@@ -50,7 +50,16 @@ public interface SiteService {
      * @param siteHostName 사이트 호스트명 (null인 경우 신규 등록)
      * @param request 사이트 요청 DTO
      */
-    Void saveSite(String siteHostName, SiteRequest request) throws Exception;
+    void saveSite(String siteHostName, SiteRequest request) throws Exception;
+
+    /**
+     * 사이트를 복구합니다.
+     * is_deleted = false 로 설정됩니다.
+     *
+     * @param siteHostName 복구할 사이트 호스트명
+     * @throws Exception 복구 중 오류 발생 시
+     */
+    void restoreSite(String siteHostName) throws Exception;
 
     /**
      * 사이트를 소프트 삭제합니다.
