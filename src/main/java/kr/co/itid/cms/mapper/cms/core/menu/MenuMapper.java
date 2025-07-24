@@ -1,5 +1,6 @@
 package kr.co.itid.cms.mapper.cms.core.menu;
 
+import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeResponse;
@@ -13,6 +14,8 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface MenuMapper {
+
+    Menu toEntity(MenuRequest menuRequest);
 
     @Mapping(target = "display", expression = "java(menu.getDisplay() != null ? menu.getDisplay().name() : null)")
     MenuResponse toResponse(Menu menu);

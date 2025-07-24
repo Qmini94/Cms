@@ -1,6 +1,7 @@
 package kr.co.itid.cms.service.cms.core.site;
 
-import kr.co.itid.cms.dto.cms.core.site.SiteResponse;
+import kr.co.itid.cms.dto.cms.core.site.request.SiteRequest;
+import kr.co.itid.cms.dto.cms.core.site.response.SiteResponse;
 import java.util.List;
 
 /**
@@ -10,7 +11,13 @@ import java.util.List;
 public interface SiteService {
 
     /**
-     * 모든 사이트 데이터를 조회
+     * 삭제되지 않은 사이트 목록 조회
+     * @return &lt;SiteResponse&gt; 사이트 데이터 목록
+     */
+    List<SiteResponse> getSitesIsDeletedFalse() throws Exception;
+
+    /**
+     * 전체 사이트 목록 조회 (삭제 포함)
      * @return &lt;SiteResponse&gt; 사이트 데이터 목록
      */
     List<SiteResponse> getSiteAllData() throws Exception;
@@ -37,10 +44,29 @@ public interface SiteService {
     boolean isClosedSite(String siteHostName) throws Exception;
 
     /**
-     * 사이트 호스트명으로 사이트 정보를 수정합니다.
-     * @param siteHostName 사이트 호스트명
-     * @param request 수정할 사이트 정보
-     * @return 수정된 사이트 응답
+     * 사이트를 저장하거나 수정합니다.
+     * siteHostName이 null이면 신규 등록, 존재하면 수정 처리됩니다.
+     *
+     * @param siteHostName 사이트 호스트명 (null인 경우 신규 등록)
+     * @param request 사이트 요청 DTO
      */
-    SiteResponse updateSiteByHostName(String siteHostName, SiteResponse request) throws Exception;
+    Void saveSite(String siteHostName, SiteRequest request) throws Exception;
+
+    /**
+     * 사이트를 소프트 삭제합니다.
+     * is_deleted = true 로 설정됩니다.
+     *
+     * @param siteHostName 삭제할 사이트 호스트명
+     * @throws Exception 삭제 중 오류 발생 시
+     */
+    void softDeleteSite(String siteHostName) throws Exception;
+
+    /**
+     * 사이트를 완전 삭제합니다.
+     * DB에서 완전히 제거됩니다.
+     *
+     * @param siteHostName 삭제할 사이트 호스트명
+     * @throws Exception 삭제 중 오류 발생 시
+     */
+    void hardDeleteSite(String siteHostName) throws Exception;
 }

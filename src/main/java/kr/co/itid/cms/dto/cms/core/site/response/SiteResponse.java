@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.cms.core.site;
+package kr.co.itid.cms.dto.cms.core.site.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -10,6 +10,7 @@ public class SiteResponse {
     private String siteName;
     private String siteHostName;
     private String siteDomain;
+    private String isDeleted;
     private String sitePort;
     private String siteOption;
     private String language;

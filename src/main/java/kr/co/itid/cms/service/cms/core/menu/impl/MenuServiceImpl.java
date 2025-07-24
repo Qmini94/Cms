@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.cms.core.menu.impl;
 
+import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeResponse;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service("menuService")
 @RequiredArgsConstructor
@@ -42,9 +44,6 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         return menuMapper.toTypeValueResponse(menu);
     }
 
-    /**
-     * 공통 내부 처리 로직 (예외/로깅 포함)
-     */
     private Menu getMenuEntityById(Long id) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu by id: " + id);
 
@@ -59,6 +58,31 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             throw processException("Cannot access database", e);
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Unexpected error while getting menu");
+            throw processException("Unexpected error", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
+    public Optional<Menu> getMenuByTypeAndName(String type, String name) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu by type and name: type=" + type + ", name=" + name);
+
+        try {
+            Optional<Menu> result = menuRepository.findByTypeAndName(type, name);
+
+            if (result.isPresent()) {
+                loggingUtil.logSuccess(Action.RETRIEVE, "Got menu by type and name: " + name);
+            } else {
+                loggingUtil.logSuccess(Action.RETRIEVE, "Menu not found for type and name: " + name);
+            }
+
+            return result;
+
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Database error while getting menu by type and name");
+            throw processException("Cannot access database", e);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Unexpected error while getting menu by type and name");
             throw processException("Unexpected error", e);
         }
     }
@@ -130,33 +154,45 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 
     @Override
     @Transactional(rollbackFor = EgovBizException.class)
-    public void updateDriveMenuName(String oldName, String newName, String siteName) throws Exception {
-        loggingUtil.logAttempt(Action.UPDATE, "Try to update drive menu name from '" + oldName + "' to '" + newName + "'");
+    public void saveMenu(Long id, MenuRequest request) throws Exception {
+        boolean isNew = (id == null);
+        Action action = isNew ? Action.CREATE : Action.UPDATE;
+
+        loggingUtil.logAttempt(action, "Try to " + (isNew ? "create" : "update") + " menu: " + request.getName());
 
         try {
-            Menu menu = menuRepository.findByTypeAndName("drive", oldName)
-                    .orElseThrow(() -> processException("해당 조건의 드라이브 메뉴가 존재하지 않습니다: " + oldName));
-
-            menu.setName(newName);
-            menu.setTitle(siteName);
-
-            // pathUrl 도메인 앞부분 교체
-            String oldPathUrl = menu.getPathUrl();
-            if (oldPathUrl != null) {
-                int dotIndex = oldPathUrl.indexOf('.');
-                if (dotIndex > 0) {
-                    String replaced = newName + oldPathUrl.substring(dotIndex);
-                    menu.setPathUrl(replaced);
-                } else {
-                    menu.setPathUrl(newName);
+            if (isNew) {
+                // 중복 체크
+                if (menuRepository.findByTypeAndName(request.getType(), request.getName()).isPresent()) {
+                    throw processException("이미 동일한 이름의 메뉴가 존재합니다: " + request.getName());
                 }
-            }
-            menuRepository.save(menu);
 
-            loggingUtil.logSuccess(Action.UPDATE, "Drive menu name and pathUrl updated from '" + oldName + "' to '" + newName + "'");
+                Menu menu = menuMapper.toEntity(request);
+
+                menuRepository.save(menu);
+                loggingUtil.logSuccess(action, "Menu created: " + request.getName());
+
+            } else {
+                Menu menu = menuRepository.findById(Long.valueOf(id))
+                        .orElseThrow(() -> processException("해당 ID의 메뉴가 존재하지 않습니다: " + id));
+
+                // 수정 가능한 필드만 반영
+                menu.setName(request.getName());
+                menu.setTitle(request.getTitle());
+                menu.setDisplay(Menu.Display.valueOf(String.valueOf(request.getDisplay())));
+                menu.setValue(request.getValue());
+                menu.setPathUrl(request.getPathUrl());
+                menu.setPathId(request.getPathId());
+                menu.setPosition(request.getPosition());
+                menu.setLevel(request.getLevel());
+
+                menuRepository.save(menu);
+                loggingUtil.logSuccess(action, "Menu updated: " + request.getName());
+            }
+
         } catch (Exception e) {
-            loggingUtil.logFail(Action.UPDATE, "Failed to update drive menu name: " + e.getMessage());
-            throw processException("드라이브 메뉴 이름 변경 실패", e);
+            loggingUtil.logFail(action, "Failed to " + (isNew ? "create" : "update") + " menu: " + e.getMessage());
+            throw processException("메뉴 " + (isNew ? "등록" : "수정") + " 실패", e);
         }
     }
 

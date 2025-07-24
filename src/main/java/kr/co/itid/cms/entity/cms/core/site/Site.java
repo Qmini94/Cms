@@ -26,13 +26,16 @@ public class Site {
     @Column(name = "site_domain")
     private String siteDomain;
 
-    @Column(name = "site_port", nullable = false)
+    @Column(name = "is_deleted", columnDefinition = "TINYINT(4) DEFAULT 0")
+    private Boolean isDeleted = false;
+
+    @Column(name = "site_port")
     private String sitePort;
 
     @Column(name = "site_option", nullable = false)
     private String siteOption;
 
-    @Column(name = "language", nullable = false)
+    @Column(name = "language")
     private String language;
 
     @Column(name = "siren24_id")

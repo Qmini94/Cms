@@ -1,7 +1,8 @@
 package kr.co.itid.cms.controller.cms.core.site;
 
+import kr.co.itid.cms.dto.cms.core.site.request.SiteRequest;
 import kr.co.itid.cms.dto.common.ApiResponse;
-import kr.co.itid.cms.dto.cms.core.site.SiteResponse;
+import kr.co.itid.cms.dto.cms.core.site.response.SiteResponse;
 import kr.co.itid.cms.service.cms.core.site.SiteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +25,25 @@ public class SiteController {
     private final SiteService siteService;
 
     /**
-     * 모든 사이트 정보를 조회합니다.
+     * 삭제되지 않은 사이트 목록 조회
      *
      * @return ApiResponse&lt;List&lt;SiteResponse&gt;&gt; 사이트 목록을 포함한 응답
      * @throws Exception 데이터 조회 중 오류 발생 시
      */
     @GetMapping("/list")
+    public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteyIsDeletedFalse() throws Exception {
+
+        List<SiteResponse> sites = siteService.getSitesIsDeletedFalse();
+        return ResponseEntity.ok(ApiResponse.success(sites));
+    }
+
+    /**
+     * 전체 사이트 목록 조회 (삭제 포함)
+     *
+     * @return ApiResponse&lt;List&lt;SiteResponse&gt;&gt; 사이트 목록을 포함한 응답
+     * @throws Exception 데이터 조회 중 오류 발생 시
+     */
+    @GetMapping("/list/all")
     public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData() throws Exception {
 
         List<SiteResponse> sites = siteService.getSiteAllData();
@@ -37,19 +51,64 @@ public class SiteController {
     }
 
     /**
-     * 특정 호스트명을 가진 사이트 정보를 수정합니다.
+     * 사이트를 생성합니다.
+     *
+     * @param request 생성할 사이트 정보
+     * @return 성공 여부 (true)
+     */
+    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @PostMapping
+    public ResponseEntity<ApiResponse<Void>> createSite(
+            @RequestBody @Validated SiteRequest request) throws Exception {
+
+        siteService.saveSite(null, request);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * 사이트 정보를 수정합니다.
      *
      * @param siteHostName 수정할 사이트의 호스트명
-     * @param request 수정할 사이트 정보
-     * @return 수정된 사이트 응답
+     * @param request      수정할 사이트 정보
+     * @return 성공 여부 (true)
      */
     @PreAuthorize("@permService.hasAccess('MODIFY')")
     @PutMapping("/{siteHostName}")
-    public ResponseEntity<ApiResponse<SiteResponse>> updateSiteByHostName(
+    public ResponseEntity<ApiResponse<Void>> updateSiteByHostName(
             @PathVariable String siteHostName,
-            @RequestBody @Validated SiteResponse request) throws Exception {
+            @RequestBody @Validated SiteRequest request) throws Exception {
 
-        SiteResponse updated = siteService.updateSiteByHostName(siteHostName, request);
-        return ResponseEntity.ok(ApiResponse.success(updated));
+        siteService.saveSite(siteHostName, request);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * 사이트를 소프트 삭제합니다. (is_deleted = true)
+     *
+     * @param siteHostName 삭제할 사이트의 호스트명
+     * @return 성공 여부
+     */
+    @PreAuthorize("@permService.hasAccess('REMOVE')")
+    @DeleteMapping("/{siteHostName}")
+    public ResponseEntity<ApiResponse<Void>> softDeleteSite(
+            @PathVariable String siteHostName) throws Exception {
+
+        siteService.softDeleteSite(siteHostName);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * 사이트를 완전 삭제합니다. (DB에서 제거)
+     *
+     * @param siteHostName 삭제할 사이트의 호스트명
+     * @return 성공 여부
+     */
+    @PreAuthorize("@permService.hasAccess('REMOVE')")
+    @DeleteMapping("/{siteHostName}/hard")
+    public ResponseEntity<ApiResponse<Void>> hardDeleteSite(
+            @PathVariable String siteHostName) throws Exception {
+
+        siteService.hardDeleteSite(siteHostName);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
