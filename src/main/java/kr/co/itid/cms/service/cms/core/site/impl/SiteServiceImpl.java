@@ -194,7 +194,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                             //TODO: 메뉴 옵션 처리 될때마다 사이트 수정시 누락안되도록 처리해야함.
                             .build();
 
-                    menuService.saveMenu(1L, menuRequest);
+                    menuService.saveMenu(existingMenu.getId(), menuRequest);
 
                 } catch (Exception menuEx) {
                     loggingUtil.logFail(Action.UPDATE, "Menu update failed during site update: " + menuEx.getMessage());
