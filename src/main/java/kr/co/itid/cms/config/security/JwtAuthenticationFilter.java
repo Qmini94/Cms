@@ -80,8 +80,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             // 관리자 접근 체크
-            if (isUnauthorizedAdmin(user, uri, hostname)) {
-                logger.warn("[JWT] 관리자 페이지 접근 권한 없음 → 403 응답"); // DEBUG:
+            if (isUnauthorizedAdmin(user, uri, hostname) && !AdminBypassPaths.ALLOWED_PATHS.contains(uri)) {
+                logger.warn("[JWT] 관리자 페이지 접근 권한 없음 → 403 응답");
                 writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "관리자 권한 필요");
                 return;
             }
