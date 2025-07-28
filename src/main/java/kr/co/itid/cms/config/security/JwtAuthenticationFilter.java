@@ -107,10 +107,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String getClientIp(HttpServletRequest request) {
         String xfHeader = request.getHeader("X-Forwarded-For");
-        if (xfHeader != null && !xfHeader.isEmpty()) {
-            return xfHeader.split(",")[0].trim(); // 프록시일 경우 첫 번째 IP
+        String ip = (xfHeader != null && !xfHeader.isEmpty())
+                ? xfHeader.split(",")[0].trim()
+                : request.getRemoteAddr();
+
+        // IPv6 루프백 → IPv4로 변환
+        if ("0:0:0:0:0:0:0:1".equals(ip) || "::1".equals(ip)) {
+            ip = "127.0.0.1";
         }
-        return request.getRemoteAddr(); // 기본 IP
+
+        // IPv4-mapped IPv6 (::ffff:192.168.0.1) → IPv4 추출
+        if (ip.startsWith("::ffff:")) {
+            ip = ip.substring(7);
+        }
+
+        return ip;
     }
 
     private JwtAuthenticatedUser createGuestUser(HttpServletRequest request, String hostname, Long menuId) {
