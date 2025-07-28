@@ -30,10 +30,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
-            String token = jwtTokenProvider.extractAccessTokenFromRequest(request);
             String uri = request.getRequestURI();
             String hostname = request.getHeader("X-Site-Hostname");
             hostname = StringUtils.hasText(hostname) ? hostname : "unknown";
+
+            String clientIp = getClientIp(request);
+            logger.info("[JWT] 클라이언트 IP: " + clientIp);
+
+            if (!siteService.isIpAllowed(hostname, clientIp)) {
+                logger.warn("[JWT] 차단된 IP 접근 감지 → IP: " + clientIp + ", Hostname: " + hostname);
+                writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "차단된 IP입니다.");
+                return;
+            }
+
+            String token = jwtTokenProvider.extractAccessTokenFromRequest(request);
             String menuIdHeader = request.getHeader("X-Menu-Id");
             Long menuId = StringUtils.hasText(menuIdHeader) ? Long.valueOf(menuIdHeader) : null;
 
@@ -93,6 +103,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader != null && !xfHeader.isEmpty()) {
+            return xfHeader.split(",")[0].trim(); // 프록시일 경우 첫 번째 IP
+        }
+        return request.getRemoteAddr(); // 기본 IP
     }
 
     private JwtAuthenticatedUser createGuestUser(HttpServletRequest request, String hostname, Long menuId) {
