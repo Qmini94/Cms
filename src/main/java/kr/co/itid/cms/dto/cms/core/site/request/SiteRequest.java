@@ -14,47 +14,32 @@ import javax.validation.constraints.Size;
 @Builder
 @Getter
 public class SiteRequest {
+
     private Integer idx;
 
     @NotBlank(message = "사이트명은 필수입니다.")
-    @Size(max = 100, message = "사이트명은 100자 이내여야 합니다.")
+    @Size(max = 60, message = "사이트명은 60자 이내여야 합니다.")
     private String siteName;
 
+    @Size(max = 20, message = "호스트명은 20자 이내여야 합니다.")
     private String siteHostName;
 
     @NotBlank(message = "도메인은 필수입니다.")
     @Pattern(
-            regexp = "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$",
+            regexp = "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
             message = "올바른 도메인 형식이어야 합니다. (예: example.com)"
     )
+    @Size(max = 40, message = "도메인은 40자 이내여야 합니다.")
     private String siteDomain;
-    private String sitePort;
 
     @NotBlank(message = "운영방식은 필수입니다.")
     @Pattern(regexp = "open|close", message = "운영방식은 open 또는 close만 허용됩니다.")
+    @Size(max = 10, message = "운영방식은 10자 이내여야 합니다.")
     private String siteOption;
 
-    private String language;
-    private String siren24Id;
-    private String siren24No;
-    private String umsId;
-    private String umsKey;
-    private String privacyCheck;
+    @Size(max = 65535, message = "허용 IP는 너무 길 수 없습니다.")
+    private String allowIp;
 
-    @Size(max = 1000, message = "제한 단어 목록은 1000자 이내여야 합니다.")
-    private String badText;
-
-    @NotBlank(message = "제한단어차단 여부는 필수입니다.")
-    @Pattern(regexp = "true|false", message = "제한단어차단 값은 true 또는 false만 허용됩니다.")
-    private String badTextOption;
-
-    private String naverApiKey;
-    private String naverMapKey;
-    private String googleMapKey;
-    private String csApiUrl;
-    private String csApiKey;
-    private String digitomiDomain;
-    private String digitomiApi;
-    private String digitomiKey;
-    private String digitomiReturnUrl;
+    @Size(max = 65535, message = "차단 IP는 너무 길 수 없습니다.")
+    private String denyIp;
 }

@@ -87,31 +87,6 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
     }
 
     @Override
-    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public List<String> getBadWordsByHostName(String siteHostName) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Get badWords for host: " + siteHostName);
-
-        try {
-            String badText = siteRepository.findBySiteHostName(siteHostName)
-                    .map(Site::getBadText)
-                    .orElse(null);
-
-            if (badText == null || badText.trim().isEmpty()) {
-                return List.of();
-            }
-
-            return List.of(badText.split(",")).stream()
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .collect(Collectors.toList());
-
-        } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Failed to get badWords for: " + siteHostName);
-            throw processException("Failed to get badWords", e);
-        }
-    }
-
-    @Override
     public boolean isClosedSite(String siteHostName) throws Exception {
         return "close".equalsIgnoreCase(getSiteOptionByHostName(siteHostName));
     }
@@ -204,9 +179,9 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                 site.setSiteName(request.getSiteName());
                 site.setSiteDomain(domain);
                 site.setSiteOption(request.getSiteOption());
-                site.setBadTextOption(request.getBadTextOption());
-                site.setBadText(request.getBadText());
                 site.setSiteHostName(newHostName);
+                site.setAllowIp(request.getAllowIp());
+                site.setDenyIp(request.getDenyIp());
 
                 siteRepository.save(site);
                 loggingUtil.logSuccess(Action.UPDATE, "Site updated successfully: " + newHostName);
