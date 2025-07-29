@@ -53,7 +53,7 @@ public class MenuController {
     }
 
     /**
-     * 특정 이름을 가진 드라이브의 하위 메뉴를 TREE 구성을 위해 전체 데이터를 조회합니다.
+     * 특정 이름을 가진 드라이브의 드라이브 포함 하위 메뉴를 TREE 구성을 위해 전체 데이터를 조회합니다.
      *
      * @param name 드라이브 또는 메뉴 이름 (필수, 공백 불가)
      * @return ApiResponse&lt;List&lt;MenuTreeResponse&gt;&gt; 트리 형태의 하위 메뉴 응답

@@ -18,6 +18,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -136,11 +137,19 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree for: " + name);
 
         try {
+            // 1. drive root 메뉴 가져오기
             Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(name)
                     .orElseThrow(() -> processException("Drive not found: " + name));
 
-            loggingUtil.logSuccess(Action.RETRIEVE, "Got full tree for: " + name);
-            return buildMenuTreeResponse(rootMenu.getId());
+            // 2. 하위 메뉴 전체 재귀 조회
+            List<MenuTreeResponse> children = buildMenuTreeResponse(rootMenu.getId());
+
+            // 3. Mapper로 root + children 트리 생성
+            MenuTreeResponse rootDto = menuMapper.toFullResponse(rootMenu, children);
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "Got full tree including root for: " + name);
+
+            return List.of(rootDto); // 루트 포함 트리 반환
         } catch (NoSuchElementException e) {
             throw e;
         } catch (DataAccessException e) {

@@ -58,7 +58,7 @@ public interface MenuService {
     List<MenuTreeLiteResponse> getMenuTreeLiteByName(String name) throws Exception;
 
     /**
-     * 특정 이름을 가진 드라이브의 모든 하위 메뉴 조회
+     * 특정 이름을 가진 드라이브의 드라이브 포함 모든 하위 메뉴 조회
      * @param name 드라이브 이름
      * @return &lt;MenuResponse&gt; 하위 메뉴 목록
      */
