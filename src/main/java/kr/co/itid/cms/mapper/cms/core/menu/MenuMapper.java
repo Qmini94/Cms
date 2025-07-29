@@ -10,7 +10,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Mapper(componentModel = "spring")
 public interface MenuMapper {
@@ -57,5 +60,27 @@ public interface MenuMapper {
                 .isUseCount(menu.getIsUseCount())
                 .children(children)
                 .build();
+    }
+
+    @Named("toTree")
+    default List<MenuTreeResponse> toTree(List<Menu> flatList) {
+        Map<Long, MenuTreeResponse> map = new LinkedHashMap<>();
+        for (Menu menu : flatList) {
+            map.put(menu.getId(), toFullResponse(menu, new ArrayList<>()));
+        }
+
+        List<MenuTreeResponse> rootList = new ArrayList<>();
+        for (Menu menu : flatList) {
+            Long parentId = menu.getParentId();
+            MenuTreeResponse node = map.get(menu.getId());
+
+            if (parentId != null && map.containsKey(parentId)) {
+                map.get(parentId).getChildren().add(node);
+            } else {
+                rootList.add(node);
+            }
+        }
+
+        return rootList;
     }
 }

@@ -1,5 +1,6 @@
 package kr.co.itid.cms.controller.cms.core.menu;
 
+import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeResponse;
@@ -65,5 +66,24 @@ public class MenuController {
 
         List<MenuTreeResponse> children = menuService.getMenuTreeByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
+    }
+
+    /**
+     * 특정 드라이브 이름을 기준으로 메뉴 트리를 동기화(저장)합니다.
+     * - 전달된 트리 데이터는 드라이브 하위 메뉴 전체를 의미합니다.
+     * - 기존 메뉴와 비교하여 추가/수정/삭제를 처리합니다.
+     *
+     * @param name 드라이브 이름 (예: www, admin 등)
+     * @param tree 동기화할 메뉴 트리 (MenuRequest 리스트)
+     * @return void 성공 시 200 OK
+     * @throws Exception 동기화 중 오류 발생 시
+     */
+    @PutMapping("/{name}/tree/sync")
+    public ResponseEntity<ApiResponse<Void>> syncMenuTreeByName(
+            @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name,
+            @RequestBody List<MenuRequest> tree
+    ) throws Exception {
+        menuService.syncMenuTree(name, tree);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

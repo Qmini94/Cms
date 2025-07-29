@@ -65,6 +65,16 @@ public interface MenuService {
     List<MenuTreeResponse> getMenuTreeByName(String name) throws Exception;
 
     /**
+     * 특정 드라이브 이름을 기준으로 전체 메뉴 트리를 동기화합니다.
+     * 전달된 트리를 기반으로 추가/수정/삭제를 수행합니다.
+     *
+     * @param driveName 드라이브 이름 (예: www, admin)
+     * @param tree 동기화할 메뉴 트리
+     * @throws Exception 처리 중 오류 발생 시
+     */
+    void syncMenuTree(String driveName, List<MenuRequest> tree) throws Exception;
+
+    /**
      * 메뉴를 저장하거나 수정합니다.
      * id가 null이면 신규 등록, 존재하면 수정 처리됩니다.
      *

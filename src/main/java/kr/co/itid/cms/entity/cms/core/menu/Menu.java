@@ -21,7 +21,7 @@ public class Menu {
     private Long parentId;  // 상속메뉴
 
     @Column(name = "position", nullable = false)
-    private Long position;  // 트리 포지션
+    private int position;  // 트리 포지션
 
     @Column(name = "level", nullable = false)
     private Long level;  // 트리 레벨

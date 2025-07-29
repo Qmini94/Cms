@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,7 +21,7 @@ public class MenuRequest {
     private Long parentId;
 
     @NotNull(message = "메뉴 위치는 필수입니다.")
-    private Integer position;
+    private int position;
 
     @NotNull(message = "메뉴 레벨은 필수입니다.")
     private Integer level;
@@ -57,4 +58,6 @@ public class MenuRequest {
 
     @NotNull(message = "조회수 사용 여부는 필수입니다.")
     private Boolean isUseCount;
+
+    private List<MenuRequest> children;
 }
