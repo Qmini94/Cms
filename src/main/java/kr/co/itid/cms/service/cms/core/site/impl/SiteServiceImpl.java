@@ -232,7 +232,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                             .isShow(existingMenu.getIsShow())
                             .isUseSearch(existingMenu.getIsUseSearch())
                             .isUseCount(existingMenu.getIsUseCount())
-                            .position(existingMenu.getPosition().intValue())
+                            .position(existingMenu.getPosition())
                             .parentId(existingMenu.getParentId())
                             .pathUrl(domain + "|")
                             .pathString(existingMenu.getPathString())
