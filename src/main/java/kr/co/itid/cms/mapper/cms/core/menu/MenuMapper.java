@@ -46,7 +46,7 @@ public interface MenuMapper {
         return MenuTreeResponse.builder()
                 .id(menu.getId())
                 .parentId(menu.getParentId())
-                .position(menu.getPosition().intValue())
+                .position(menu.getPosition())
                 .level(menu.getLevel().intValue())
                 .title(menu.getTitle())
                 .name(menu.getName())
