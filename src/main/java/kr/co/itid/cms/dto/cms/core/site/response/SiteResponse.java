@@ -11,7 +11,7 @@ public class SiteResponse {
     private String siteHostName;
     private String siteDomain;
     private Boolean isDeleted;
-    private String siteOption;
+    private Boolean isOpen;
     private String allowIp;
     private String denyIp;
 }

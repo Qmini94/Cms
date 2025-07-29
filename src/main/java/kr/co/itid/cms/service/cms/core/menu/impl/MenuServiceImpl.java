@@ -168,25 +168,30 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                 }
 
                 Menu menu = menuMapper.toEntity(request);
-
                 menuRepository.save(menu);
+
                 loggingUtil.logSuccess(action, "Menu created: " + request.getName());
 
             } else {
-                Menu menu = menuRepository.findById(Long.valueOf(id))
+                Menu menu = menuRepository.findById(id)
                         .orElseThrow(() -> processException("해당 ID의 메뉴가 존재하지 않습니다: " + id));
 
-                // 수정 가능한 필드만 반영
+                // 수정 가능한 필드 반영
                 menu.setName(request.getName());
                 menu.setTitle(request.getTitle());
-                menu.setDisplay(Menu.Display.valueOf(String.valueOf(request.getDisplay())));
+                menu.setType(request.getType());
                 menu.setValue(request.getValue());
                 menu.setPathUrl(request.getPathUrl());
                 menu.setPathId(request.getPathId());
-                menu.setPosition(request.getPosition());
-                menu.setLevel(request.getLevel());
+                menu.setPathString(request.getPathString());
+                menu.setPosition(request.getPosition().longValue());
+                menu.setLevel(request.getLevel().longValue());
+                menu.setIsShow(request.getIsShow());
+                menu.setIsUseSearch(request.getIsUseSearch());
+                menu.setIsUseCount(request.getIsUseCount());
 
                 menuRepository.save(menu);
+
                 loggingUtil.logSuccess(action, "Menu updated: " + request.getName());
             }
 
@@ -195,6 +200,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             throw processException("메뉴 " + (isNew ? "등록" : "수정") + " 실패", e);
         }
     }
+
 
     private List<MenuTreeLiteResponse> buildMenuTreeLite(Long parentId) {
         return getChildren(parentId).stream()

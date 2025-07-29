@@ -1,6 +1,5 @@
 package kr.co.itid.cms.dto.cms.core.menu.request;
 
-import kr.co.itid.cms.entity.cms.core.menu.Menu;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,32 +41,20 @@ public class MenuRequest {
     private String value;
 
     @NotNull(message = "표시 여부는 필수입니다.")
-    private Menu.Display display;
-
-    private Boolean optSns;
-    private Boolean optShortUrl;
-    private Boolean optQrcode;
-    private Boolean optMobile;
+    private Boolean isShow;
 
     @Size(max = 255, message = "경로 URL은 255자 이내여야 합니다.")
     private String pathUrl;
 
+    @Size(max = 255, message = "경로명은 255자 이내여야 합니다.")
+    private String pathString;
+
     @Size(max = 255, message = "경로 ID는 255자 이내여야 합니다.")
     private String pathId;
 
-    @Size(max = 400, message = "네비게이션은 400자 이내여야 합니다.")
-    private String navi;
+    @NotNull(message = "검색 사용 여부는 필수입니다.")
+    private Boolean isUseSearch;
 
-    private Integer serialNo;
-
-    @Size(max = 200, message = "모듈명은 200자 이내여야 합니다.")
-    private String module;
-
-    @Size(max = 200, message = "게시판 ID는 200자 이내여야 합니다.")
-    private String boardId;
-
-    private String searchOpt;
-
-    @Size(max = 255, message = "페이지 담당자는 255자 이내여야 합니다.")
-    private String pageManager;
+    @NotNull(message = "조회수 사용 여부는 필수입니다.")
+    private Boolean isUseCount;
 }

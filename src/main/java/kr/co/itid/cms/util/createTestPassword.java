@@ -2,7 +2,7 @@ package kr.co.itid.cms.util;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-public class testPW {
+public class createTestPassword {
     public static void main(String[] args) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String rawPassword = "test";  // 원하는 가짜 비밀번호

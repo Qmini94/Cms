@@ -11,11 +11,13 @@ import java.util.List;
 public interface SiteService {
 
     /**
-     * 사이트 호스트명으로 siteOption 값 조회
+     * 사이트 호스트명으로 사이트 활성화 여부 조회
+     *
      * @param siteHostName 사이트 호스트명 (예: "admin", "www", "business")
-     * @return siteOption 값 ("open" 또는 "close")
+     * @return 사이트 활성화 여부 (true: 활성, false: 비활성)
+     * @throws Exception 조회 중 예외 발생 시
      */
-    String getSiteOptionByHostName(String siteHostName) throws Exception;
+    boolean getSiteOpenStatusByHostName(String siteHostName) throws Exception;
 
     /**
      * 삭제되지 않은 사이트 목록 조회

@@ -17,12 +17,9 @@ public interface MenuMapper {
 
     Menu toEntity(MenuRequest menuRequest);
 
-    @Mapping(target = "display", expression = "java(menu.getDisplay() != null ? menu.getDisplay().name() : null)")
+    @Mapping(target = "isShow", source = "isShow")
     MenuResponse toResponse(Menu menu);
 
-    @Mapping(target = "name", source = "name")
-    @Mapping(target = "type", source = "type")
-    @Mapping(target = "value", source = "value")
     MenuTypeValueResponse toTypeValueResponse(Menu menu);
 
     @Named("toLiteTreeResponse")
@@ -34,7 +31,7 @@ public interface MenuMapper {
                 .name(menu.getName())
                 .type(menu.getType())
                 .value(menu.getValue())
-                .display(menu.getDisplay())
+                .isShow(menu.getIsShow())
                 .pathUrl(menu.getPathUrl())
                 .pathId(menu.getPathId())
                 .children(children)
@@ -46,25 +43,18 @@ public interface MenuMapper {
         return MenuTreeResponse.builder()
                 .id(menu.getId())
                 .parentId(menu.getParentId())
-                .position(menu.getPosition())
-                .level(menu.getLevel())
+                .position(menu.getPosition().intValue())
+                .level(menu.getLevel().intValue())
                 .title(menu.getTitle())
                 .name(menu.getName())
                 .type(menu.getType())
                 .value(menu.getValue())
-                .display(menu.getDisplay())
-                .optSns(menu.getOptSns())
-                .optShortUrl(menu.getOptShortUrl())
-                .optQrcode(menu.getOptQrcode())
-                .optMobile(menu.getOptMobile())
+                .isShow(menu.getIsShow())
                 .pathUrl(menu.getPathUrl())
+                .pathString(menu.getPathString())
                 .pathId(menu.getPathId())
-                .navi(menu.getNavi())
-                .serialNo(menu.getSerialNo())
-                .module(menu.getModule())
-                .boardId(menu.getBoardId())
-                .searchOpt(menu.getSearchOpt())
-                .pageManager(menu.getPageManager())
+                .isUseSearch(menu.getIsUseSearch())
+                .isUseCount(menu.getIsUseCount())
                 .children(children)
                 .build();
     }

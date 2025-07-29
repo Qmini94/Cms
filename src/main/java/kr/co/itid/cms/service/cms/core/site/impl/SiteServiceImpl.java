@@ -36,16 +36,16 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public String getSiteOptionByHostName(String siteHostName) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Get siteOption for host: " + siteHostName);
+    public boolean getSiteOpenStatusByHostName(String siteHostName) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Get isOpen for host: " + siteHostName);
 
         try {
             return siteRepository.findBySiteHostName(siteHostName)
-                    .map(Site::getSiteOption)
-                    .orElse("open"); // 기본값은 open
+                    .map(Site::getIsOpen)
+                    .orElse(true); // 기본값은 활성 상태 (true)
         } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "Failed to get siteOption for: " + siteHostName);
-            throw processException("Failed to get siteOption", e);
+            loggingUtil.logFail(Action.RETRIEVE, "Failed to get isOpen for: " + siteHostName);
+            throw processException("Failed to get site open status", e);
         }
     }
 
@@ -152,7 +152,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
     @Override
     public boolean isClosedSite(String siteHostName) throws Exception {
-        return "close".equalsIgnoreCase(getSiteOptionByHostName(siteHostName));
+        return !getSiteOpenStatusByHostName(siteHostName);
     }
 
     @Override
@@ -178,13 +178,17 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
                 // 신규 드라이브 메뉴 생성
                 try {
+// 메뉴 생성
                     MenuRequest menuRequest = MenuRequest.builder()
                             .type("drive")
                             .level(1)
                             .name(newHostName)
                             .title(request.getSiteName())
                             .pathUrl(domain + "|")
-                            .display(Menu.Display.show)
+                            .pathString(request.getSiteName())  // or 적절한 pathString 지정
+                            .isShow(true)
+                            .isUseSearch(false)
+                            .isUseCount(false)
                             .position(0)
                             .build();
 
@@ -222,14 +226,16 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                     MenuRequest menuRequest = MenuRequest.builder()
                             .id(existingMenu.getId())
                             .type("drive")
-                            .level(existingMenu.getLevel())
+                            .level(existingMenu.getLevel().intValue())
                             .name(newHostName)
                             .title(request.getSiteName())
-                            .display(existingMenu.getDisplay())
-                            .position(existingMenu.getPosition())
+                            .isShow(existingMenu.getIsShow())
+                            .isUseSearch(existingMenu.getIsUseSearch())
+                            .isUseCount(existingMenu.getIsUseCount())
+                            .position(existingMenu.getPosition().intValue())
                             .parentId(existingMenu.getParentId())
                             .pathUrl(domain + "|")
-                            //TODO: 메뉴 옵션 처리 될때마다 사이트 수정시 누락안되도록 처리해야함.
+                            .pathString(existingMenu.getPathString())
                             .build();
 
                     menuService.saveMenu(existingMenu.getId(), menuRequest);
@@ -242,7 +248,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                 // 사이트 정보 수정
                 site.setSiteName(request.getSiteName());
                 site.setSiteDomain(domain);
-                site.setSiteOption(request.getSiteOption());
+                site.setIsOpen(request.getIsOpen());
                 site.setSiteHostName(newHostName);
                 site.setAllowIp(request.getAllowIp());
                 site.setDenyIp(request.getDenyIp());

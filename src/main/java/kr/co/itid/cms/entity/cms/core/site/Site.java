@@ -26,11 +26,11 @@ public class Site {
     @Column(name = "site_domain")
     private String siteDomain;
 
-    @Column(name = "is_deleted", columnDefinition = "TINYINT(4) DEFAULT 0")
+    @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
-    @Column(name = "site_option", nullable = false)
-    private String siteOption;
+    @Column(name = "is_open", nullable = false)
+    private Boolean isOpen = false;
 
     @Column(name = "allow_ip", columnDefinition = "TEXT")
     private String allowIp;
