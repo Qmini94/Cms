@@ -10,10 +10,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Mapper(componentModel = "spring")
 public interface MenuMapper {
@@ -69,18 +66,32 @@ public interface MenuMapper {
             map.put(menu.getId(), toFullResponse(menu, new ArrayList<>()));
         }
 
-        List<MenuTreeResponse> rootList = new ArrayList<>();
+        // 부모 ID → 자식 리스트 매핑
+        Map<Long, List<MenuTreeResponse>> childMap = new HashMap<>();
+
         for (Menu menu : flatList) {
             Long parentId = menu.getParentId();
             MenuTreeResponse node = map.get(menu.getId());
 
             if (parentId != null && map.containsKey(parentId)) {
-                map.get(parentId).getChildren().add(node);
-            } else {
-                rootList.add(node);
+                childMap.computeIfAbsent(parentId, k -> new ArrayList<>()).add(node);
             }
         }
 
-        return rootList;
+        // 정렬 + 연결
+        for (Map.Entry<Long, List<MenuTreeResponse>> entry : childMap.entrySet()) {
+            Long parentId = entry.getKey();
+            List<MenuTreeResponse> children = entry.getValue();
+
+            children.sort(Comparator.comparingInt(MenuTreeResponse::getPosition));
+            map.get(parentId).setChildren(children);
+        }
+
+        // 최상위 노드 추출
+        return flatList.stream()
+                .filter(m -> m.getParentId() == null || !map.containsKey(m.getParentId()))
+                .map(m -> map.get(m.getId()))
+                .sorted(Comparator.comparingInt(MenuTreeResponse::getPosition))
+                .toList();
     }
 }

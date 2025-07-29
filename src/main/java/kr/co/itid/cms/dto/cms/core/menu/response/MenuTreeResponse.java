@@ -2,11 +2,13 @@ package kr.co.itid.cms.dto.cms.core.menu.response;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Setter
 @Builder
 public class MenuTreeResponse {
     private Long id;

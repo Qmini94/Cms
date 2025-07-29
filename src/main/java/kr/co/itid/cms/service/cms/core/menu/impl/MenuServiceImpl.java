@@ -113,18 +113,11 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree (lite) for: " + name);
 
         try {
-            // 1. 루트 메뉴 조회
             Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(name)
                     .orElseThrow(() -> processException("Drive not found: " + name));
 
-            // 2. path_id 기반으로 하위 메뉴 한 번에 조회
-            List<Menu> flatList = menuRepository.findAllDescendantsByPathId(rootMenu.getPathId());
-
-            // 3. 트리 구조 재조립
-            List<MenuTreeLiteResponse> children = buildLiteTree(flatList);
-
             loggingUtil.logSuccess(Action.RETRIEVE, "Got lite tree for: " + name);
-            return children;
+            return buildMenuTreeLite(rootMenu.getId());
         } catch (NoSuchElementException e) {
             throw e;
         } catch (DataAccessException e) {
@@ -196,11 +189,12 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             }
 
             // 5. 삭제 처리: 전달되지 않은 기존 메뉴 제거
-            for (Menu menu : existingMenus) {
-                if (!updatedIds.contains(menu.getId())) {
-                    menuRepository.delete(menu);
-                }
-            }
+            List<Long> deleteIds = existingMenus.stream()
+                    .map(Menu::getId)
+                    .filter(id -> !updatedIds.contains(id))
+                    .toList();
+
+            menuRepository.deleteAllByIdInBatch(deleteIds);
 
             loggingUtil.logSuccess(Action.UPDATE, "Synced menu tree for drive: " + driveName);
 
@@ -309,25 +303,13 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         }
     }
 
-    private List<MenuTreeLiteResponse> buildLiteTree(List<Menu> flatList) {
-        Map<Long, MenuTreeLiteResponse> map = new LinkedHashMap<>();
-        List<MenuTreeLiteResponse> roots = new ArrayList<>();
+    private List<MenuTreeLiteResponse> buildMenuTreeLite(Long parentId) {
+        return getChildren(parentId).stream()
+                .map(menu -> menuMapper.toLiteTreeResponse(menu, buildMenuTreeLite(menu.getId())))
+                .toList();
+    }
 
-        for (Menu menu : flatList) {
-            map.put(menu.getId(), menuMapper.toLiteTreeResponse(menu, new ArrayList<>()));
-        }
-
-        for (Menu menu : flatList) {
-            Long parentId = menu.getParentId();
-            MenuTreeLiteResponse current = map.get(menu.getId());
-
-            if (parentId != null && map.containsKey(parentId)) {
-                map.get(parentId).getChildren().add(current);
-            } else {
-                roots.add(current);
-            }
-        }
-
-        return roots;
+    private List<Menu> getChildren(Long parentId) {
+        return menuRepository.findByParentIdOrderByPositionAsc(parentId);
     }
 }
