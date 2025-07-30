@@ -8,6 +8,7 @@ import kr.co.itid.cms.dto.cms.core.menu.response.MenuTypeValueResponse;
 import kr.co.itid.cms.entity.cms.core.menu.Menu;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 
 import java.util.*;
@@ -16,6 +17,9 @@ import java.util.*;
 public interface MenuMapper {
 
     Menu toEntity(MenuRequest menuRequest);
+
+    @Mapping(target = "id", ignore = true) // ID는 보통 유지
+    void updateEntity(MenuRequest dto, @MappingTarget Menu entity);
 
     @Mapping(target = "isShow", source = "isShow")
     MenuResponse toResponse(Menu menu);

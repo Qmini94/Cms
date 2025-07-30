@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -172,7 +173,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(driveName)
                     .orElseThrow(() -> processException("Drive not found: " + driveName));
 
-            String rootPathId = rootMenu.getPathId(); // 예: 11774
+            String rootPathId = rootMenu.getPathId();
 
             // 2. path_id 기반으로 하위 트리 조회
             List<Menu> existingMenus = menuRepository.findAllDescendantsByPathId(rootPathId);
@@ -197,7 +198,9 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             menuRepository.deleteAllByIdInBatch(deleteIds);
 
             loggingUtil.logSuccess(Action.UPDATE, "Synced menu tree for drive: " + driveName);
-
+        } catch (DataIntegrityViolationException e) {
+            loggingUtil.logFail(Action.UPDATE, "Constraint violation during sync for drive: " + driveName);
+            throw processException("Duplicate menu name or type detected.", e);
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.UPDATE, "DB error during sync for drive: " + driveName);
             throw processException("Database error", e);
@@ -266,39 +269,44 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     ) {
         Menu entity;
 
-        if (dto.getId() != null && existingMenuMap.containsKey(dto.getId())) {
+        boolean isRealEntity = dto.getId() != null && dto.getId() > 0 && existingMenuMap.containsKey(dto.getId());
+        if (isRealEntity) {
             // 수정
             entity = existingMenuMap.get(dto.getId());
-            entity.setTitle(dto.getTitle());
-            entity.setType(dto.getType());
-            entity.setValue(dto.getValue());
-            entity.setIsShow(dto.getIsShow());
+
+            // 자기 자신을 제외하고 같은 type + name 조합이 있는지 확인
+            if (menuRepository.existsByTypeAndNameAndIdNot(dto.getType(), dto.getName(), dto.getId())) {
+                throw new RuntimeException("이미 존재하는 type + name 조합입니다: " + dto.getType() + " / " + dto.getName());
+            }
+
+            menuMapper.updateEntity(dto, entity);
             entity.setParentId(parentId);
             entity.setPosition(position);
         } else {
             // 신규
-            entity = new Menu();
-            entity.setTitle(dto.getTitle());
-            entity.setType(dto.getType());
-            entity.setValue(dto.getValue());
-            entity.setIsShow(dto.getIsShow());
+            // 같은 type + name 조합이 이미 존재하는지 확인
+            if (menuRepository.existsByTypeAndName(dto.getType(), dto.getName())) {
+                throw new RuntimeException("이미 존재하는 type + name 조합입니다: " + dto.getType() + " / " + dto.getName());
+            }
+            dto.setId(null);
+            entity = menuMapper.toEntity(dto);
             entity.setParentId(parentId);
             entity.setPosition(position);
+            menuRepository.save(entity); // 여기서 ID 생성됨
         }
 
-        menuRepository.save(entity); // 저장 후 ID 부여됨
         updatedIds.add(entity.getId());
 
-        // path_id 갱신: 부모 path_id + "." + 현재 ID
-        entity.setPathId(parentPathId + "." + entity.getId());
-        menuRepository.save(entity); // path_id 갱신 후 다시 저장
+        // pathId 직접 갱신 (flush나 트랜잭션 커밋 시 자동 반영 안될 수 있음)
+        String newPathId = parentPathId + "." + entity.getId();
+        menuRepository.updatePathIdById(entity.getId(), newPathId);
 
-        // 자식 처리
+        // 자식들 재귀 처리
         List<MenuRequest> children = dto.getChildren();
         if (children != null && !children.isEmpty()) {
             int childPos = 0;
             for (MenuRequest child : children) {
-                syncRecursive(child, entity.getId(), entity.getPathId(), childPos++, existingMenuMap, updatedIds);
+                syncRecursive(child, entity.getId(), newPathId, childPos++, existingMenuMap, updatedIds);
             }
         }
     }

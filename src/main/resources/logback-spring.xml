@@ -29,6 +29,21 @@
         <appender-ref ref="FILE"/>
     </logger>
 
+<!--    &lt;!&ndash; Hibernate SQL 로그 출력 &ndash;&gt;-->
+<!--    <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">-->
+<!--        <appender-ref ref="CONSOLE"/>-->
+<!--    </logger>-->
+
+<!--    &lt;!&ndash; Hibernate 파라미터 바인딩 로그 출력 &ndash;&gt;-->
+<!--    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" additivity="false">-->
+<!--        <appender-ref ref="CONSOLE"/>-->
+<!--    </logger>-->
+
+<!--    &lt;!&ndash; Spring 트랜잭션 처리 로그 &ndash;&gt;-->
+<!--    <logger name="org.springframework.transaction" level="DEBUG" additivity="false">-->
+<!--        <appender-ref ref="CONSOLE"/>-->
+<!--    </logger>-->
+
     <!-- 전역 로그 설정 (필수) -->
     <root level="ERROR">
         <appender-ref ref="CONSOLE"/>
