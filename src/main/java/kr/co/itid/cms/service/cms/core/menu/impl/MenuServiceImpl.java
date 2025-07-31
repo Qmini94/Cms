@@ -182,7 +182,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 
             Set<Long> updatedIds = new HashSet<>();
             for (MenuRequest child : newTree) {
-                syncRecursive(child, rootMenu.getId(), rootPathId, child.getPosition(), existingMenuMap, updatedIds);
+                syncRecursive(child, rootMenu.getId(), rootPathId, existingMenuMap, updatedIds);
             }
 
             List<Long> deleteIds = existingMenus.stream()
@@ -315,7 +315,6 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             MenuRequest dto,
             Long parentId,
             String parentPathId,
-            int position,
             Map<Long, Menu> existingMenuMap,
             Set<Long> updatedIds
     ) {
@@ -333,7 +332,9 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 
             menuMapper.updateEntity(dto, entity);
             entity.setParentId(parentId);
-            entity.setPosition(position);
+            entity.setPosition(dto.getPosition());
+
+            menuRepository.save(entity);
         } else {
             // 신규
             // 같은 type + name 조합이 이미 존재하는지 확인
@@ -343,7 +344,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             dto.setId(null);
             entity = menuMapper.toEntity(dto);
             entity.setParentId(parentId);
-            entity.setPosition(position);
+            entity.setPosition(dto.getPosition());
             menuRepository.save(entity); // 여기서 ID 생성됨
         }
 
@@ -357,7 +358,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         List<MenuRequest> children = dto.getChildren();
         if (children != null && !children.isEmpty()) {
             for (MenuRequest child : children) {
-                syncRecursive(child, entity.getId(), newPathId, child.getPosition(), existingMenuMap, updatedIds);
+                syncRecursive(child, entity.getId(), newPathId, existingMenuMap, updatedIds);
             }
         }
     }

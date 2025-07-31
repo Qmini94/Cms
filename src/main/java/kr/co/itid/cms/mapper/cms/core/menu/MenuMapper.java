@@ -18,7 +18,7 @@ public interface MenuMapper {
 
     Menu toEntity(MenuRequest menuRequest);
 
-    @Mapping(target = "id", ignore = true) // ID는 보통 유지
+    @Mapping(target = "id", ignore = true)
     void updateEntity(MenuRequest dto, @MappingTarget Menu entity);
 
     @Mapping(target = "isShow", source = "isShow")
