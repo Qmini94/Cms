@@ -181,9 +181,8 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                     .collect(Collectors.toMap(Menu::getId, m -> m));
 
             Set<Long> updatedIds = new HashSet<>();
-            int position = 0;
             for (MenuRequest child : newTree) {
-                syncRecursive(child, rootMenu.getId(), rootPathId, position++, existingMenuMap, updatedIds);
+                syncRecursive(child, rootMenu.getId(), rootPathId, child.getPosition(), existingMenuMap, updatedIds);
             }
 
             List<Long> deleteIds = existingMenus.stream()
