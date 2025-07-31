@@ -356,9 +356,8 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         // 자식들 재귀 처리
         List<MenuRequest> children = dto.getChildren();
         if (children != null && !children.isEmpty()) {
-            int childPos = 0;
             for (MenuRequest child : children) {
-                syncRecursive(child, entity.getId(), newPathId, childPos++, existingMenuMap, updatedIds);
+                syncRecursive(child, entity.getId(), newPathId, child.getPosition(), existingMenuMap, updatedIds);
             }
         }
     }
