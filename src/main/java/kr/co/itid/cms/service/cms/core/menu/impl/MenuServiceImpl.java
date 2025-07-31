@@ -10,6 +10,7 @@ import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.mapper.cms.core.menu.MenuMapper;
 import kr.co.itid.cms.repository.cms.core.menu.MenuRepository;
 import kr.co.itid.cms.service.cms.core.menu.MenuService;
+import kr.co.itid.cms.util.JsonFileWriterUtil;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
@@ -29,6 +30,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     private final MenuRepository menuRepository;
     private final LoggingUtil loggingUtil;
     private final MenuMapper menuMapper;
+    private final JsonFileWriterUtil jsonFileWriterUtil;
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
@@ -169,41 +171,52 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         loggingUtil.logAttempt(Action.UPDATE, "Try to sync menu tree for drive: " + driveName);
 
         try {
-            // 1. 드라이브 루트 조회
+            // 1~5. 트리 동기화 처리
             Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(driveName)
                     .orElseThrow(() -> processException("Drive not found: " + driveName));
-
             String rootPathId = rootMenu.getPathId();
 
-            // 2. path_id 기반으로 하위 트리 조회
             List<Menu> existingMenus = menuRepository.findAllDescendantsByPathId(rootPathId);
-
-            // 3. ID → Menu 맵 구성
             Map<Long, Menu> existingMenuMap = existingMenus.stream()
                     .collect(Collectors.toMap(Menu::getId, m -> m));
 
-            // 4. 재귀적으로 트리 동기화 (insert/update)
             Set<Long> updatedIds = new HashSet<>();
             int position = 0;
             for (MenuRequest child : newTree) {
                 syncRecursive(child, rootMenu.getId(), rootPathId, position++, existingMenuMap, updatedIds);
             }
 
-            // 5. 삭제 처리: 전달되지 않은 기존 메뉴 제거
             List<Long> deleteIds = existingMenus.stream()
                     .map(Menu::getId)
                     .filter(id -> !updatedIds.contains(id))
                     .toList();
-
             menuRepository.deleteAllByIdInBatch(deleteIds);
 
+            // 6. JSON 파일 생성
+            List<Menu> latestMenus = menuRepository.findAllDescendantsByPathId(rootPathId);
+            List<MenuTreeResponse> tree = menuMapper.toTree(latestMenus);
+
+            jsonFileWriterUtil.writeJsonFile("menu", "menu_" + driveName, tree, true);
+
             loggingUtil.logSuccess(Action.UPDATE, "Synced menu tree for drive: " + driveName);
+
         } catch (DataIntegrityViolationException e) {
             loggingUtil.logFail(Action.UPDATE, "Constraint violation during sync for drive: " + driveName);
             throw processException("Duplicate menu name or type detected.", e);
+
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.UPDATE, "DB error during sync for drive: " + driveName);
             throw processException("Database error", e);
+
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("JSON")) {
+                loggingUtil.logFail(Action.UPDATE, "JSON 파일 저장 실패 during sync for drive: " + driveName);
+                throw processException("메뉴 JSON 파일 저장 실패" + e.getMessage(), e);
+            } else {
+                loggingUtil.logFail(Action.UPDATE, "Runtime error during sync for drive: " + driveName);
+                throw processException("Unexpected runtime error", e);
+            }
+
         } catch (Exception e) {
             loggingUtil.logFail(Action.UPDATE, "Unknown error during sync for drive: " + driveName);
             throw processException("Unexpected sync error", e);
