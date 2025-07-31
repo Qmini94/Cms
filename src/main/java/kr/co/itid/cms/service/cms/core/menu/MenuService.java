@@ -75,12 +75,21 @@ public interface MenuService {
     void syncMenuTree(String driveName, List<MenuRequest> tree) throws Exception;
 
     /**
-     * 메뉴를 저장하거나 수정합니다.
+     * 메뉴의 type이 drive인 메뉴를 저장하거나 수정합니다.
      * id가 null이면 신규 등록, 존재하면 수정 처리됩니다.
      *
      * @param id 메뉴 식별자 (null이면 신규 등록)
      * @param request 메뉴 요청 DTO
      * @throws Exception 예외 발생 시
      */
-    void saveMenu(Long id, MenuRequest request) throws Exception;
+    void saveDriveMenu(Long id, MenuRequest request) throws Exception;
+
+    /**
+     * 특정 드라이브 이름(siteHostName 기준)을 기준으로
+     * 해당 드라이브 및 모든 하위 메뉴를 영구 삭제합니다.
+     *
+     * @param driveName 드라이브 이름 (= siteHostName)
+     * @throws Exception 처리 중 오류 발생 시
+     */
+    void deleteDriveAndAllChildren(String driveName) throws Exception;
 }

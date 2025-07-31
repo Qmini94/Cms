@@ -32,4 +32,7 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     @Modifying(clearAutomatically = true)
     @Query("update Menu m set m.pathId = :pathId where m.id = :id")
     void updatePathIdById(@Param("id") Long id, @Param("pathId") String pathId);
+
+    @Query("SELECT m FROM Menu m WHERE m.pathId LIKE CONCAT(:pathIdWithDot, '%')")
+    List<Menu> findAllDescendantsByPathIdWithDot(@Param("pathIdWithDot") String pathIdWithDot);
 }

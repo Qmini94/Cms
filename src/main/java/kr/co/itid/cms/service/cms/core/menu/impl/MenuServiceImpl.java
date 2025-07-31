@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
 public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuService {
 
     private final MenuRepository menuRepository;
-    private final LoggingUtil loggingUtil;
     private final MenuMapper menuMapper;
+    private final LoggingUtil loggingUtil;
     private final JsonFileWriterUtil jsonFileWriterUtil;
 
     @Override
@@ -225,26 +225,28 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 
     @Override
     @Transactional(rollbackFor = EgovBizException.class)
-    public void saveMenu(Long id, MenuRequest request) throws Exception {
+    public void saveDriveMenu(Long id, MenuRequest request) throws Exception {
         boolean isNew = (id == null);
         Action action = isNew ? Action.CREATE : Action.UPDATE;
 
         loggingUtil.logAttempt(action, "Try to " + (isNew ? "create" : "update") + " menu: " + request.getName());
 
         try {
+            Menu menu;
+
             if (isNew) {
                 // 중복 체크
                 if (menuRepository.findByTypeAndName(request.getType(), request.getName()).isPresent()) {
                     throw processException("이미 동일한 이름의 메뉴가 존재합니다: " + request.getName());
                 }
 
-                Menu menu = menuMapper.toEntity(request);
+                menu = menuMapper.toEntity(request);
                 menuRepository.save(menu);
 
                 loggingUtil.logSuccess(action, "Menu created: " + request.getName());
 
             } else {
-                Menu menu = menuRepository.findById(id)
+                menu = menuRepository.findById(id)
                         .orElseThrow(() -> processException("해당 ID의 메뉴가 존재하지 않습니다: " + id));
 
                 // 수정 가능한 필드 반영
@@ -265,10 +267,48 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 
                 loggingUtil.logSuccess(action, "Menu updated: " + request.getName());
             }
+            menuRepository.updatePathIdById(menu.getId(), String.valueOf(menu.getId()));
 
+            if ("drive".equals(request.getType())) {
+                List<Menu> latestMenus = menuRepository.findAllDescendantsByPathId(String.valueOf(menu.getId()));
+                List<MenuTreeResponse> tree = menuMapper.toTree(latestMenus);
+                jsonFileWriterUtil.writeJsonFile("menu", "menu_" + request.getName(), tree, true);
+            }
         } catch (Exception e) {
             loggingUtil.logFail(action, "Failed to " + (isNew ? "create" : "update") + " menu: " + e.getMessage());
             throw processException("메뉴 " + (isNew ? "등록" : "수정") + " 실패", e);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = EgovBizException.class)
+    public void deleteDriveAndAllChildren(String driveName) throws Exception {
+        loggingUtil.logAttempt(Action.DELETE, "Try to delete drive and all children: " + driveName);
+
+        try {
+            // 1. 드라이브 조회
+            Menu rootDrive = menuRepository.findByTypeAndName("drive", driveName)
+                    .orElseThrow(() -> processException("해당 드라이브 메뉴가 존재하지 않습니다: " + driveName));
+
+            String rootPathId = rootDrive.getPathId(); // 예: "2"
+
+            // 2. 하위 노드 조회 (dot 붙여서 정확히 하위만)
+            List<Menu> allDescendants = menuRepository.findAllDescendantsByPathIdWithDot(rootPathId + ".");
+
+            // 3. 하위 노드 먼저 삭제
+            if (!allDescendants.isEmpty()) {
+                menuRepository.deleteAllInBatch(allDescendants);
+            }
+
+            // 4. 루트 드라이브 삭제
+            menuRepository.delete(rootDrive);
+
+            jsonFileWriterUtil.writeJsonFile("menu", "menu_" + driveName, Collections.emptyList(), true);
+
+            loggingUtil.logSuccess(Action.DELETE, "Deleted drive and all children: " + driveName);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.DELETE, "Failed to delete drive and children: " + e.getMessage());
+            throw processException("드라이브 및 하위 메뉴 삭제 실패", e);
         }
     }
 

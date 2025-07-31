@@ -11,6 +11,7 @@ import kr.co.itid.cms.repository.cms.core.site.SiteRepository;
 import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.service.cms.core.site.SiteService;
 import kr.co.itid.cms.util.IpUtil;
+import kr.co.itid.cms.util.JsonFileWriterUtil;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
@@ -31,8 +32,9 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
     private final MenuService menuService;
     private final SiteRepository siteRepository;
-    private final LoggingUtil loggingUtil;
     private final SiteMapper siteMapper;
+    private final LoggingUtil loggingUtil;
+    private final JsonFileWriterUtil jsonFileWriterUtil;
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
@@ -178,7 +180,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
                 // 신규 드라이브 메뉴 생성
                 try {
-// 메뉴 생성
+                    // 메뉴 생성
                     MenuRequest menuRequest = MenuRequest.builder()
                             .type("drive")
                             .level(1)
@@ -192,7 +194,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                             .position(0)
                             .build();
 
-                    menuService.saveMenu(null, menuRequest);
+                    menuService.saveDriveMenu(null, menuRequest);
 
                 } catch (Exception menuEx) {
                     loggingUtil.logFail(Action.CREATE, "Menu insert failed during site creation: " + menuEx.getMessage());
@@ -238,7 +240,7 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                             .pathString(existingMenu.getPathString())
                             .build();
 
-                    menuService.saveMenu(existingMenu.getId(), menuRequest);
+                    menuService.saveDriveMenu(existingMenu.getId(), menuRequest);
 
                 } catch (Exception menuEx) {
                     loggingUtil.logFail(Action.UPDATE, "Menu update failed during site update: " + menuEx.getMessage());
@@ -254,8 +256,21 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                 site.setDenyIp(request.getDenyIp());
 
                 siteRepository.save(site);
+                jsonFileWriterUtil.writeJsonFile(
+                        "site",
+                        "site_list",
+                        siteRepository.findAll(),
+                        false
+                );
                 loggingUtil.logSuccess(Action.UPDATE, "Site updated successfully: " + newHostName);
-
+            } catch (RuntimeException e) {
+                if (e.getMessage() != null && e.getMessage().contains("JSON")) {
+                    loggingUtil.logFail(Action.UPDATE, "JSON 파일 저장 실패 during saveSite for drive: " + siteHostName);
+                    throw processException("사이트 JSON 파일 저장 실패" + e.getMessage(), e);
+                } else {
+                    loggingUtil.logFail(Action.UPDATE, "Runtime error during saveSite for drive: " + siteHostName);
+                    throw processException("Unexpected runtime error", e);
+                }
             } catch (Exception e) {
                 loggingUtil.logFail(Action.UPDATE, "Site update failed: " + e.getMessage());
                 throw processException("사이트 수정 실패", e);
@@ -274,8 +289,22 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
             site.setIsDeleted(false);
             siteRepository.save(site);
+            jsonFileWriterUtil.writeJsonFile(
+                    "site",
+                    "site_list",
+                    siteRepository.findAll(),
+                    false
+            );
 
             loggingUtil.logSuccess(Action.UPDATE, "Restored site: " + siteHostName);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("JSON")) {
+                loggingUtil.logFail(Action.UPDATE, "JSON 파일 저장 실패 during restoreSite for drive: " + siteHostName);
+                throw processException("사이트 JSON 파일 저장 실패" + e.getMessage(), e);
+            } else {
+                loggingUtil.logFail(Action.UPDATE, "Runtime error during restoreSite for drive: " + siteHostName);
+                throw processException("Unexpected runtime error", e);
+            }
         } catch (Exception e) {
             loggingUtil.logFail(Action.UPDATE, "Restore failed: " + e.getMessage());
             throw processException("사이트 복구 실패", e);
@@ -293,8 +322,22 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
 
             site.setIsDeleted(true);
             siteRepository.save(site);
+            jsonFileWriterUtil.writeJsonFile(
+                    "site",
+                    "site_list",
+                    siteRepository.findAll(),
+                    false
+            );
 
             loggingUtil.logSuccess(Action.DELETE, "Soft-deleted site: " + siteHostName);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("JSON")) {
+                loggingUtil.logFail(Action.UPDATE, "JSON 파일 저장 실패 during softDeleteSite for drive: " + siteHostName);
+                throw processException("사이트 JSON 파일 저장 실패" + e.getMessage(), e);
+            } else {
+                loggingUtil.logFail(Action.UPDATE, "Runtime error during softDeleteSite for drive: " + siteHostName);
+                throw processException("Unexpected runtime error", e);
+            }
         } catch (Exception e) {
             loggingUtil.logFail(Action.DELETE, "Soft delete failed: " + e.getMessage());
             throw processException("사이트 삭제 실패", e);
@@ -311,8 +354,23 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                     .orElseThrow(() -> processException("존재하지 않는 사이트입니다: " + siteHostName));
 
             siteRepository.delete(site);
+            menuService.deleteDriveAndAllChildren(siteHostName);
+            jsonFileWriterUtil.writeJsonFile(
+                    "site",
+                    "site_list",
+                    siteRepository.findAll(),
+                    false
+            );
 
             loggingUtil.logSuccess(Action.DELETE, "Hard-deleted site: " + siteHostName);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("JSON")) {
+                loggingUtil.logFail(Action.UPDATE, "JSON 파일 저장 실패 during hardDeleteSite for drive: " + siteHostName);
+                throw processException("사이트 JSON 파일 저장 실패" + e.getMessage(), e);
+            } else {
+                loggingUtil.logFail(Action.UPDATE, "Runtime error during hardDeleteSite for drive: " + siteHostName);
+                throw processException("Unexpected runtime error", e);
+            }
         } catch (Exception e) {
             loggingUtil.logFail(Action.DELETE, "Hard delete failed: " + e.getMessage());
             throw processException("사이트 완전 삭제 실패", e);
