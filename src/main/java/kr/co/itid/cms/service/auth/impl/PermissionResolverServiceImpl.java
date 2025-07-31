@@ -110,7 +110,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
                             Optional.ofNullable(perm.getValue())
                                     .orElseThrow(() -> new IllegalArgumentException("Login level is null"))
                     );
-                    permissionData.addPermissionEntry(sort, -1L, level, permissionSet);
+                    permissionData.addPermissionEntry(sort, null, level, permissionSet);
                 }
             } catch (Exception e) {
                 throw processException("Fail to parse permission data", e);
