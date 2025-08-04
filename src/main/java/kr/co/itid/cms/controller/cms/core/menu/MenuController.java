@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.util.List;
 
 /**
@@ -47,7 +48,7 @@ public class MenuController {
      */
     @GetMapping("/{name}/lite")
     public ResponseEntity<ApiResponse<List<MenuTreeLiteResponse>>> getChildrenByName(
-            @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name) throws Exception {
+            @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String name) throws Exception {
 
         List<MenuTreeLiteResponse> children = menuService.getMenuTreeLiteByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
@@ -62,7 +63,7 @@ public class MenuController {
      */
     @GetMapping("/{name}/tree")
     public ResponseEntity<ApiResponse<List<MenuTreeResponse>>> getChildrenTreeByName(
-            @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name) throws Exception {
+            @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String name) throws Exception {
 
         List<MenuTreeResponse> children = menuService.getMenuTreeByName(name);
         return ResponseEntity.ok(ApiResponse.success(children));
@@ -80,7 +81,7 @@ public class MenuController {
      */
     @PutMapping("/{name}/tree/sync")
     public ResponseEntity<ApiResponse<Void>> syncMenuTreeByName(
-            @PathVariable @NotBlank(message = "메뉴 이름은 필수입니다") String name,
+            @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String name,
             @RequestBody List<MenuRequest> tree
     ) throws Exception {
         menuService.syncMenuTree(name, tree);

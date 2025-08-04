@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.Pattern;
 import java.util.List;
 
 /**
@@ -75,7 +76,7 @@ public class SiteController {
     @PreAuthorize("@permService.hasAccess('MODIFY')")
     @PutMapping("/{siteHostName}")
     public ResponseEntity<ApiResponse<Void>> updateSiteByHostName(
-            @PathVariable String siteHostName,
+            @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String siteHostName,
             @RequestBody @Validated SiteRequest request) throws Exception {
 
         siteService.saveSite(siteHostName, request);
@@ -91,7 +92,7 @@ public class SiteController {
     @PreAuthorize("@permService.hasAccess('MODIFY')")
     @PutMapping("/{siteHostName}/restore")
     public ResponseEntity<ApiResponse<Void>> restoreSite(
-            @PathVariable String siteHostName) throws Exception {
+            @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String siteHostName) throws Exception {
 
         siteService.restoreSite(siteHostName);
         return ResponseEntity.ok(ApiResponse.success(null));
@@ -106,7 +107,7 @@ public class SiteController {
     @PreAuthorize("@permService.hasAccess('REMOVE')")
     @DeleteMapping("/{siteHostName}")
     public ResponseEntity<ApiResponse<Void>> softDeleteSite(
-            @PathVariable String siteHostName) throws Exception {
+            @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String siteHostName) throws Exception {
 
         siteService.softDeleteSite(siteHostName);
         return ResponseEntity.ok(ApiResponse.success(null));
@@ -121,7 +122,7 @@ public class SiteController {
     @PreAuthorize("@permService.hasAccess('REMOVE')")
     @DeleteMapping("/{siteHostName}/hard")
     public ResponseEntity<ApiResponse<Void>> hardDeleteSite(
-            @PathVariable String siteHostName) throws Exception {
+            @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String siteHostName) throws Exception {
 
         siteService.hardDeleteSite(siteHostName);
         return ResponseEntity.ok(ApiResponse.success(null));
