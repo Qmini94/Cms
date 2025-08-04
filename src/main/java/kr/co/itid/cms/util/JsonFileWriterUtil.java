@@ -29,9 +29,19 @@ public class JsonFileWriterUtil {
             throw new RuntimeException("JSON 도메인 디렉토리 생성 실패: " + domainDir, e);
         }
 
-        String fileName = versioned
-                ? fileNamePrefix + "_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".json"
-                : fileNamePrefix + ".json";
+        String fileName;
+        if (versioned) {
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String userName = "";
+            try {
+                userName = SecurityUtil.getCurrentUser().userName(); // 현재 사용자 이름
+            } catch (Exception e) {
+                userName = "unknown";
+            }
+            fileName = fileNamePrefix + "_" + timestamp + "_" + userName + ".json";
+        } else {
+            fileName = fileNamePrefix + ".json";
+        }
 
         Path targetFile = domainDir.resolve(fileName);
 
