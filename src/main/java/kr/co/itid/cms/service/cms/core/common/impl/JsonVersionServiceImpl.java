@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -133,26 +132,6 @@ public class JsonVersionServiceImpl extends EgovAbstractServiceImpl implements J
         } catch (IOException e) {
             loggingUtil.logFail(Action.UPDATE, "[Activate Version] I/O error: " + e.getMessage());
             throw processException("Failed to activate version", e);
-        }
-    }
-
-    @Override
-    public void updateVersion(String domain, String fileName, String jsonData) throws Exception {
-        loggingUtil.logAttempt(Action.UPDATE, "[Update Version] domain=" + domain + ", fileName=" + fileName);
-        Path filePath = getVersionFilePath(fileName);
-
-        try {
-            if (!StringUtils.hasText(jsonData)) {
-                throw processException("Empty JSON content is not allowed");
-            }
-
-            Files.writeString(filePath, jsonData, StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-
-            loggingUtil.logSuccess(Action.UPDATE, "[Update Version] Updated: " + fileName);
-        } catch (IOException e) {
-            loggingUtil.logFail(Action.UPDATE, "[Update Version] I/O error: " + e.getMessage());
-            throw processException("Failed to update version", e);
         }
     }
 

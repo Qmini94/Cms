@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * JSON 버전 관리 API
  */
@@ -27,14 +25,6 @@ public class JsonVersionController {
     public ResponseEntity<ApiResponse<VersionListResponse>> getVersionFiles(@PathVariable String domain) throws Exception {
         VersionListResponse data = jsonVersionService.getVersionFiles(domain);
         return ResponseEntity.ok(ApiResponse.success(data));
-    }
-
-    /**
-     * 현재 활성화된 버전 조회
-     */
-    @GetMapping("/{domain}/active")
-    public ResponseEntity<ApiResponse<String>> getActiveVersion(@PathVariable String domain) throws Exception {
-        return ResponseEntity.ok(ApiResponse.success(jsonVersionService.getActiveFile(domain)));
     }
 
     /**
@@ -58,20 +48,6 @@ public class JsonVersionController {
             @RequestParam String fileName
     ) throws Exception {
         jsonVersionService.activateVersion(domain, fileName);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    /**
-     * 특정 버전 파일을 수정(교체)합니다.
-     */
-    @PreAuthorize("@permService.hasAccess('MODIFY')")
-    @PutMapping("/{domain}/update")
-    public ResponseEntity<ApiResponse<Void>> updateVersionFile(
-            @PathVariable String domain,
-            @RequestParam String fileName,
-            @RequestBody String jsonData
-    ) throws Exception {
-        jsonVersionService.updateVersion(domain, fileName, jsonData);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

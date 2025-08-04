@@ -2,8 +2,6 @@ package kr.co.itid.cms.service.cms.core.common;
 
 import kr.co.itid.cms.dto.cms.core.common.version.VersionListResponse;
 
-import java.util.List;
-
 /**
  * JSON 버전 관리 서비스 인터페이스
  * 도메인별 JSON 버전 파일의 목록, 활성화 여부, 수정, 삭제 등을 처리합니다.
@@ -47,16 +45,6 @@ public interface JsonVersionService {
      * @throws Exception 처리 중 예외 발생 시
      */
     void activateVersion(String domain, String fileName) throws Exception;
-
-    /**
-     * 특정 버전 파일을 수정하거나 새로 생성합니다.
-     *
-     * @param domain 도메인 이름
-     * @param fileName 수정할 파일 이름
-     * @param jsonData JSON 형식의 문자열 데이터
-     * @throws Exception 처리 중 예외 발생 시
-     */
-    void updateVersion(String domain, String fileName, String jsonData) throws Exception;
 
     /**
      * 특정 버전 파일을 삭제합니다.
