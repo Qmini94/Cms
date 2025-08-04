@@ -202,7 +202,12 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                 }
 
                 loggingUtil.logSuccess(Action.CREATE, "Site created successfully: " + newHostName);
-
+                jsonFileWriterUtil.writeJsonFile(
+                        "site",
+                        "site_list",
+                        siteRepository.findAll(),
+                        false
+                );
             } catch (Exception e) {
                 loggingUtil.logFail(Action.CREATE, "Site creation failed: " + e.getMessage());
                 throw processException("사이트 생성 실패", e);
