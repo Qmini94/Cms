@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/render")
+@RequestMapping("/back-api/render")
 public class RenderController {
 
     private final RenderService renderService;

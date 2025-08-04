@@ -21,7 +21,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/menu")
+@RequestMapping("/back-api/menu")
 @Validated
 public class MenuController {
 

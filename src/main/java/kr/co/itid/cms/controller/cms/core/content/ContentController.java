@@ -20,7 +20,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/content")
+@RequestMapping("/back-api/content")
 @Validated
 public class ContentController {
 

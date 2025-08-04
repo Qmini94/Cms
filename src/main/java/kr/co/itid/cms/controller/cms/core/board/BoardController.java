@@ -26,7 +26,7 @@ import javax.validation.constraints.Positive;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/board")
+@RequestMapping("/back-api/board")
 @Validated
 public class BoardController {
 

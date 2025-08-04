@@ -19,7 +19,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/site")
+@RequestMapping("/back-api/site")
 @Validated
 public class SiteController {
 

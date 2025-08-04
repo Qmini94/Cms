@@ -16,7 +16,7 @@ import javax.validation.constraints.Pattern;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/json-version")
+@RequestMapping("/back-api/json-version")
 @Validated
 public class JsonVersionController {
 

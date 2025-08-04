@@ -23,7 +23,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/boardMaster")  // 복수형으로 리소스 이름 변경
+@RequestMapping("/back-api/boardMaster")  // 복수형으로 리소스 이름 변경
 @Validated
 public class BoardMasterController {
 

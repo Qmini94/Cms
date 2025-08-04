@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/auth")
+@RequestMapping("/back-api/auth")
 public class AuthController {
 
     private final AuthService authService;
