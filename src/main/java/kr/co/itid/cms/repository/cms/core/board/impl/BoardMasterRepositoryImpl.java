@@ -39,6 +39,9 @@ public class BoardMasterRepositoryImpl implements BoardMasterRepositoryCustom {
                     case "boardId":
                         keywordBuilder.or(qBoardMaster.boardId.containsIgnoreCase(option.getKeyword()));
                         break;
+                    case "boardType":
+                        keywordBuilder.or(qBoardMaster.boardType.containsIgnoreCase(option.getKeyword()));
+                        break;
                     case "description":
                         keywordBuilder.or(qBoardMaster.description.containsIgnoreCase(option.getKeyword()));
                         break;

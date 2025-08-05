@@ -35,7 +35,7 @@ public class BoardMaster {
     private Boolean isUse = true;
 
     @Column(name = "board_type")
-    private Integer boardType;
+    private String boardType;
 
     @Column(name = "is_admin_approval", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isAdminApproval = false;
