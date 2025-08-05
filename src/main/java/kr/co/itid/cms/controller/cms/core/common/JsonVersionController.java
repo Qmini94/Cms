@@ -1,6 +1,7 @@
 package kr.co.itid.cms.controller.cms.core.common;
 
 import kr.co.itid.cms.dto.cms.core.common.version.VersionListResponse;
+import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.common.JsonVersionService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Pattern;
+import java.util.List;
 
 /**
  * JSON 버전 관리 API
@@ -63,6 +65,19 @@ public class JsonVersionController {
             String fileName
     ) throws Exception {
         jsonVersionService.activateVersion(domain, fileName);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * 새로운 버전을 저장합니다.
+     */
+    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @PostMapping("/{domain}/save")
+    public ResponseEntity<ApiResponse<Void>> saveTree(
+            @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String domain,
+            @RequestBody List<MenuRequest> tree
+    ) throws Exception {
+        jsonVersionService.saveTree(domain, tree);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

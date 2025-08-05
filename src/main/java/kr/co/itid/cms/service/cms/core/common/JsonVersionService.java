@@ -1,6 +1,9 @@
 package kr.co.itid.cms.service.cms.core.common;
 
 import kr.co.itid.cms.dto.cms.core.common.version.VersionListResponse;
+import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
+
+import java.util.List;
 
 /**
  * JSON 버전 관리 서비스 인터페이스
@@ -38,13 +41,35 @@ public interface JsonVersionService {
     String readJsonContent(String domain, String fileName) throws Exception;
 
     /**
-     * 특정 버전 파일을 활성화(active.json에 기록)합니다.
+     * 특정 메뉴 버전 파일을 읽어 DB에 동기화한 후, 해당 버전을 활성화 상태로 기록합니다.
      *
-     * @param domain 도메인 이름
-     * @param fileName 활성화할 파일 이름
-     * @throws Exception 처리 중 예외 발생 시
+     * <p>
+     * 이 메서드는 다음 작업을 수행합니다:
+     * <ol>
+     *     <li>지정된 메뉴 버전(JSON) 파일을 읽어 메뉴 트리를 파싱합니다.</li>
+     *     <li>해당 메뉴 트리를 DB에 저장(동기화)합니다.</li>
+     *     <li>DB 저장이 성공한 경우에만 active.json에 해당 버전을 활성화 상태로 기록합니다.</li>
+     * </ol>
+     * </p>
+     *
+     * <p>
+     * 만약 DB 저장 도중 오류가 발생하면, active.json은 수정되지 않습니다.
+     * </p>
+     *
+     * @param domain 도메인 이름 (driveName과 동일)
+     * @param fileName 활성화할 메뉴 버전 파일 이름
+     * @throws Exception 파일 읽기, JSON 파싱, DB 저장 또는 기록 중 예외 발생 시
      */
     void activateVersion(String domain, String fileName) throws Exception;
+
+    /**
+     * 특정 드라이브 이름을 기준으로 전체 메뉴 트리를 새로운 버전파일으로 저장합니다.
+     *
+     * @param driveName 드라이브 이름 (예: www, admin)
+     * @param tree 저장할 메뉴 트리
+     * @throws Exception 처리 중 오류 발생 시
+     */
+    void saveTree(String driveName, List<MenuRequest> tree) throws Exception;
 
     /**
      * 특정 버전 파일을 삭제합니다.

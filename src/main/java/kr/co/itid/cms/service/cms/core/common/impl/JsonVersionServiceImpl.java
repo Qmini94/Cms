@@ -3,8 +3,13 @@ package kr.co.itid.cms.service.cms.core.common.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.itid.cms.dto.cms.core.common.version.VersionListResponse;
+import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeResponse;
 import kr.co.itid.cms.enums.Action;
+import kr.co.itid.cms.mapper.cms.core.menu.MenuMapper;
 import kr.co.itid.cms.service.cms.core.common.JsonVersionService;
+import kr.co.itid.cms.service.cms.core.menu.MenuService;
+import kr.co.itid.cms.util.JsonFileWriterUtil;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
@@ -22,6 +27,9 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class JsonVersionServiceImpl extends EgovAbstractServiceImpl implements JsonVersionService {
 
+    private final MenuService menuService;
+    private final MenuMapper menuMapper;
+    private final JsonFileWriterUtil jsonFileWriterUtil;
     private final LoggingUtil loggingUtil;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -55,7 +63,7 @@ public class JsonVersionServiceImpl extends EgovAbstractServiceImpl implements J
                     .sorted()
                     .collect(Collectors.toList());
 
-            String activeFileName = getActiveFile(domain); // <-- 기존 메서드 활용
+            String activeFileName = getActiveFile(domain);
 
             loggingUtil.logSuccess(Action.RETRIEVE, "[Version List] Loaded successfully: count=" + result.size());
 
@@ -110,13 +118,21 @@ public class JsonVersionServiceImpl extends EgovAbstractServiceImpl implements J
     @Override
     public void activateVersion(String domain, String fileName) throws Exception {
         loggingUtil.logAttempt(Action.UPDATE, "[Activate Version] domain=" + domain + ", fileName=" + fileName);
-        Path activePath = getActiveFilePath();
 
         try {
+            String json = readJsonContent(domain, fileName);
+            List<MenuRequest> tree = objectMapper.readValue(json, new TypeReference<>() {});
+
+            // 2. DB 반영
+            menuService.syncMenuTree(domain, tree); // domain == driveName
+
+            // 3. 성공 시에만 활성화 처리
+            Path activePath = getActiveFilePath();
             Map<String, String> activeMap = new HashMap<>();
+
             if (Files.exists(activePath)) {
-                String json = Files.readString(activePath, StandardCharsets.UTF_8);
-                activeMap = objectMapper.readValue(json, new TypeReference<>() {});
+                String activeJson = Files.readString(activePath, StandardCharsets.UTF_8);
+                activeMap = objectMapper.readValue(activeJson, new TypeReference<>() {});
             }
 
             activeMap.put(domain, fileName);
@@ -129,9 +145,32 @@ public class JsonVersionServiceImpl extends EgovAbstractServiceImpl implements J
             );
 
             loggingUtil.logSuccess(Action.UPDATE, "[Activate Version] Activated: " + fileName);
+
         } catch (IOException e) {
-            loggingUtil.logFail(Action.UPDATE, "[Activate Version] I/O error: " + e.getMessage());
-            throw processException("Failed to activate version", e);
+            loggingUtil.logFail(Action.UPDATE, "[Activate Version] File read/write error: " + e.getMessage());
+            throw processException("파일 처리 중 오류 발생", e);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.UPDATE, "[Activate Version] DB sync failed: " + e.getMessage());
+            throw processException("메뉴 DB 동기화 중 오류 발생", e);
+        }
+    }
+
+    @Override
+    public void saveTree(String driveName, List<MenuRequest> tree) throws Exception {
+        loggingUtil.logAttempt(Action.CREATE, "Try to save menu tree JSON for drive: " + driveName);
+
+        try {
+            // JSON 파일 이름: menu_<driveName>.json
+            String fileName = "menu_" + driveName;
+
+            // JSON 파일 쓰기
+            jsonFileWriterUtil.writeJsonFile("menu", fileName, tree, true);
+
+            loggingUtil.logSuccess(Action.CREATE, "Saved menu tree JSON for drive: " + driveName);
+
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.CREATE, "Failed to save menu tree JSON for drive: " + driveName);
+            throw processException("메뉴 JSON 파일 저장 실패", e);
         }
     }
 

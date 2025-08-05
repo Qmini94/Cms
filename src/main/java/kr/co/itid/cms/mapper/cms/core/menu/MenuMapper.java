@@ -12,6 +12,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface MenuMapper {

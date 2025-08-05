@@ -171,31 +171,28 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         loggingUtil.logAttempt(Action.UPDATE, "Try to sync menu tree for drive: " + driveName);
 
         try {
-            // 1~5. 트리 동기화 처리
+            // 1. 루트 메뉴 조회
             Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(driveName)
                     .orElseThrow(() -> processException("Drive not found: " + driveName));
             String rootPathId = rootMenu.getPathId();
 
+            // 2. 기존 메뉴 조회 및 매핑
             List<Menu> existingMenus = menuRepository.findAllDescendantsByPathId(rootPathId);
             Map<Long, Menu> existingMenuMap = existingMenus.stream()
                     .collect(Collectors.toMap(Menu::getId, m -> m));
 
+            // 3. 트리 재귀 동기화 및 갱신 ID 추적
             Set<Long> updatedIds = new HashSet<>();
             for (MenuRequest child : newTree) {
                 syncRecursive(child, rootMenu.getId(), rootPathId, existingMenuMap, updatedIds);
             }
 
+            // 4. 사용되지 않는 메뉴 삭제
             List<Long> deleteIds = existingMenus.stream()
                     .map(Menu::getId)
                     .filter(id -> !updatedIds.contains(id))
                     .toList();
             menuRepository.deleteAllByIdInBatch(deleteIds);
-
-            // 6. JSON 파일 생성
-            List<Menu> latestMenus = menuRepository.findAllDescendantsByPathId(rootPathId);
-            List<MenuTreeResponse> tree = menuMapper.toTree(latestMenus);
-
-            jsonFileWriterUtil.writeJsonFile("menu", "menu_" + driveName, tree, true);
 
             loggingUtil.logSuccess(Action.UPDATE, "Synced menu tree for drive: " + driveName);
 
@@ -207,17 +204,8 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             loggingUtil.logFail(Action.UPDATE, "DB error during sync for drive: " + driveName);
             throw processException("Database error", e);
 
-        } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().contains("JSON")) {
-                loggingUtil.logFail(Action.UPDATE, "JSON 파일 저장 실패 during sync for drive: " + driveName);
-                throw processException("메뉴 JSON 파일 저장 실패" + e.getMessage(), e);
-            } else {
-                loggingUtil.logFail(Action.UPDATE, "Runtime error during sync for drive: " + driveName);
-                throw processException("Unexpected runtime error", e);
-            }
-
         } catch (Exception e) {
-            loggingUtil.logFail(Action.UPDATE, "Unknown error during sync for drive: " + driveName);
+            loggingUtil.logFail(Action.UPDATE, "Unexpected error during sync for drive: " + driveName);
             throw processException("Unexpected sync error", e);
         }
     }
