@@ -31,8 +31,9 @@ public class BoardMasterRequest {
 
     private Boolean isUse = true;
 
-    @Min(value = 1, message = "게시판 유형을 선택하셔야 합니다.")
-    private Integer boardType;
+    @NotBlank(message = "게시판 유형은 필수입니다.")
+    @Size(max = 100, message = "게시판 유형은 100자 이내여야 합니다.")
+    private String boardType;
 
     private Boolean isAdminApproval = false;
     private Boolean isPrivacyOption = false;

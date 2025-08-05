@@ -11,7 +11,7 @@ public class BoardMasterResponse {
     private String boardName;
     private String description;
     private Boolean isUse;
-    private Integer boardType;
+    private String boardType;
     private Boolean isAdminApproval;
     private Boolean isPrivacyOption;
     private Integer maxFileUpload;
