@@ -35,7 +35,9 @@ public class BoardController {
     /**
      * 게시글 목록을 조회합니다.
      *
-     * @param option 게시글 검색 및 페이징 옵션
+     * @param option 검색 조건
+     * @param pagination 페이징 조건
+     * @param bindingResult 유효성 검사 결과
      * @return ApiResponse&lt;Page&lt;BoardResponse&gt;&gt; 게시글 목록
      */
     @PreAuthorize("@permService.hasAccess('ACCESS')")

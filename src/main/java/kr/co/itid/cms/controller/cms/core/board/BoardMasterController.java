@@ -1,14 +1,19 @@
 package kr.co.itid.cms.controller.cms.core.board;
 
+import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
+import kr.co.itid.cms.dto.cms.core.board.PaginationOption;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterListResponse;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardMasterRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,16 +35,29 @@ public class BoardMasterController {
     private final BoardMasterService boardMasterService;
 
     /**
-     * 전체 게시판 목록을 조회합니다.
+     * 게시판 마스터 목록을 조회합니다.
      *
-     * @return ApiResponse&lt;List&lt;BoardMasterResponse&gt;&gt; 전체 게시판 목록
+     * @param option 검색 조건
+     * @param pagination 페이징 조건
+     * @param bindingResult 유효성 검사 결과
+     * @return ApiResponse&lt;Page&lt;BoardMasterListResponse&gt;&gt; 게시판 마스터 목록
      * @throws Exception 예외 발생 시 처리됨
      */
     @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<BoardMasterListResponse>>> getAllBoards() throws Exception {
-        List<BoardMasterListResponse> list = boardMasterService.getAllBoards();
-        return ResponseEntity.ok(ApiResponse.success(list));
+    public ResponseEntity<ApiResponse<Page<BoardMasterListResponse>>> getBoardMasters(
+            @Valid @ModelAttribute BoardSearchOption option,
+            @Valid @ModelAttribute PaginationOption pagination,
+            BindingResult bindingResult) throws Exception {
+
+        if (bindingResult.hasErrors()) {
+            String errorMsg = bindingResult.getAllErrors().get(0).getDefaultMessage();
+            return ResponseEntity.badRequest().body(ApiResponse.error(400, errorMsg));
+        }
+
+        Pageable pageable = pagination.toPageable();
+        Page<BoardMasterListResponse> page = boardMasterService.searchBoardMasters(option, pageable);
+        return ResponseEntity.ok(ApiResponse.success(page));
     }
 
     /**

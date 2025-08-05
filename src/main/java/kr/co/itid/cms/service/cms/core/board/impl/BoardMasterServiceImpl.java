@@ -1,6 +1,7 @@
 package kr.co.itid.cms.service.cms.core.board.impl;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
+import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterListResponse;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardMasterRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
@@ -16,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,19 +35,25 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public List<BoardMasterListResponse> getAllBoards() throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board list");
+    public Page<BoardMasterListResponse> searchBoardMasters(BoardSearchOption option, Pageable pageable) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to search board master list");
 
         try {
-            List<BoardMaster> list = boardMasterRepository.findAll();
-            loggingUtil.logSuccess(Action.RETRIEVE, "Board list loaded");
-            return boardMapper.toResponseList(list);
+            // 1. 검색 및 페이징 처리
+            Page<BoardMaster> resultPage = boardMasterRepository.searchByCondition(option, pageable);
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "Board master list retrieved successfully (total=" + resultPage.getTotalElements() + ")");
+
+            // 2. 매핑
+            return resultPage.map(boardMapper::toListResponse);
+
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
-            throw processException("DB error. " + e.getMessage(), e);
+            throw processException("DB 오류가 발생했습니다.", e);
+
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Unknown error: " + e.getMessage());
-            throw processException("Something went wrong. " + e.getMessage(), e);
+            throw processException("게시판 마스터 목록 조회 중 오류가 발생했습니다.", e);
         }
     }
 

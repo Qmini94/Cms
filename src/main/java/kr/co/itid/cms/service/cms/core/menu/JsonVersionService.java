@@ -1,6 +1,6 @@
-package kr.co.itid.cms.service.cms.core.common;
+package kr.co.itid.cms.service.cms.core.menu;
 
-import kr.co.itid.cms.dto.cms.core.common.version.VersionListResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.VersionListResponse;
 import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
 
 import java.util.List;

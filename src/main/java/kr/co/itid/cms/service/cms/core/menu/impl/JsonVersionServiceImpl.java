@@ -1,13 +1,12 @@
-package kr.co.itid.cms.service.cms.core.common.impl;
+package kr.co.itid.cms.service.cms.core.menu.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.itid.cms.dto.cms.core.common.version.VersionListResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.VersionListResponse;
 import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
-import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeResponse;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.mapper.cms.core.menu.MenuMapper;
-import kr.co.itid.cms.service.cms.core.common.JsonVersionService;
+import kr.co.itid.cms.service.cms.core.menu.JsonVersionService;
 import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.util.JsonFileWriterUtil;
 import kr.co.itid.cms.util.LoggingUtil;

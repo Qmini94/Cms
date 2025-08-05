@@ -1,9 +1,9 @@
-package kr.co.itid.cms.controller.cms.core.common;
+package kr.co.itid.cms.controller.cms.core.menu;
 
-import kr.co.itid.cms.dto.cms.core.common.version.VersionListResponse;
+import kr.co.itid.cms.dto.cms.core.menu.response.VersionListResponse;
 import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
 import kr.co.itid.cms.dto.common.ApiResponse;
-import kr.co.itid.cms.service.cms.core.common.JsonVersionService;
+import kr.co.itid.cms.service.cms.core.menu.JsonVersionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -24,7 +24,7 @@ public interface BoardMasterMapper {
     @Mapping(target = "updatedDate", expression = "java(formatDateTime(entity.getUpdatedDate()))")
     BoardMasterResponse toResponse(BoardMaster entity);
 
-    List<BoardMasterListResponse> toResponseList(List<BoardMaster> entities);
+    BoardMasterListResponse toListResponse(BoardMaster entity);
 
     @Named("formatDateTime")
     default String formatDateTime(LocalDateTime dateTime) {
