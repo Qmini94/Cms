@@ -27,9 +27,6 @@ public class MenuTreeResponse {
     private String pathString;
     private String pathId;
 
-    private Boolean isUseSearch;
-    private Boolean isUseCount;
-
     @Builder.Default
     private List<MenuTreeResponse> children = new ArrayList<>();
 }

@@ -189,8 +189,6 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                             .pathUrl(domain + "|")
                             .pathString(request.getSiteName())  // or 적절한 pathString 지정
                             .isShow(true)
-                            .isUseSearch(false)
-                            .isUseCount(false)
                             .position(0)
                             .build();
 
@@ -237,8 +235,6 @@ public class SiteServiceImpl extends EgovAbstractServiceImpl implements SiteServ
                             .name(newHostName)
                             .title(request.getSiteName())
                             .isShow(existingMenu.getIsShow())
-                            .isUseSearch(existingMenu.getIsUseSearch())
-                            .isUseCount(existingMenu.getIsUseCount())
                             .position(existingMenu.getPosition())
                             .parentId(existingMenu.getParentId())
                             .pathUrl(domain + "|")

@@ -247,8 +247,6 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                 menu.setPosition(request.getPosition());
                 menu.setLevel(request.getLevel().longValue());
                 menu.setIsShow(request.getIsShow());
-                menu.setIsUseSearch(request.getIsUseSearch());
-                menu.setIsUseCount(request.getIsUseCount());
 
                 menuRepository.save(menu);
 

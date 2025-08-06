@@ -15,20 +15,4 @@ public class VersionListResponse {
         this.fileNames = fileNames;
         this.activeFileName = activeFileName;
     }
-
-    public List<String> getFileNames() {
-        return fileNames;
-    }
-
-    public String getActiveFileName() {
-        return activeFileName;
-    }
-
-    public void setFileNames(List<String> fileNames) {
-        this.fileNames = fileNames;
-    }
-
-    public void setActiveFileName(String activeFileName) {
-        this.activeFileName = activeFileName;
-    }
 }

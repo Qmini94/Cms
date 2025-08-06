@@ -20,7 +20,4 @@ public class MenuResponse {
     private String pathUrl;
     private String pathString;
     private String pathId;
-
-    private Boolean isUseSearch;
-    private Boolean isUseCount;
 }

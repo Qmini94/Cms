@@ -51,11 +51,5 @@ public class MenuRequest {
     @Size(max = 255, message = "경로 ID는 255자 이내여야 합니다.")
     private String pathId;
 
-    @NotNull(message = "검색 사용 여부는 필수입니다.")
-    private Boolean isUseSearch;
-
-    @NotNull(message = "조회수 사용 여부는 필수입니다.")
-    private Boolean isUseCount;
-
     private List<MenuRequest> children;
 }

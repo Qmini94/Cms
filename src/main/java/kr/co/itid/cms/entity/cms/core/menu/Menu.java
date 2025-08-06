@@ -49,10 +49,4 @@ public class Menu {
 
     @Column(name = "path_id", length = 255)
     private String pathId;  // 경로 아이디
-
-    @Column(name = "is_use_search")
-    private Boolean isUseSearch;  // 검색 사용 여부
-
-    @Column(name = "is_use_count")
-    private Boolean isUseCount;  // 조회수 사용 여부
 }

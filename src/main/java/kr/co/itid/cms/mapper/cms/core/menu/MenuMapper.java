@@ -58,8 +58,6 @@ public interface MenuMapper {
                 .pathUrl(menu.getPathUrl())
                 .pathString(menu.getPathString())
                 .pathId(menu.getPathId())
-                .isUseSearch(menu.getIsUseSearch())
-                .isUseCount(menu.getIsUseCount())
                 .children(children)
                 .build();
     }
