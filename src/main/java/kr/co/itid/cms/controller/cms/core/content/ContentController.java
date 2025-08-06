@@ -1,13 +1,18 @@
 package kr.co.itid.cms.controller.cms.core.content;
 
+import kr.co.itid.cms.dto.cms.core.common.SearchOption;
+import kr.co.itid.cms.dto.cms.core.common.PaginationOption;
 import kr.co.itid.cms.dto.cms.core.content.request.ContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.response.ContentResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.content.ContentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,16 +32,29 @@ public class ContentController {
     private final ContentService contentService;
 
     /**
-     * 전체 콘텐츠 중 sort=0인 대표 콘텐츠 목록 조회
+     * 콘텐츠 목록을 조회합니다.
      *
-     * @return 대표 콘텐츠 리스트
+     * @param option 검색 조건
+     * @param pagination 페이징 조건
+     * @param bindingResult 유효성 검사 결과
+     * @return 콘텐츠 목록 (페이징)
      * @throws Exception 예외 발생 시
      */
     @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ContentResponse>>> getTopSortedContents() throws Exception {
-        List<ContentResponse> list = contentService.getTopSortedContents();
-        return ResponseEntity.ok(ApiResponse.success(list));
+    public ResponseEntity<ApiResponse<Page<ContentResponse>>> getContents(
+            @Valid @ModelAttribute SearchOption option,
+            @Valid @ModelAttribute PaginationOption pagination,
+            BindingResult bindingResult) throws Exception {
+
+        if (bindingResult.hasErrors()) {
+            String errorMsg = bindingResult.getAllErrors().get(0).getDefaultMessage();
+            return ResponseEntity.badRequest().body(ApiResponse.error(400, errorMsg));
+        }
+
+        Pageable pageable = pagination.toPageable();
+        Page<ContentResponse> page = contentService.searchContents(option, pageable);
+        return ResponseEntity.ok(ApiResponse.success(page));
     }
 
     /**

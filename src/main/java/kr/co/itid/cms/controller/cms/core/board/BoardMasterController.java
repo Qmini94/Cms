@@ -1,7 +1,7 @@
 package kr.co.itid.cms.controller.cms.core.board;
 
-import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
-import kr.co.itid.cms.dto.cms.core.board.PaginationOption;
+import kr.co.itid.cms.dto.cms.core.common.SearchOption;
+import kr.co.itid.cms.dto.cms.core.common.PaginationOption;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterListResponse;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardMasterRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
-import java.util.List;
 
 /**
  * 게시판 정의 정보를 다루는 API 컨트롤러입니다.
@@ -46,7 +45,7 @@ public class BoardMasterController {
     @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<BoardMasterListResponse>>> getBoardMasters(
-            @Valid @ModelAttribute BoardSearchOption option,
+            @Valid @ModelAttribute SearchOption option,
             @Valid @ModelAttribute PaginationOption pagination,
             BindingResult bindingResult) throws Exception {
 

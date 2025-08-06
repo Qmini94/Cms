@@ -11,7 +11,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "contents")
+@Table(name = "content")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter

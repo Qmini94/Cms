@@ -1,7 +1,7 @@
 package kr.co.itid.cms.service.cms.core.board.impl;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
-import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
+import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterListResponse;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardMasterRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
@@ -22,8 +22,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service("boardMasterService")
 @RequiredArgsConstructor
 public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements BoardMasterService {
@@ -35,7 +33,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public Page<BoardMasterListResponse> searchBoardMasters(BoardSearchOption option, Pageable pageable) throws Exception {
+    public Page<BoardMasterListResponse> searchBoardMasters(SearchOption option, Pageable pageable) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to search board master list");
 
         try {

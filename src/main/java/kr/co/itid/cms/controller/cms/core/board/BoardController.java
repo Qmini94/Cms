@@ -1,7 +1,7 @@
 package kr.co.itid.cms.controller.cms.core.board;
 
-import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
-import kr.co.itid.cms.dto.cms.core.board.PaginationOption;
+import kr.co.itid.cms.dto.cms.core.common.SearchOption;
+import kr.co.itid.cms.dto.cms.core.common.PaginationOption;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardViewResponse;
@@ -43,7 +43,7 @@ public class BoardController {
     @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<BoardResponse>>> getBoardList(
-            @Valid @ModelAttribute BoardSearchOption option,
+            @Valid @ModelAttribute SearchOption option,
             @Valid @ModelAttribute PaginationOption pagination,
             BindingResult bindingResult) throws Exception {
 

@@ -1,7 +1,7 @@
 package kr.co.itid.cms.service.cms.core.board.impl;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
-import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
+import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardResponse;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardViewResponse;
@@ -42,7 +42,7 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public Page<BoardResponse> searchBoardList(BoardSearchOption option, Pageable pageable) throws Exception {
+    public Page<BoardResponse> searchBoardList(SearchOption option, Pageable pageable) throws Exception {
         JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
         Long menuId = user.menuId();
 
@@ -70,7 +70,7 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
             }
 
             // 4. boardId 포함된 실제 조회용 Option 재생성
-            BoardSearchOption actualOption = new BoardSearchOption();
+            SearchOption actualOption = new SearchOption();
             actualOption.setSearchKeys(option.getSearchKeys());
             actualOption.setKeyword(option.getKeyword());
             actualOption.setStartDate(option.getStartDate());

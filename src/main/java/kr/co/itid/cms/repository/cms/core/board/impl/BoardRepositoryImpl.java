@@ -2,7 +2,7 @@ package kr.co.itid.cms.repository.cms.core.board.impl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
+import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.entity.cms.core.board.Board;
 import kr.co.itid.cms.entity.cms.core.board.QBoard;
 import kr.co.itid.cms.repository.cms.core.board.BoardRepositoryCustom;
@@ -25,7 +25,7 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
     private static final QBoard qBoard = QBoard.board;
 
     @Override
-    public Page<Board> searchByCondition(String boardId, BoardSearchOption option, Pageable pageable) {
+    public Page<Board> searchByCondition(String boardId, SearchOption option, Pageable pageable) {
         BooleanBuilder condition = new BooleanBuilder();
 
         condition.and(qBoard.boardId.eq(boardId));

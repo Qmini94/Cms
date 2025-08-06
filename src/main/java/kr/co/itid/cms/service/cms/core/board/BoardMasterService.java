@@ -1,6 +1,6 @@
 package kr.co.itid.cms.service.cms.core.board;
 
-import kr.co.itid.cms.dto.cms.core.board.BoardSearchOption;
+import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterListResponse;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardMasterRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
@@ -21,7 +21,7 @@ public interface BoardMasterService {
      * @return Page&lt;BoardMasterListResponse&gt; 페이징 처리된 게시글 목록
      * @throws Exception 게시글 조회 중 오류 발생 시
      */
-    Page<BoardMasterListResponse> searchBoardMasters(BoardSearchOption option, Pageable pageable) throws Exception;
+    Page<BoardMasterListResponse> searchBoardMasters(SearchOption option, Pageable pageable) throws Exception;
 
     /**
      * 게시판 식별용 ID(board_id)로 게시판 정보를 조회합니다.

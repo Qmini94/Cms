@@ -1,6 +1,7 @@
 package kr.co.itid.cms.service.cms.core.content.impl;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
+import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.dto.cms.core.content.request.ContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.response.ContentResponse;
 import kr.co.itid.cms.entity.cms.core.content.Content;
@@ -13,6 +14,9 @@ import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,16 +33,25 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public List<ContentResponse> getTopSortedContents() throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get top-sorted contents");
+    public Page<ContentResponse> searchContents(SearchOption option, Pageable pageable) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to search content list");
 
         try {
-            List<Content> list = contentRepository.findBySortAndIsUseTrue(0);
-            loggingUtil.logSuccess(Action.RETRIEVE, "Top-sorted contents loaded");
-            return contentMapper.toResponseList(list);
+            // 1. 검색 및 페이징 처리
+            Page<Content> resultPage = contentRepository.searchByCondition(option, pageable);
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "Content list retrieved successfully (total=" + resultPage.getTotalElements() + ")");
+
+            // 2. 매핑
+            return resultPage.map(contentMapper::toResponse);
+
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
+            throw processException("DB 오류가 발생했습니다.", e);
+
         } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, e.getMessage());
-            throw processException("Failed to load top-sorted contents", e);
+            loggingUtil.logFail(Action.RETRIEVE, "Unknown error: " + e.getMessage());
+            throw processException("콘텐츠 목록 조회 중 오류가 발생했습니다.", e);
         }
     }
 

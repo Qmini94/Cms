@@ -1,11 +1,11 @@
-package kr.co.itid.cms.repository.cms.core.board.impl;
+package kr.co.itid.cms.repository.cms.core.content.impl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import kr.co.itid.cms.dto.cms.core.common.SearchOption;
-import kr.co.itid.cms.entity.cms.core.board.BoardMaster;
-import kr.co.itid.cms.entity.cms.core.board.QBoardMaster;
-import kr.co.itid.cms.repository.cms.core.board.BoardMasterRepositoryCustom;
+import kr.co.itid.cms.entity.cms.core.content.Content;
+import kr.co.itid.cms.entity.cms.core.content.QContent;
+import kr.co.itid.cms.repository.cms.core.content.ContentRepositoryCustom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,64 +18,66 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class BoardMasterRepositoryImpl implements BoardMasterRepositoryCustom {
+public class ContentRepositoryImpl implements ContentRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
-
-    private static final QBoardMaster qBoardMaster = QBoardMaster.boardMaster;
+    private static final QContent qContent = QContent.content1;
 
     @Override
-    public Page<BoardMaster> searchByCondition(SearchOption option, Pageable pageable) {
+    public Page<Content> searchByCondition(SearchOption option, Pageable pageable) {
         BooleanBuilder condition = new BooleanBuilder();
 
-        // 키워드 검색
+        // 기본 조건: sort = 0
+        condition.and(qContent.sort.eq(0));
+
         if (option.getKeyword() != null && !option.getKeyword().isBlank() && option.getSearchKeys() != null) {
             BooleanBuilder keywordBuilder = new BooleanBuilder();
             for (String key : option.getSearchKeys()) {
                 switch (key) {
-                    case "boardName":
-                        keywordBuilder.or(qBoardMaster.boardName.containsIgnoreCase(option.getKeyword()));
+                    case "title":
+                        keywordBuilder.or(qContent.title.containsIgnoreCase(option.getKeyword()));
                         break;
-                    case "boardId":
-                        keywordBuilder.or(qBoardMaster.boardId.containsIgnoreCase(option.getKeyword()));
+                    case "hostname":
+                        keywordBuilder.or(qContent.hostname.containsIgnoreCase(option.getKeyword()));
                         break;
-                    case "boardType":
-                        keywordBuilder.or(qBoardMaster.boardType.containsIgnoreCase(option.getKeyword()));
+                    case "isUse":
+                        if ("true".equalsIgnoreCase(option.getKeyword())) {
+                            keywordBuilder.or(qContent.isUse.isTrue());
+                        } else if ("false".equalsIgnoreCase(option.getKeyword())) {
+                            keywordBuilder.or(qContent.isUse.isFalse());
+                        }
                         break;
-                    case "description":
-                        keywordBuilder.or(qBoardMaster.description.containsIgnoreCase(option.getKeyword()));
+                    case "createdBy":
+                        keywordBuilder.or(qContent.createdBy.containsIgnoreCase(option.getKeyword()));
                         break;
                 }
             }
             condition.and(keywordBuilder);
         }
 
-        // 날짜 필터 (createdDate 기준)
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         if (option.getStartDate() != null && !option.getStartDate().isBlank()) {
             LocalDate start = LocalDate.parse(option.getStartDate(), formatter);
-            condition.and(qBoardMaster.createdDate.goe(start.atStartOfDay()));
+            condition.and(qContent.createdDate.goe(start.atStartOfDay()));
         }
 
         if (option.getEndDate() != null && !option.getEndDate().isBlank()) {
             LocalDate end = LocalDate.parse(option.getEndDate(), formatter);
-            condition.and(qBoardMaster.updatedDate.loe(end.atTime(23, 59, 59)));
+            condition.and(qContent.createdDate.loe(end.atTime(23, 59, 59)));
         }
 
-        // 실제 데이터 조회
-        List<BoardMaster> result = queryFactory
-                .selectFrom(qBoardMaster)
+        List<Content> result = queryFactory
+                .selectFrom(qContent)
                 .where(condition)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .orderBy(qBoardMaster.updatedDate.desc()) // 기본 정렬
+                .orderBy(qContent.createdDate.desc()) // 기본 정렬
                 .fetch();
 
-        // 카운트 쿼리 포함한 Page 생성
         return PageableExecutionUtils.getPage(result, pageable, () ->
-                queryFactory.select(qBoardMaster.count())
-                        .from(qBoardMaster)
+                queryFactory.select(qContent.count())
+                        .from(qContent)
                         .where(condition)
                         .fetchOne()
         );

@@ -1,7 +1,10 @@
 package kr.co.itid.cms.service.cms.core.content;
 
+import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.dto.cms.core.content.request.ContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.response.ContentResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -12,12 +15,14 @@ import java.util.List;
 public interface ContentService {
 
     /**
-     * 전체 콘텐츠 중 sort = 0 인 대표 콘텐츠 목록을 조회합니다.
+     * 콘텐츠 목록을 검색 조건 및 페이징 옵션에 따라 조회합니다.
      *
-     * @return 대표 콘텐츠 리스트
-     * @throws Exception DB 조회 또는 매핑 오류 발생 시
+     * @param option 콘텐츠 검색 조건
+     * @param pageable Pageable 객체
+     * @return Page<ContentResponse> 페이징 처리된 콘텐츠 목록
+     * @throws Exception 콘텐츠 조회 중 오류 발생 시
      */
-    List<ContentResponse> getTopSortedContents() throws Exception;
+    Page<ContentResponse> searchContents(SearchOption option, Pageable pageable) throws Exception;
 
     /**
      * 특정 parentId(대표 콘텐츠 ID)에 소속된 하위 콘텐츠를 정렬순서대로 조회합니다.

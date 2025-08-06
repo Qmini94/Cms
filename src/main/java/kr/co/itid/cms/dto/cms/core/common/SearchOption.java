@@ -1,4 +1,4 @@
-package kr.co.itid.cms.dto.cms.core.board;
+package kr.co.itid.cms.dto.cms.core.common;
 
 import lombok.*;
 
@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @ToString
-public class BoardSearchOption {
+public class SearchOption {
     private List<String> searchKeys;
 
     @Size(max = 100, message = "검색어는 100자 이하여야 합니다.")

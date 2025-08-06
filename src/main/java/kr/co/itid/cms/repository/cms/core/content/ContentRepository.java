@@ -9,12 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface ContentRepository extends JpaRepository<Content, Long> {
-
-    /**
-     * sort가 0이면서 사용 중인 콘텐츠 목록 (대표 콘텐츠)
-     */
-    List<Content> findBySortAndIsUseTrue(int sort);
+public interface ContentRepository extends JpaRepository<Content, Long>, ContentRepositoryCustom {
 
     /**
      * 특정 parentId 그룹의 콘텐츠 목록 (정렬 순서대로)
