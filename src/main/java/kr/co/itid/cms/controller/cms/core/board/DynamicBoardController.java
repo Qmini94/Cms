@@ -4,10 +4,7 @@ import kr.co.itid.cms.dto.cms.core.board.response.FieldDefinitionResponse;
 import kr.co.itid.cms.dto.cms.core.common.PaginationOption;
 import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.dto.common.ApiResponse;
-import kr.co.itid.cms.security.JwtAuthenticatedUser;
 import kr.co.itid.cms.service.cms.core.board.DynamicBoardService;
-import kr.co.itid.cms.util.LoggingUtil;
-import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -28,7 +25,6 @@ import java.util.Map;
 public class DynamicBoardController {
 
     private final DynamicBoardService dynamicBoardService;
-    private final LoggingUtil loggingUtil;
 
     @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
