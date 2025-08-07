@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface BoardMasterRepository extends JpaRepository<BoardMaster, Long>, BoardMasterRepositoryCustom {
-    Optional<BoardMaster> findByBoardId(String boardId);
+    Optional<BoardMaster> findByIdx(Long idx);
 }

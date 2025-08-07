@@ -60,22 +60,6 @@ public class BoardMasterController {
     }
 
     /**
-     * 게시판을 boardId로 조회합니다.
-     *
-     * @param boardId 게시판 식별 ID (비어 있을 수 없음)
-     * @return ApiResponse&lt;BoardMasterResponse&gt; 게시판 정보
-     * @throws Exception 예외 발생 시 처리됨
-     */
-    @PreAuthorize("@permService.hasAccess('VIEW')")
-    @GetMapping("/{boardId}")
-    public ResponseEntity<ApiResponse<BoardMasterResponse>> getBoardByBoardId(
-            @PathVariable @NotBlank(message = "boardId는 필수입니다") String boardId) throws Exception {
-
-        BoardMasterResponse board = boardMasterService.getBoardByBoardId(boardId);
-        return ResponseEntity.ok(ApiResponse.success(board));
-    }
-
-    /**
      * 새 게시판을 등록합니다.
      *
      * @param request 유효성 검증된 게시판 요청 DTO

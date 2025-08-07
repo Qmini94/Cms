@@ -48,11 +48,11 @@ public class RenderServiceImpl extends EgovAbstractServiceImpl implements Render
 
             switch (menu.getType()) {
                 case "board": {
-                    BoardMasterResponse board = boardMasterService.getBoardByBoardId(menu.getValue());
+                    BoardMasterResponse board = boardMasterService.getBoardByIdx(Long.valueOf(menu.getValue()));
                     option = board;
                     break;
                 }
-                case "content", "script", "drive", "folder":
+                case "content", "script", "drive", "folder", "link":
                     option = null;
                     break;
                 default:

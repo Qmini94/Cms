@@ -50,17 +50,19 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
 
         try {
             // 1. menuId → boardId
-            String boardId = menuService.getMenuRenderById(menuId).getValue();
+            String value = menuService.getMenuRenderById(menuId).getValue();
 
-            if (boardId == null) {
+            if (value == null || value.trim().isEmpty()) {
                 loggingUtil.logFail(Action.RETRIEVE, "메뉴에 연결된 게시판 ID가 없습니다. menuId=" + menuId);
                 throw processException("메뉴에 연결된 게시판이 존재하지 않습니다.");
             }
 
+            Long idx = Long.valueOf(value);
+
             // 2. boardId → BoardMaster (게시판 기본 설정)
-            BoardMaster master = boardMasterRepository.findByBoardId(boardId)
+            BoardMaster master = boardMasterRepository.findByIdx(idx)
                     .orElseThrow(() -> {
-                        loggingUtil.logFail(Action.RETRIEVE, "BoardMaster not found: boardId=" + boardId);
+                        loggingUtil.logFail(Action.RETRIEVE, "BoardMaster not found: idx=" + idx);
                         return processException("게시판 설정이 존재하지 않습니다.");
                     });
 
@@ -77,7 +79,7 @@ public class BoardServiceImpl extends EgovAbstractServiceImpl implements BoardSe
             actualOption.setEndDate(option.getEndDate());
 
             // 5. 조회
-            Page<Board> resultPage = boardRepository.searchByCondition(boardId, actualOption, pageable);
+            Page<Board> resultPage = boardRepository.searchByCondition(idx, actualOption, pageable);
             loggingUtil.logSuccess(Action.RETRIEVE, "Board list retrieved successfully (total=" + resultPage.getTotalElements() + ")");
 
             return resultPage.map(boardMapper::toResponse);

@@ -30,7 +30,7 @@ public interface BoardMasterService {
      * @return Optional&lt;BoardMasterResponse&gt; 해당 게시판 정보
      * @throws Exception 데이터베이스 또는 시스템 오류 발생 시
      */
-    BoardMasterResponse getBoardByBoardId(String boardId) throws Exception;
+    BoardMasterResponse getBoardByIdx(Long idx) throws Exception;
 
     /**
      * 게시판 정보를 저장하거나 수정합니다.

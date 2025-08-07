@@ -57,12 +57,12 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public BoardMasterResponse getBoardByBoardId(String boardId) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board by boardId: " + boardId);
+    public BoardMasterResponse getBoardByIdx(Long idx) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get board by idx: " + idx);
 
         try {
-            BoardMaster entity = boardMasterRepository.findByBoardId(boardId)
-                    .orElseThrow(() -> new IllegalArgumentException("게시판 모듈이 존재하지 않습니다: " + boardId));
+            BoardMaster entity = boardMasterRepository.findByIdx(idx)
+                    .orElseThrow(() -> new IllegalArgumentException("게시판 모듈이 존재하지 않습니다: " + idx));
 
             return boardMapper.toResponse(entity);
         } catch (DataAccessException e) {

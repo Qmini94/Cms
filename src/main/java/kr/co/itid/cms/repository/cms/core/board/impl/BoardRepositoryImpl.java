@@ -25,10 +25,10 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
     private static final QBoard qBoard = QBoard.board;
 
     @Override
-    public Page<Board> searchByCondition(String boardId, SearchOption option, Pageable pageable) {
+    public Page<Board> searchByCondition(Long idx, SearchOption option, Pageable pageable) {
         BooleanBuilder condition = new BooleanBuilder();
 
-        condition.and(qBoard.boardId.eq(boardId));
+        condition.and(qBoard.idx.eq(idx));
         condition.and(qBoard.isDeleted.isFalse());
 
         if (option.getKeyword() != null && !option.getKeyword().isBlank() && option.getSearchKeys() != null) {
