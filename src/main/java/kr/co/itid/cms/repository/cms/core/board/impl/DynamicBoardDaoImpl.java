@@ -6,7 +6,6 @@ import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.repository.cms.core.board.DynamicBoardDao;
 import kr.co.itid.cms.repository.cms.core.board.sqlbuilder.DynamicBoardSqlBuilder;
 import lombok.RequiredArgsConstructor;
-import org.egovframe.rte.psl.dataaccess.EgovAbstractMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -16,7 +15,7 @@ import java.util.Map;
 
 @Repository("dynamicBoardDao")
 @RequiredArgsConstructor
-public class DynamicBoardDaoImpl extends EgovAbstractMapper implements DynamicBoardDao {
+public class DynamicBoardDaoImpl implements DynamicBoardDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final DynamicBoardSqlBuilder dynamicBoardSqlBuilder;
@@ -73,20 +72,20 @@ public class DynamicBoardDaoImpl extends EgovAbstractMapper implements DynamicBo
 
         Map<String, Object> params = Map.of("boardMasterIdx", boardMasterIdx);
 
-        return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            FieldDefinitionResponse field = new FieldDefinitionResponse();
-            field.setId(rs.getLong("id"));
-            field.setBoardMasterIdx(rs.getLong("boardMasterIdx"));
-            field.setFieldName(rs.getString("fieldName"));
-            field.setDisplayName(rs.getString("displayName"));
-            field.setFieldType(rs.getString("fieldType"));
-            field.setRequired(rs.getBoolean("required"));
-            field.setSearchable(rs.getBoolean("searchable"));
-            field.setFieldOrder(rs.getInt("fieldOrder"));
-            field.setDefaultValue(rs.getString("defaultValue"));
-            field.setPlaceholder(rs.getString("placeholder"));
-            return field;
-        });
+        return jdbcTemplate.query(sql, params, (rs, rowNum) ->
+                FieldDefinitionResponse.builder()
+                        .id(rs.getLong("id"))
+                        .boardMasterIdx(rs.getLong("boardMasterIdx"))
+                        .fieldName(rs.getString("fieldName"))
+                        .displayName(rs.getString("displayName"))
+                        .fieldType(rs.getString("fieldType"))
+                        .required(rs.getBoolean("required"))
+                        .searchable(rs.getBoolean("searchable"))
+                        .fieldOrder(rs.getInt("fieldOrder"))
+                        .defaultValue(rs.getString("defaultValue"))
+                        .placeholder(rs.getString("placeholder"))
+                        .build()
+        );
     }
 
     @Override

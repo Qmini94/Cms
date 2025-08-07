@@ -1,14 +1,12 @@
 package kr.co.itid.cms.dto.cms.core.board.response;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class FieldDefinitionResponse {
     private Long id;
     private Long boardMasterIdx;
