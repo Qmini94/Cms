@@ -57,6 +57,7 @@ dependencies {
     // Egov
     implementation 'org.egovframe.rte:org.egovframe.rte.ptl.mvc:4.2.0'
     implementation 'org.egovframe.rte:org.egovframe.rte.fdl.property:4.2.0'
+    implementation 'org.egovframe.rte:org.egovframe.rte.psl.dataaccess:4.2.0'
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'

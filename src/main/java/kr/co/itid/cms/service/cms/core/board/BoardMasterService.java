@@ -26,7 +26,7 @@ public interface BoardMasterService {
     /**
      * 게시판 식별용 ID(board_id)로 게시판 정보를 조회합니다.
      *
-     * @param boardId 게시판 식별용 ID
+     * @param idx 게시판 식별용 ID
      * @return Optional&lt;BoardMasterResponse&gt; 해당 게시판 정보
      * @throws Exception 데이터베이스 또는 시스템 오류 발생 시
      */
