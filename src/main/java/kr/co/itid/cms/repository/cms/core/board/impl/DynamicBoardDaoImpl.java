@@ -118,6 +118,14 @@ public class DynamicBoardDaoImpl implements DynamicBoardDao {
     }
 
     @Override
+    public void increaseViewCountByMenuId(Long menuId, Long idx) {
+        String boardId = resolveBoardIdByMenuId(menuId);
+        String sql = String.format("UPDATE board_%s SET view_count = view_count + 1 WHERE idx = :idx AND is_deleted = false", boardId);
+        Map<String, Object> params = Map.of("idx", idx);
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
     public void deleteByMenuId(Long menuId, Long idx) {
         String boardId = resolveBoardIdByMenuId(menuId);
         String sql = dynamicBoardSqlBuilder.buildDeleteQuery(boardId);

@@ -17,11 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service("dynamicBoardService")
 @RequiredArgsConstructor
@@ -65,12 +62,16 @@ public class DynamicBoardServiceImpl extends EgovAbstractServiceImpl implements 
     }
 
     @Override
-    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
+    @Transactional(rollbackFor = EgovBizException.class) // readOnly 제거 (UPDATE 필요)
     public Map<String, Object> getOne(Long idx) throws Exception {
         JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
         Long menuId = user.menuId();
         loggingUtil.logAttempt(Action.RETRIEVE, "[게시글 단건 조회] menuId=" + menuId + ", idx=" + idx);
         try {
+            // 1) 조회수 +1
+            dynamicBoardDao.increaseViewCountByMenuId(menuId, idx);
+
+            // 2) 데이터 조회
             Map<String, Object> raw = dynamicBoardDao.selectOneByMenuId(menuId, idx);
             Map<String, Object> result = MapKeyConverterUtil.convertKeysToCamelCase(raw);
 
