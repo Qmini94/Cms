@@ -26,9 +26,9 @@ public class DynamicBoardDaoImpl implements DynamicBoardDao {
     private String resolveBoardIdByMenuId(Long menuId) {
         String sql = """
             SELECT bm.board_id
-            FROM menu m
+            FROM cms_menu m
             JOIN board_master bm ON bm.idx = CAST(m.value AS UNSIGNED)
-            WHERE m.idx = :menuId AND m.type = 'board' AND m.is_show = 1
+            WHERE m.id = :menuId AND m.type = 'board' AND m.is_show = 1
         """;
 
         Map<String, Object> params = Map.of("menuId", menuId);
@@ -41,9 +41,9 @@ public class DynamicBoardDaoImpl implements DynamicBoardDao {
     private Long resolveBoardMasterIdxByMenuId(Long menuId) {
         String sql = """
             SELECT bm.idx
-            FROM menu m
+            FROM cms_menu m
             JOIN board_master bm ON bm.idx = CAST(m.value AS UNSIGNED)
-            WHERE m.idx = :menuId AND m.type = 'board' AND m.is_show = 1
+            WHERE m.id = :menuId AND m.type = 'board' AND m.is_show = 1
         """;
 
         Map<String, Object> params = Map.of("menuId", menuId);
@@ -98,31 +98,31 @@ public class DynamicBoardDaoImpl implements DynamicBoardDao {
     }
 
     @Override
-    public void updateByMenuId(Long menuId, Long id, Map<String, Object> data) {
+    public void updateByMenuId(Long menuId, Long idx, Map<String, Object> data) {
         String boardId = resolveBoardIdByMenuId(menuId);
         List<FieldDefinitionResponse> fields = getFieldDefinitionsByMenuId(menuId);
 
         String sql = dynamicBoardSqlBuilder.buildUpdateQuery(boardId, fields, data);
-        data.put("id", id);
+        data.put("idx", idx);
         jdbcTemplate.update(sql, data);
     }
 
     @Override
-    public Map<String, Object> selectOneByMenuId(Long menuId, Long id) {
+    public Map<String, Object> selectOneByMenuId(Long menuId, Long idx) {
         String boardId = resolveBoardIdByMenuId(menuId);
         List<FieldDefinitionResponse> fields = getFieldDefinitionsByMenuId(menuId);
 
         String sql = dynamicBoardSqlBuilder.buildSelectOneQuery(boardId, fields);
-        Map<String, Object> params = Map.of("id", id);
+        Map<String, Object> params = Map.of("idx", idx);
         return jdbcTemplate.queryForMap(sql, params);
     }
 
     @Override
-    public void deleteByMenuId(Long menuId, Long id) {
+    public void deleteByMenuId(Long menuId, Long idx) {
         String boardId = resolveBoardIdByMenuId(menuId);
         String sql = dynamicBoardSqlBuilder.buildDeleteQuery(boardId);
 
-        Map<String, Object> params = Map.of("id", id);
+        Map<String, Object> params = Map.of("idx", idx);
         jdbcTemplate.update(sql, params);
     }
 

@@ -8,6 +8,7 @@ import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.repository.cms.core.board.DynamicBoardDao;
 import kr.co.itid.cms.service.cms.core.board.DynamicBoardService;
 import kr.co.itid.cms.util.LoggingUtil;
+import kr.co.itid.cms.util.MapKeyConverterUtil;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
@@ -16,8 +17,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service("dynamicBoardService")
 @RequiredArgsConstructor
@@ -49,7 +53,9 @@ public class DynamicBoardServiceImpl extends EgovAbstractServiceImpl implements 
         Long menuId = user.menuId();
         loggingUtil.logAttempt(Action.RETRIEVE, "[게시글 목록 조회] menuId=" + menuId);
         try {
-            Page<Map<String, Object>> result = dynamicBoardDao.selectListByMenuId(menuId, option, pagination);
+            Page<Map<String, Object>> result = dynamicBoardDao.selectListByMenuId(menuId, option, pagination)
+                    .map(MapKeyConverterUtil::convertKeysToCamelCase);
+
             loggingUtil.logSuccess(Action.RETRIEVE, "[게시글 목록 조회 성공] total=" + result.getTotalElements());
             return result;
         } catch (Exception e) {
@@ -60,29 +66,31 @@ public class DynamicBoardServiceImpl extends EgovAbstractServiceImpl implements 
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public Map<String, Object> getOne(Long id) throws Exception {
+    public Map<String, Object> getOne(Long idx) throws Exception {
         JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
         Long menuId = user.menuId();
-        loggingUtil.logAttempt(Action.RETRIEVE, "[게시글 단건 조회] menuId=" + menuId + ", id=" + id);
+        loggingUtil.logAttempt(Action.RETRIEVE, "[게시글 단건 조회] menuId=" + menuId + ", idx=" + idx);
         try {
-            Map<String, Object> result = dynamicBoardDao.selectOneByMenuId(menuId, id);
-            loggingUtil.logSuccess(Action.RETRIEVE, "[게시글 조회 성공] id=" + id);
+            Map<String, Object> raw = dynamicBoardDao.selectOneByMenuId(menuId, idx);
+            Map<String, Object> result = MapKeyConverterUtil.convertKeysToCamelCase(raw);
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "[게시글 조회 성공] idx=" + idx);
             return result;
         } catch (Exception e) {
-            loggingUtil.logFail(Action.RETRIEVE, "[게시글 조회 실패] id=" + id + " / " + e.getMessage());
+            loggingUtil.logFail(Action.RETRIEVE, "[게시글 조회 실패] idx=" + idx + " / " + e.getMessage());
             throw processException("게시글 조회 중 오류가 발생했습니다.", e);
         }
     }
 
     @Override
     @Transactional(rollbackFor = EgovBizException.class)
-    public void save(Long id, Map<String, Object> data) throws Exception {
+    public void save(Long idx, Map<String, Object> data) throws Exception {
         JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
         Long menuId = user.menuId();
-        boolean isNew = (id == null);
+        boolean isNew = (idx == null);
         Action action = isNew ? Action.CREATE : Action.UPDATE;
 
-        loggingUtil.logAttempt(action, "[게시글 저장 시도] menuId=" + menuId + ", id=" + id + ", user=" + user.userId());
+        loggingUtil.logAttempt(action, "[게시글 저장 시도] menuId=" + menuId + ", idx=" + idx + ", user=" + user.userId());
 
         try {
             if (isNew) {
@@ -93,7 +101,7 @@ public class DynamicBoardServiceImpl extends EgovAbstractServiceImpl implements 
             } else {
                 data.put("mod_id", user.userId());
                 data.put("mod_name", user.userName());
-                dynamicBoardDao.updateByMenuId(menuId, id, data);
+                dynamicBoardDao.updateByMenuId(menuId, idx, data);
                 loggingUtil.logSuccess(action, "[게시글 수정 성공]");
             }
         } catch (Exception e) {
@@ -104,15 +112,15 @@ public class DynamicBoardServiceImpl extends EgovAbstractServiceImpl implements 
 
     @Override
     @Transactional(rollbackFor = EgovBizException.class)
-    public void delete(Long id) throws Exception {
+    public void delete(Long idx) throws Exception {
         JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
         Long menuId = user.menuId();
-        loggingUtil.logAttempt(Action.DELETE, "[게시글 삭제 시도] menuId=" + menuId + ", id=" + id);
+        loggingUtil.logAttempt(Action.DELETE, "[게시글 삭제 시도] menuId=" + menuId + ", idx=" + idx);
         try {
-            dynamicBoardDao.deleteByMenuId(menuId, id);
-            loggingUtil.logSuccess(Action.DELETE, "[게시글 삭제 성공] id=" + id);
+            dynamicBoardDao.deleteByMenuId(menuId, idx);
+            loggingUtil.logSuccess(Action.DELETE, "[게시글 삭제 성공] idx=" + idx);
         } catch (Exception e) {
-            loggingUtil.logFail(Action.DELETE, "[게시글 삭제 실패] id=" + id + " / " + e.getMessage());
+            loggingUtil.logFail(Action.DELETE, "[게시글 삭제 실패] idx=" + idx + " / " + e.getMessage());
             throw processException("게시글 삭제 중 오류가 발생했습니다.", e);
         }
     }

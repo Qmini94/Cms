@@ -44,7 +44,7 @@ public class DynamicBoardSqlBuilder {
             }
         }
 
-        return String.format("UPDATE board_%s SET %s WHERE id = :id", boardId, String.join(", ", sets));
+        return String.format("UPDATE board_%s SET %s WHERE idx = :idx", boardId, String.join(", ", sets));
     }
 
     // SELECT ONE
@@ -53,12 +53,15 @@ public class DynamicBoardSqlBuilder {
                 .map(FieldDefinitionResponse::getFieldName)
                 .collect(Collectors.joining(", "));
 
-        return String.format("SELECT id, %s FROM board_%s WHERE id = :id", selectFields, boardId);
+        return String.format("SELECT idx, %s FROM board_%s WHERE idx = :idx", selectFields, boardId);
     }
 
     // DELETE
     public String buildDeleteQuery(String boardId) {
-        return String.format("DELETE FROM board_%s WHERE id = :id", boardId);
+        return String.format(
+                "UPDATE board_%s SET is_deleted = true WHERE idx = :idx",
+                boardId
+        );
     }
 
     // PAGINATED SELECT
@@ -75,26 +78,37 @@ public class DynamicBoardSqlBuilder {
                 .collect(Collectors.joining(", "));
 
         // 2. WHERE 조건 조립
-        StringBuilder where = new StringBuilder("WHERE 1=1");
+        StringBuilder where = new StringBuilder("WHERE is_deleted = false");
         Map<String, Object> params = new HashMap<>();
 
         if (searchOption != null) {
             // 2-1. 키워드 검색
-            if (searchOption.getKeyword() != null && !searchOption.getKeyword().isBlank()
-                    && searchOption.getSearchKeys() != null && !searchOption.getSearchKeys().isEmpty()) {
+            String keyword = searchOption.getKeyword();
+            List<String> searchKeys = searchOption.getSearchKeys();
+
+            if (keyword != null && !keyword.isBlank() && searchKeys != null && !searchKeys.isEmpty()) {
                 List<String> keywordConditions = new ArrayList<>();
-                for (String key : searchOption.getSearchKeys()) {
+                for (String key : searchKeys) {
                     keywordConditions.add(key + " LIKE :keyword");
                 }
                 where.append(" AND (").append(String.join(" OR ", keywordConditions)).append(")");
-                params.put("keyword", "%" + searchOption.getKeyword().trim() + "%");
+                params.put("keyword", "%" + keyword.trim() + "%");
             }
 
             // 2-2. 날짜 범위 검색
-            if (searchOption.getStartDate() != null && searchOption.getEndDate() != null) {
+            String startDate = searchOption.getStartDate();
+            String endDate = searchOption.getEndDate();
+
+            if (startDate != null && !startDate.isBlank() && endDate != null && !endDate.isBlank()) {
                 where.append(" AND created_date BETWEEN :startDate AND :endDate");
-                params.put("startDate", searchOption.getStartDate());
-                params.put("endDate", searchOption.getEndDate());
+                params.put("startDate", startDate);
+                params.put("endDate", endDate);
+            } else if (startDate != null && !startDate.isBlank()) {
+                where.append(" AND created_date >= :startDate");
+                params.put("startDate", startDate);
+            } else if (endDate != null && !endDate.isBlank()) {
+                where.append(" AND created_date <= :endDate");
+                params.put("endDate", endDate);
             }
         }
 

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/board")
+@RequestMapping("/back-api/board")
 @RequiredArgsConstructor
 @Validated
 public class DynamicBoardController {
@@ -43,11 +43,11 @@ public class DynamicBoardController {
     }
 
     @PreAuthorize("@permService.hasAccess('VIEW')")
-    @GetMapping("/{id}")
+    @GetMapping("/{idx}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getView(
-            @PathVariable Long id
+            @PathVariable Long idx
     ) throws Exception {
-        Map<String, Object> data = dynamicBoardService.getOne(id);
+        Map<String, Object> data = dynamicBoardService.getOne(idx);
         return ResponseEntity.ok(ApiResponse.success(data));
     }
 
@@ -61,21 +61,21 @@ public class DynamicBoardController {
     }
 
     @PreAuthorize("@permService.hasAccess('MODIFY')")
-    @PutMapping("/{id}")
+    @PutMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> update(
-            @PathVariable Long id,
+            @PathVariable Long idx,
             @RequestBody Map<String, Object> body
     ) throws Exception {
-        dynamicBoardService.save(id, body);
+        dynamicBoardService.save(idx, body);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PreAuthorize("@permService.hasAccess('REMOVE')")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> delete(
-            @PathVariable Long id
+            @PathVariable Long idx
     ) throws Exception {
-        dynamicBoardService.delete(id);
+        dynamicBoardService.delete(idx);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
