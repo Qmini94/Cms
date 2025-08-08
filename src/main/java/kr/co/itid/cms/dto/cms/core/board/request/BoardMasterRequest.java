@@ -1,9 +1,6 @@
 package kr.co.itid.cms.dto.cms.core.board.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -14,6 +11,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @Builder
 @Getter
+@Setter
 public class BoardMasterRequest {
 
     private Long idx;
@@ -71,7 +69,4 @@ public class BoardMasterRequest {
     private Boolean isShowDate = true;
     private Boolean isSearchFieldControl = false;
     private Boolean isTopPost = false;
-
-    @Size(max = 10000, message = "확장 설정은 10,000자 이내여야 합니다.")
-    private String extendsOption;
 }

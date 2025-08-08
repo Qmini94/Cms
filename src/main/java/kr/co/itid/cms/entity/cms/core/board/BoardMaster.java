@@ -94,9 +94,6 @@ public class BoardMaster {
     @Column(name = "is_top_post", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isTopPost = false;
 
-    @Column(name = "extends_option", columnDefinition = "TEXT")
-    private String extendsOption;
-
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;

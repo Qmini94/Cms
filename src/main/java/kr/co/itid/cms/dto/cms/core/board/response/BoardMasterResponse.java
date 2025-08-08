@@ -31,7 +31,6 @@ public class BoardMasterResponse {
     private Boolean isShowDate;
     private Boolean isSearchFieldControl;
     private Boolean isTopPost;
-    private String extendsOption;
     private String createdDate;
     private String updatedDate;
 }
