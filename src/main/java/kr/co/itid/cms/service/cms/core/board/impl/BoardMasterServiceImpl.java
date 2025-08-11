@@ -25,6 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service("boardMasterService")
 @RequiredArgsConstructor
@@ -207,6 +210,41 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
                 loggingUtil.logFail(Action.DELETE, "삭제 보상(복구) 실패: " + comp.getMessage());
             }
             throw processException("게시판 삭제 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = EgovBizException.class)
+    public void syncUsageFlagsByBoardIds(Set<String> inUseBoardIds) throws Exception {
+        loggingUtil.logAttempt(Action.UPDATE, "Sync board is_use flags by boardIds");
+        try {
+            // null/공백/빈 문자열 정리
+            Set<String> ids = (inUseBoardIds == null) ? Set.of()
+                    : inUseBoardIds.stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+
+            if (ids.isEmpty()) {
+                // 전역 OFF 금지: 다른 사이트/드라이브 오염 방지 위해 스킵
+                loggingUtil.logSuccess(Action.UPDATE, "No in-use board IDs found. Skipping is_use sync.");
+                return;
+            }
+
+            int on  = boardMasterRepository.updateIsUseTrueByBoardIdIn(ids);
+            int off = boardMasterRepository.updateIsUseFalseByBoardIdNotIn(ids);
+
+            loggingUtil.logSuccess(
+                    Action.UPDATE,
+                    "Board is_use synced. on=" + on + ", off=" + off + ", inUseSize=" + ids.size()
+            );
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.UPDATE, "DB error during board is_use sync");
+            throw processException("Database error while syncing board usage flags", e);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.UPDATE, "Unexpected error during board is_use sync: " + e.getMessage());
+            throw processException("Failed to sync board usage flags", e);
         }
     }
 

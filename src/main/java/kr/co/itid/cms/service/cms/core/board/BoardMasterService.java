@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 게시판 마스터 관리 서비스 인터페이스입니다.
@@ -38,6 +39,15 @@ public interface BoardMasterService {
     BoardMasterResponse getBoardByIdx(Long idx) throws Exception;
 
     /**
+     * 특정 게시판의 필드 정의 목록을 조회합니다.
+     *
+     * @param boardMasterIdx 게시판 고유 ID
+     * @return List&lt;BoardFieldDefinitionResponse&gt; 필드 정의 목록
+     * @throws Exception 조회 중 오류 발생 시
+     */
+    List<BoardFieldDefinitionResponse> getFieldDefinitions(Long boardMasterIdx) throws Exception;
+
+    /**
      * 게시판을 생성합니다.
      * 게시판 필드 정의 저장 및 게시판 테이블 생성이 함께 수행됩니다.
      *
@@ -57,6 +67,15 @@ public interface BoardMasterService {
     void updateBoard(BoardUpdateRequest request) throws Exception;
 
     /**
+     * 특정 게시판의 필드 정의를 일괄 업서트(교체)하고
+     * 실제 물리 테이블 구조를 정의와 동기화합니다.
+     *
+     * @param request 게시판 고유 ID와 필드 정의 목록
+     * @throws Exception 업서트 또는 동기화 중 오류 발생 시
+     */
+    void upsertFieldDefinitionsAndSync(BoardFieldDefinitionsUpsertRequest request) throws Exception;
+
+    /**
      * 게시판을 삭제합니다.
      * 필드 정의 및 게시판 테이블도 함께 삭제됩니다.
      *
@@ -66,22 +85,13 @@ public interface BoardMasterService {
     void deleteBoard(Long idx) throws Exception;
 
     /**
-     * 특정 게시판의 필드 정의 목록을 조회합니다.
+     * 메뉴에서 참조 중인 board_id만 is_use=1, 나머지는 is_use=0으로 동기화합니다.
+     * 빈/NULL이면 아무 것도 하지 않습니다(다른 사이트 오염 방지).
      *
-     * @param boardMasterIdx 게시판 고유 ID
-     * @return List&lt;BoardFieldDefinitionResponse&gt; 필드 정의 목록
-     * @throws Exception 조회 중 오류 발생 시
+     * @param inUseBoardIds 사용 중인 board_id 집합
+     * @throws Exception 동기화 중 오류 발생 시
      */
-    List<BoardFieldDefinitionResponse> getFieldDefinitions(Long boardMasterIdx) throws Exception;
-
-    /**
-     * 특정 게시판의 필드 정의를 일괄 업서트(교체)하고
-     * 실제 물리 테이블 구조를 정의와 동기화합니다.
-     *
-     * @param request 게시판 고유 ID와 필드 정의 목록
-     * @throws Exception 업서트 또는 동기화 중 오류 발생 시
-     */
-    void upsertFieldDefinitionsAndSync(BoardFieldDefinitionsUpsertRequest request) throws Exception;
+    void syncUsageFlagsByBoardIds(Set<String> inUseBoardIds) throws Exception;
 
     /**
      * 특정 게시판의 실제 물리 테이블을

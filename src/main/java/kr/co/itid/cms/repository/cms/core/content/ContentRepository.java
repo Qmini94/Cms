@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ContentRepository extends JpaRepository<Content, Long>, ContentRepositoryCustom {
 
@@ -38,4 +39,19 @@ public interface ContentRepository extends JpaRepository<Content, Long>, Content
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Content c SET c.isUse = false WHERE c.parentId = :parentId AND c.isUse = true")
     void updateIsUseFalseByParentId(@Param("parentId") Long parentId);
+
+    /* ====== 사용 플래그 일괄 동기화용 ====== */
+    /**
+     * contentId가 ids에 포함된 것만 is_use = true
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Content c SET c.isUse = true WHERE c.contentId IN :ids")
+    int updateIsUseTrueByContentIdIn(@Param("ids") Set<String> ids);
+
+    /**
+     * contentId가 ids에 포함되지 않은 것만 is_use = false
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Content c SET c.isUse = false WHERE c.contentId NOT IN :ids")
+    int updateIsUseFalseByContentIdNotIn(@Param("ids") Set<String> ids);
 }

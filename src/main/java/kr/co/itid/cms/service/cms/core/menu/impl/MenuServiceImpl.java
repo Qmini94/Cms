@@ -9,6 +9,8 @@ import kr.co.itid.cms.entity.cms.core.menu.Menu;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.mapper.cms.core.menu.MenuMapper;
 import kr.co.itid.cms.repository.cms.core.menu.MenuRepository;
+import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
+import kr.co.itid.cms.service.cms.core.content.ContentService;
 import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.util.JsonFileWriterUtil;
 import kr.co.itid.cms.util.LoggingUtil;
@@ -31,6 +33,8 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     private final MenuMapper menuMapper;
     private final LoggingUtil loggingUtil;
     private final JsonFileWriterUtil jsonFileWriterUtil;
+    private final BoardMasterService boardMasterService;
+    private final ContentService contentService;
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
@@ -183,8 +187,12 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 
             // 3. 트리 재귀 동기화 및 갱신 ID 추적
             Set<Long> updatedIds = new HashSet<>();
+            Set<String> usedBoardIds = new LinkedHashSet<>();
+            Set<String> usedContentIds = new LinkedHashSet<>();
             for (MenuRequest child : newTree) {
-                syncRecursive(child, rootMenu.getId(), rootPathId, existingMenuMap, updatedIds);
+                syncRecursive(child, rootMenu.getId(), rootPathId,
+                        existingMenuMap, updatedIds,
+                        usedBoardIds, usedContentIds);
             }
 
             // 4. 사용되지 않는 메뉴 삭제
@@ -194,8 +202,11 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                     .toList();
             menuRepository.deleteAllByIdInBatch(deleteIds);
 
-            loggingUtil.logSuccess(Action.UPDATE, "Synced menu tree for drive: " + driveName);
+            // 후처리: 참조된 것만 is_use=1, 나머지 0
+            boardMasterService.syncUsageFlagsByBoardIds(usedBoardIds);
+            contentService.syncUsageFlagsByContentIds(usedContentIds);
 
+            loggingUtil.logSuccess(Action.UPDATE, "Synced menu tree for drive: " + driveName);
         } catch (DataIntegrityViolationException e) {
             loggingUtil.logFail(Action.UPDATE, "Constraint violation during sync for drive: " + driveName);
             throw processException("Duplicate menu name or type detected.", e);
@@ -302,49 +313,69 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             Long parentId,
             String parentPathId,
             Map<Long, Menu> existingMenuMap,
-            Set<Long> updatedIds
+            Set<Long> updatedIds,
+            Set<String> usedBoardIds,
+            Set<String> usedContentIds
     ) {
         Menu entity;
 
+        // (선택) 타입/이름 중복 체크는 '같은 부모 아래'로 제한하는 게 실무적으로 안전합니다.
+        // existsByTypeAndNameAndParentId / existsByTypeAndNameAndParentIdAndIdNot 형태면 더 좋습니다.
+
         boolean isRealEntity = dto.getId() != null && dto.getId() > 0 && existingMenuMap.containsKey(dto.getId());
         if (isRealEntity) {
-            // 수정
             entity = existingMenuMap.get(dto.getId());
 
-            // 자기 자신을 제외하고 같은 type + name 조합이 있는지 확인
             if (menuRepository.existsByTypeAndNameAndIdNot(dto.getType(), dto.getName(), dto.getId())) {
                 throw new RuntimeException("이미 존재하는 type + name 조합입니다: " + dto.getType() + " / " + dto.getName());
             }
 
-            menuMapper.updateEntity(dto, entity);
+            menuMapper.updateEntity(dto, entity); // id는 건드리지 않는 매퍼여야 함
             entity.setParentId(parentId);
             entity.setPosition(dto.getPosition());
 
             menuRepository.save(entity);
         } else {
-            // 신규
-            // 같은 type + name 조합이 이미 존재하는지 확인
             if (menuRepository.existsByTypeAndName(dto.getType(), dto.getName())) {
                 throw new RuntimeException("이미 존재하는 type + name 조합입니다: " + dto.getType() + " / " + dto.getName());
             }
-            dto.setId(null);
+
+            dto.setId(null); // 신규 생성 보장
             entity = menuMapper.toEntity(dto);
             entity.setParentId(parentId);
             entity.setPosition(dto.getPosition());
-            menuRepository.save(entity); // 여기서 ID 생성됨
+
+            menuRepository.save(entity); // PK 생성
         }
 
         updatedIds.add(entity.getId());
 
-        // pathId 직접 갱신 (flush나 트랜잭션 커밋 시 자동 반영 안될 수 있음)
+        // pathId 갱신 (엔티티에도 세팅해두면 자식 재귀에서 값 사용시 안전)
         String newPathId = parentPathId + "." + entity.getId();
         menuRepository.updatePathIdById(entity.getId(), newPathId);
+        entity.setPathId(newPathId);
 
-        // 자식들 재귀 처리
+        // 참조 수집
+        if (dto.getType() != null && dto.getValue() != null && !dto.getValue().isBlank()) {
+            String t = dto.getType().trim().toLowerCase();
+            String v = dto.getValue().trim();
+            if ("board".equals(t)) usedBoardIds.add(v);
+            else if ("content".equals(t)) usedContentIds.add(v);
+        }
+
+        // 자식 재귀
         List<MenuRequest> children = dto.getChildren();
         if (children != null && !children.isEmpty()) {
             for (MenuRequest child : children) {
-                syncRecursive(child, entity.getId(), newPathId, existingMenuMap, updatedIds);
+                syncRecursive(
+                        child,
+                        entity.getId(),
+                        newPathId,
+                        existingMenuMap,
+                        updatedIds,
+                        usedBoardIds,
+                        usedContentIds
+                );
             }
         }
     }

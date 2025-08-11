@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 콘텐츠 관리 서비스 인터페이스입니다.
@@ -69,6 +70,14 @@ public interface ContentService {
      * @throws Exception DB 조회 또는 저장 실패 시
      */
     void updateContent(Long idx, ContentRequest request) throws Exception;
+
+    /**
+     * 메뉴 트리 기준으로 사용 중인 콘텐츠만 is_use=1, 그 외는 is_use=0으로 동기화합니다.
+     *
+     * @param inUseContentIds 메뉴에서 참조 중인 content_id 집합 (null 또는 빈 경우 전체 0 처리)
+     * @throws Exception 동기화 중 오류 발생 시
+     */
+    void syncUsageFlagsByContentIds(Set<String> inUseContentIds) throws Exception;
 
     /**
      * 단일 콘텐츠를 삭제합니다.

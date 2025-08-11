@@ -21,7 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service("contentService")
 @RequiredArgsConstructor
@@ -176,6 +179,41 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
         } catch (Exception e) {
             loggingUtil.logFail(Action.UPDATE, e.getMessage());
             throw processException("Failed to update content", e);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = EgovBizException.class)
+    public void syncUsageFlagsByContentIds(Set<String> inUseContentIds) throws Exception {
+        loggingUtil.logAttempt(Action.UPDATE, "Sync content is_use flags by contentIds");
+
+        try {
+            // null/공백/빈 문자열 정리
+            Set<String> ids = (inUseContentIds == null) ? Set.of()
+                    : inUseContentIds.stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+
+            if (ids.isEmpty()) {
+                loggingUtil.logSuccess(Action.UPDATE, "No in-use content IDs found. Skipping is_use sync.");
+                return; // 아무 것도 하지 않음
+            }
+
+            // IN 집합 ON
+            int on = contentRepository.updateIsUseTrueByContentIdIn(ids);
+            // NOT IN 집합 OFF
+            int off = contentRepository.updateIsUseFalseByContentIdNotIn(ids);
+
+            loggingUtil.logSuccess(Action.UPDATE,
+                    "Content is_use synced. on=" + on + ", off=" + off + ", inUseSize=" + ids.size());
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.UPDATE, "DB error during content is_use sync");
+            throw processException("Database error while syncing content usage flags", e);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.UPDATE, "Unexpected error during content is_use sync: " + e.getMessage());
+            throw processException("Failed to sync content usage flags", e);
         }
     }
 
