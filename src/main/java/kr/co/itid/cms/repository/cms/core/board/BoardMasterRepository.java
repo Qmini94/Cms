@@ -13,13 +13,13 @@ public interface BoardMasterRepository extends JpaRepository<BoardMaster, Long>,
      * boardId가 목록에 포함된 경우 is_use = true로 설정
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE BoardMaster bm SET bm.isUse = true WHERE bm.boardId IN :ids")
+    @Query("UPDATE BoardMaster bm SET bm.isUse = true WHERE bm.idx IN :ids")
     int updateIsUseTrueByBoardIdIn(@Param("ids") Set<Long> ids);
 
     /**
      * boardId가 목록에 포함되지 않은 경우 is_use = false로 설정
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE BoardMaster bm SET bm.isUse = false WHERE bm.boardId NOT IN :ids")
+    @Query("UPDATE BoardMaster bm SET bm.isUse = false WHERE bm.idx NOT IN :ids")
     int updateIsUseFalseByBoardIdNotIn(@Param("ids") Set<Long> ids);
 }
