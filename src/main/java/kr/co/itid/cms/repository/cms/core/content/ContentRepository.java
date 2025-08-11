@@ -46,12 +46,12 @@ public interface ContentRepository extends JpaRepository<Content, Long>, Content
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Content c SET c.isUse = true WHERE c.idx IN :ids")
-    int updateIsUseTrueByContentIdIn(@Param("ids") Set<String> ids);
+    int updateIsUseTrueByContentIdIn(@Param("ids") Set<Long> ids);
 
     /**
      * contentId가 ids에 포함되지 않은 것만 is_use = false
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Content c SET c.isUse = false WHERE c.idx NOT IN :ids")
-    int updateIsUseFalseByContentIdNotIn(@Param("ids") Set<String> ids);
+    int updateIsUseFalseByContentIdNotIn(@Param("ids") Set<Long> ids);
 }

@@ -188,17 +188,18 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
         loggingUtil.logAttempt(Action.UPDATE, "Sync content is_use flags by contentIds");
 
         try {
-            // null/공백/빈 문자열 정리
-            Set<String> ids = (inUseContentIds == null) ? Set.of()
+            Set<Long> ids = inUseContentIds == null ? Set.of()
                     : inUseContentIds.stream()
                     .filter(Objects::nonNull)
                     .map(String::trim)
-                    .filter(s -> !s.isEmpty())
+                    .filter(s -> s.matches("\\d+"))           // 숫자만 통과
+                    .map(Long::parseLong)
                     .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
 
             if (ids.isEmpty()) {
-                loggingUtil.logSuccess(Action.UPDATE, "No in-use content IDs found. Skipping is_use sync.");
-                return; // 아무 것도 하지 않음
+                // 전역 OFF 금지: 다른 사이트/드라이브 오염 방지 위해 스킵
+                loggingUtil.logSuccess(Action.UPDATE, "No numeric content IDs. Skipping is_use sync.");
+                return;
             }
 
             // IN 집합 ON

@@ -218,12 +218,12 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     public void syncUsageFlagsByBoardIds(Set<String> inUseBoardIds) throws Exception {
         loggingUtil.logAttempt(Action.UPDATE, "Sync board is_use flags by boardIds");
         try {
-            // null/공백/빈 문자열 정리
-            Set<String> ids = (inUseBoardIds == null) ? Set.of()
+            Set<Long> ids = (inUseBoardIds == null) ? Set.of()
                     : inUseBoardIds.stream()
                     .filter(Objects::nonNull)
                     .map(String::trim)
-                    .filter(s -> !s.isEmpty())
+                    .filter(s -> s.matches("\\d+"))  // 숫자만 통과
+                    .map(Long::parseLong)
                     .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
 
             if (ids.isEmpty()) {
