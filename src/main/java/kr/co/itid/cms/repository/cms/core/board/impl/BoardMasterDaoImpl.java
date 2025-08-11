@@ -24,10 +24,29 @@ public class BoardMasterDaoImpl implements BoardMasterDao {
 
     private final NamedParameterJdbcTemplate jdbc;
 
-    private static final Set<String> RESERVED = Set.of(
-            "idx", "created_date", "updated_date",
-            "is_deleted", "view_count", "reg_id", "reg_name"
-    );
+    // 순서 보장을 위해 실제 구현체는 LinkedHashMap으로 만들고,
+    // 참조 타입은 Map으로 선언(언modifiable 뷰를 대입 가능)
+    private static final Map<String, String> SYSTEM_COLS;
+
+    static {
+        LinkedHashMap<String, String> m = new LinkedHashMap<>();
+        m.put("idx",          "BIGINT PRIMARY KEY AUTO_INCREMENT");
+        m.put("title",        "VARCHAR(255) NOT NULL");
+        m.put("content",      "LONGTEXT NULL");
+        m.put("is_deleted",   "TINYINT(1) NOT NULL DEFAULT 0");
+        m.put("view_count",   "INT NOT NULL DEFAULT 0");
+        m.put("reg_id",       "VARCHAR(50) NULL");
+        m.put("reg_name",     "VARCHAR(100) NULL");
+        m.put("created_date", "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP");
+        // m.put("updated_date", "DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+        m.put("updated_date", "DATETIME NULL");
+
+        SYSTEM_COLS = Collections.unmodifiableMap(m); // OK: 타입 Map
+    }
+
+    // RESERVED는 keySet에서 파생
+    private static final Set<String> RESERVED =
+            Collections.unmodifiableSet(new LinkedHashSet<>(SYSTEM_COLS.keySet()));
 
     private static final Map<String, String> DB_TYPE_MAP = Map.of(
             "VARCHAR", "VARCHAR(255)",
@@ -282,9 +301,9 @@ public class BoardMasterDaoImpl implements BoardMasterDao {
                 .addValue("isTopPost", Optional.ofNullable(req.getIsTopPost()).orElse(false));
 
         KeyHolder kh = new GeneratedKeyHolder();
-        jdbc.update(sql, p, kh, new String[]{"idx"});
-        Number n = (Number) Objects.requireNonNull(kh.getKeys()).get("idx");
-        return n.longValue();
+        jdbc.update(sql, p, kh);
+        Number n = kh.getKey(); // 단일 PK 값 가져오기
+        return (n != null) ? n.longValue() : null;
     }
 
     @Override
@@ -549,23 +568,22 @@ public class BoardMasterDaoImpl implements BoardMasterDao {
     }
 
     private String buildCreateTableDDL(String table, List<FieldDef> defs) throws Exception {
-        List<String> baseCols = List.of(
-                "idx BIGINT PRIMARY KEY AUTO_INCREMENT",
-                "created_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
-                "updated_date DATETIME NULL",
-                "is_deleted TINYINT(1) NOT NULL DEFAULT 0",
-                "view_count INT NOT NULL DEFAULT 0",
-                "reg_id VARCHAR(50) NULL",
-                "reg_name VARCHAR(100) NULL"
-        );
+        // 1) 시스템 컬럼
+        List<String> baseCols = SYSTEM_COLS.entrySet().stream()
+                .map(e -> e.getKey() + " " + e.getValue())
+                .collect(Collectors.toList());
 
-        // 예외 전파가 필요한 toColumnDDL 때문에 스트림 대신 루프 사용
+        // 2) 동적 컬럼 (order 보장 + 시스템 컬럼명 충돌 가드)
         List<FieldDef> sorted = new ArrayList<>(defs);
         sorted.sort(Comparator.comparingInt(f -> Optional.ofNullable(f.fieldOrder).orElse(0)));
 
         List<String> dynCols = new ArrayList<>();
         for (FieldDef f : sorted) {
-            dynCols.add(toColumnDDL(f));
+            if (RESERVED.contains(f.fieldName)) {
+                // 실수 방지: 시스템 컬럼명 사용 금지
+                throw new EgovBizException("동적 정의에 시스템 컬럼명이 포함됨: " + f.fieldName);
+            }
+            dynCols.add(toColumnDDL(f)); // 예외 전파 그대로
         }
 
         return "CREATE TABLE " + table + " (\n  " +
@@ -583,19 +601,6 @@ public class BoardMasterDaoImpl implements BoardMasterDao {
         // TEXT/BLOB 류는 DEFAULT 불가
         String def = "";
         if (!isTextOrBlob(up) && f.defaultValue != null && !f.defaultValue.isBlank()) {
-            // ENUM 기본값 검증
-            if (up.startsWith("ENUM(")) {
-                String v = stripQuotes(f.defaultValue);
-                if (v != null && !v.isBlank()) {
-                    Set<String> enums = parseEnumValues(dbType);
-                    if (!enums.contains(v)) {
-                        throw new EgovBizException(
-                                "ENUM 기본값이 옵션에 없습니다: " + f.fieldName +
-                                        " = " + v + " / options=" + enums
-                        );
-                    }
-                }
-            }
             String lit = defaultLiteral(dbType, f.defaultValue);
             if (lit != null && !lit.isBlank()) {
                 def = " DEFAULT " + lit;
@@ -621,15 +626,15 @@ public class BoardMasterDaoImpl implements BoardMasterDao {
             return "NULL";
         }
 
-        // 숫자형은 따옴표 금지
-        boolean isNumeric = up.startsWith("INT") || up.startsWith("BIGINT") || up.startsWith("DECIMAL")
-                || up.startsWith("TINYINT") || up.startsWith("SMALLINT") || up.startsWith("FLOAT")
-                || up.startsWith("DOUBLE");
+        // 숫자형은 따옴표 금지 (DECIMAL 제거됨)
+        boolean isNumeric = up.startsWith("INT") || up.startsWith("BIGINT")
+                || up.startsWith("TINYINT") || up.startsWith("SMALLINT")
+                || up.startsWith("FLOAT") || up.startsWith("DOUBLE");
         if (isNumeric) {
             return v;
         }
 
-        // 나머지 문자형/ENUM/DATE는 따옴표
+        // 나머지 문자형/DATE는 따옴표
         return "'" + v.replace("'", "''") + "'";
     }
 
@@ -646,25 +651,6 @@ public class BoardMasterDaoImpl implements BoardMasterDao {
         return up.contains("TEXT") || up.contains("BLOB");
     }
 
-    private Set<String> parseEnumValues(String enumType) {
-        int s = enumType.indexOf('(');
-        int e = enumType.lastIndexOf(')');
-        if (s < 0 || e <= s) return Collections.emptySet();
-        String inner = enumType.substring(s + 1, e).trim(); // 'all','writer'
-        if (inner.isEmpty()) return Collections.emptySet();
-
-        String[] tokens = inner.split(",");
-        Set<String> out = new LinkedHashSet<>();
-        for (String t : tokens) {
-            String v = t.trim();
-            if (v.startsWith("'") && v.endsWith("'") && v.length() >= 2) {
-                v = v.substring(1, v.length() - 1);
-            }
-            out.add(v.replace("''", "'")); // 원문 유지
-        }
-        return out;
-    }
-
     private void guardDangerousChange(ColumnInfo cur, FieldDef target) throws Exception {
         if (Boolean.TRUE.equals(target.isRequired) && !cur.isNotNull &&
                 (target.defaultValue == null || target.defaultValue.isBlank())) {
@@ -677,7 +663,7 @@ public class BoardMasterDaoImpl implements BoardMasterDao {
                 throw new EgovBizException("컬럼 길이 축소는 금지: " + target.fieldName + " " + curLen + " -> " + tgtLen);
             }
         }
-        // TODO: ENUM 축소 금지 등 추가 가드 필요 시 확장
+        // TODO:추가 가드 필요 시 확장
     }
 
     private int lengthOf(String type) {
