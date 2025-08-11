@@ -1,18 +1,13 @@
 package kr.co.itid.cms.util;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
-import kr.co.itid.cms.service.cms.core.site.SiteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Field;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class ValidationUtil {
-
-    private final SiteService siteService;
 
     /**
      * DTO 내의 모든 문자열 필드에 금지어가 포함되어 있는지 검사
