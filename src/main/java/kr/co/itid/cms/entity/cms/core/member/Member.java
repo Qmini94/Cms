@@ -106,10 +106,10 @@ public class Member {
     @Column(name = "last_login_ip")
     private String lastLoginIp;
 
-    @Column(name = "recv_sms", nullable = false)
+    @Column(name = "recv_sms")
     private String recvSms;
 
-    @Column(name = "recv_mail", nullable = false)
+    @Column(name = "recv_mail")
     private String recvMail;
 
     @Column(name = "foreigner")

@@ -92,9 +92,10 @@ public class MemberServiceImpl extends EgovAbstractServiceImpl implements Member
 
             // 비밀번호 암호화
             entity.setUserPassword(passwordEncoder.encode(userId));
+            entity.setUserPin(userId);
 
             // 기본값 정책(필요 시)
-            if (entity.getUserLevel() == null) entity.setUserLevel(2); // 예: 기본 USER
+            if (entity.getUserLevel() == null) entity.setUserLevel(9); // 예: 기본 USER
 
             memberRepository.save(entity);
             loggingUtil.logSuccess(Action.CREATE, "회원 생성 완료: userId=" + userId);
