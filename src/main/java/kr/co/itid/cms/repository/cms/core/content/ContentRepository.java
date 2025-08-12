@@ -39,17 +39,19 @@ public interface ContentRepository extends JpaRepository<Content, Long>, Content
     int updateIsMainTrueByIdx(@Param("idx") Long idx);
 
     /* ====== 사용 플래그 일괄 동기화용 ====== */
-    /**
-     * contentId가 ids에 포함된 것만 is_use = true
-     */
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Content c SET c.isUse = true WHERE c.idx IN :ids")
-    int updateIsUseTrueByContentIdIn(@Param("ids") Set<Long> ids);
+    List<Content> findByIdxIn(@Param("ids") Set<Long> ids);
 
-    /**
-     * contentId가 ids에 포함되지 않은 것만 is_use = false
-     */
+    // hostname 기준, 해당 parentId들만 ON
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Content c SET c.isUse = false WHERE c.idx NOT IN :ids")
-    int updateIsUseFalseByContentIdNotIn(@Param("ids") Set<Long> ids);
+    @Query("UPDATE Content c SET c.isUse = true " +
+            "WHERE c.hostname = :hostname AND c.parentId IN :parentIds")
+    int updateIsUseTrueByHostnameAndParentIdIn(@Param("hostname") String hostname,
+                                               @Param("parentIds") Set<Long> parentIds);
+
+    // hostname 기준, 위 parentId 외 나머지 전부 OFF
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Content c SET c.isUse = false " +
+            "WHERE c.hostname = :hostname AND c.parentId NOT IN :parentIds")
+    int updateIsUseFalseByHostnameAndParentIdNotIn(@Param("hostname") String hostname,
+                                                   @Param("parentIds") Set<Long> parentIds);
 }

@@ -21,10 +21,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 
 @Service("contentService")
 @RequiredArgsConstructor
@@ -207,34 +207,56 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
     @Transactional(rollbackFor = EgovBizException.class)
     public void syncUsageFlagsByContentIds(Set<String> inUseContentIds) throws Exception {
         loggingUtil.logAttempt(Action.UPDATE, "Sync content is_use flags by contentIds");
-
         try {
-            Set<Long> ids = inUseContentIds == null ? Set.of()
+            Set<Long> ids = (inUseContentIds == null) ? Set.of()
                     : inUseContentIds.stream()
                     .filter(Objects::nonNull)
                     .map(String::trim)
-                    .filter(s -> s.matches("\\d+"))           // 숫자만 통과
+                    .filter(s -> s.matches("\\d+"))
                     .map(Long::parseLong)
-                    .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
 
             if (ids.isEmpty()) {
-                // 전역 OFF 금지: 다른 사이트/드라이브 오염 방지 위해 스킵
                 loggingUtil.logSuccess(Action.UPDATE, "No numeric content IDs. Skipping is_use sync.");
                 return;
             }
 
-            // IN 집합 ON
-            int on = contentRepository.updateIsUseTrueByContentIdIn(ids);
-            // NOT IN 집합 OFF
-            int off = contentRepository.updateIsUseFalseByContentIdNotIn(ids);
+            List<Content> selected = contentRepository.findByIdxIn(ids);
+            if (selected.isEmpty()) {
+                loggingUtil.logSuccess(Action.UPDATE, "No contents found for given IDs. Skipping.");
+                return;
+            }
 
-            loggingUtil.logSuccess(Action.UPDATE,
-                    "Content is_use synced. on=" + on + ", off=" + off + ", inUseSize=" + ids.size());
+            Map<String, Set<Long>> hostToParentIds = selected.stream()
+                    .filter(c -> c.getParentId() != null)
+                    .collect(Collectors.groupingBy(
+                            Content::getHostname,
+                            Collectors.mapping(Content::getParentId, Collectors.toCollection(LinkedHashSet::new))
+                    ));
+
+            int onTotal = 0, offTotal = 0;
+            for (Map.Entry<String, Set<Long>> e : hostToParentIds.entrySet()) {
+                String hostname = e.getKey();
+                Set<Long> parentIds = e.getValue();
+                if (parentIds.isEmpty()) continue;
+
+                int on  = contentRepository.updateIsUseTrueByHostnameAndParentIdIn(hostname, parentIds);
+                int off = contentRepository.updateIsUseFalseByHostnameAndParentIdNotIn(hostname, parentIds);
+
+                onTotal  += on;
+                offTotal += off;
+            }
+
+            loggingUtil.logSuccess(
+                    Action.UPDATE,
+                    "is_use synced per hostname. on=" + onTotal + ", off=" + offTotal +
+                            ", idsSize=" + ids.size() + ", hostSize=" + hostToParentIds.size()
+            );
         } catch (DataAccessException e) {
-            loggingUtil.logFail(Action.UPDATE, "DB error during content is_use sync");
+            loggingUtil.logFail(Action.UPDATE, "DB error during is_use sync");
             throw processException("Database error while syncing content usage flags", e);
         } catch (Exception e) {
-            loggingUtil.logFail(Action.UPDATE, "Unexpected error during content is_use sync: " + e.getMessage());
+            loggingUtil.logFail(Action.UPDATE, "Unexpected error during is_use sync: " + e.getMessage());
             throw processException("Failed to sync content usage flags", e);
         }
     }
