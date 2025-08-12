@@ -2,6 +2,7 @@ package kr.co.itid.cms.service.cms.core.content.impl;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.dto.cms.core.common.SearchOption;
+import kr.co.itid.cms.dto.cms.core.content.request.ChildContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.request.ContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.response.ContentResponse;
 import kr.co.itid.cms.entity.cms.core.content.Content;
@@ -22,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,7 +64,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get group contents by parentId=" + parentId);
 
         try {
-            List<Content> list = contentRepository.findByParentIdOrderBySortAsc(parentId);
+            List<Content> list = contentRepository.findByParentIdOrderByCreatedDateAsc(parentId);
             loggingUtil.logSuccess(Action.RETRIEVE, "Group contents loaded: parentId=" + parentId);
             return contentMapper.toResponseList(list);
         } catch (Exception e) {
@@ -102,8 +102,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
             Content root = contentMapper.toEntity(request);
             root.setHostname(user.hostname());
             root.setCreatedBy(user.userId());
-            root.setSort(0);
-            root.setIsUse(true);
+            root.setIsMain(true);
 
             // Step 2. 저장 → parentId를 자기 자신으로 설정 후 재저장
             Content saved = contentRepository.save(root);
@@ -122,23 +121,17 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional(rollbackFor = EgovBizException.class)
-    public void createChildContent(Long parentId, ContentRequest request) throws Exception {
+    public void createChildContent(Long parentId, ChildContentRequest request) throws Exception {
         loggingUtil.logAttempt(Action.CREATE, "Try to create child content: parentId=" + parentId);
 
         try {
             JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
-            // Step 1. max(sort) + 1 계산
-            int nextSort = Optional.ofNullable(contentRepository.findMaxSortByParentId(parentId)).orElse(0) + 1;
-
-            // Step 2. entity 생성
-            Content child = contentMapper.toEntity(request);
+            // Step 1. entity 생성
+            Content child = contentMapper.toEntityChild(request);
             child.setHostname(user.hostname());
             child.setCreatedBy(user.userId());
             child.setParentId(parentId);
-            child.setSort(nextSort);
-            child.setIsUse(true);
 
-            contentRepository.updateIsUseFalseByParentId(parentId);
             contentRepository.save(child);
             loggingUtil.logSuccess(Action.CREATE, "Child content created: parentId=" + parentId);
         } catch (IllegalArgumentException e) {
@@ -166,9 +159,6 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
             // 서버에서만 채워야 하는 정보
             content.setUpdatedBy(user.userId());
             content.setHostname(user.hostname());
-            if (Boolean.TRUE.equals(request.getIsUse())) {
-                contentRepository.updateIsUseFalseByParentId(content.getParentId());
-            }
 
             contentRepository.save(content);
 
@@ -181,6 +171,34 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
             throw processException("Failed to update content", e);
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = EgovBizException.class)
+    public void activeContent(Long idx) throws Exception {
+        loggingUtil.logAttempt(Action.UPDATE, "Try to active content: idx=" + idx);
+        try {
+            // 1) 대상 로우 조회 (parentId 얻기)
+            Content target = contentRepository.findById(idx)
+                    .orElseThrow(() -> new IllegalArgumentException("Content not found: " + idx));
+
+            Long parentId = target.getParentId() != null ? target.getParentId() : target.getIdx();
+
+            // 2) 해당 그룹 전체 is_main=false
+            contentRepository.updateIsMainFalseByParentId(parentId);
+
+            // 3) 현재 idx만 is_main=true
+            contentRepository.updateIsMainTrueByIdx(idx);
+
+            loggingUtil.logSuccess(Action.UPDATE, "Content activated: idx=" + idx + ", parentId=" + parentId);
+        } catch (org.springframework.dao.DataAccessException e) {
+            loggingUtil.logFail(Action.UPDATE, "DB error: " + e.getMessage());
+            throw processException("Database error during content activation", e);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.UPDATE, "Unexpected error: " + e.getMessage());
+            throw processException("Failed to activate content", e);
+        }
+    }
+
 
     @Override
     @Transactional(rollbackFor = EgovBizException.class)

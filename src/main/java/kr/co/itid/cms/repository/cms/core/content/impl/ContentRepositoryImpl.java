@@ -27,8 +27,8 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     public Page<Content> searchByCondition(SearchOption option, Pageable pageable) {
         BooleanBuilder condition = new BooleanBuilder();
 
-        // 기본 조건: sort = 0
-        condition.and(qContent.sort.eq(0));
+        // 메인인 컨텐츠만
+        condition.and(qContent.isMain.eq(true));
 
         if (option.getKeyword() != null && !option.getKeyword().isBlank() && option.getSearchKeys() != null) {
             BooleanBuilder keywordBuilder = new BooleanBuilder();

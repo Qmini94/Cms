@@ -2,6 +2,7 @@ package kr.co.itid.cms.controller.cms.core.content;
 
 import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.dto.cms.core.common.PaginationOption;
+import kr.co.itid.cms.dto.cms.core.content.request.ChildContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.request.ContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.response.ContentResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
@@ -111,7 +112,7 @@ public class ContentController {
     @PostMapping("/{parentId}")
     public ResponseEntity<ApiResponse<Void>> createChildContent(
             @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Long parentId,
-            @Valid @RequestBody ContentRequest request) throws Exception {
+            @Valid @RequestBody ChildContentRequest request) throws Exception {
 
         contentService.createChildContent(parentId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
@@ -127,6 +128,18 @@ public class ContentController {
             @Valid @RequestBody ContentRequest request) throws Exception {
 
         contentService.updateContent(idx, request);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * 콘텐츠 활성화
+     */
+    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @PutMapping("/{idx}/active")
+    public ResponseEntity<ApiResponse<Void>> activeContent(
+            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx) throws Exception {
+
+        contentService.activeContent(idx);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

@@ -9,13 +9,16 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 /**
- * 콘텐츠 등록/수정 요청 DTO
+ * 자식 콘텐츠 등록/수정 요청 DTO
  */
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContentRequest {
+public class ChildContentRequest {
+
+    private Integer parentId;
+
     @NotBlank(message = "제목은 필수입니다")
     @Size(max = 200, message = "제목은 최대 200자까지 가능합니다")
     private String title;

@@ -25,11 +25,11 @@ public class Content {
     @Column(name = "parent_id")
     private Long parentId;
 
-    @Column(name = "sort", nullable = false, columnDefinition = "INT DEFAULT 0")
-    private Integer sort = 0;
-
     @Column(name = "is_use", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isUse = false;
+
+    @Column(name = "is_main", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    private Boolean isMain = false;
 
     @Column(length = 200)
     private String title;

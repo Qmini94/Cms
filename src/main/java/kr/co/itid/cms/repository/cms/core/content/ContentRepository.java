@@ -15,13 +15,7 @@ public interface ContentRepository extends JpaRepository<Content, Long>, Content
     /**
      * 특정 parentId 그룹의 콘텐츠 목록 (정렬 순서대로)
      */
-    List<Content> findByParentIdOrderBySortAsc(Long parentId);
-
-    /**
-     * 특정 parentId에 속한 콘텐츠의 최대 sort값 조회
-     */
-    @Query("SELECT MAX(c.sort) FROM Content c WHERE c.parentId = :parentId")
-    Integer findMaxSortByParentId(@Param("parentId") Long parentId);
+    List<Content> findByParentIdOrderByCreatedDateAsc(Long parentId);
 
     /**
      * 대표 콘텐츠 및 그 하위 콘텐츠 전체 삭제 (parentId 또는 idx가 일치하는 경우)
@@ -33,12 +27,16 @@ public interface ContentRepository extends JpaRepository<Content, Long>, Content
      */
     Optional<Content> findFirstByParentIdAndIsUseTrue(Long parentId);
 
-    /**
-     * 저장 또는 수정 시, 동일 parentId의 기존 콘텐츠들 중 사용 중인 항목 전부 비활성화
-     */
-    @Modifying(clearAutomatically = true)
-    @Query("UPDATE Content c SET c.isUse = false WHERE c.parentId = :parentId AND c.isUse = true")
-    void updateIsUseFalseByParentId(@Param("parentId") Long parentId);
+    /* ====== 메인 버전 활성화 (is_main) ====== */
+    /** parentId 그룹 전체를 메인 해제 */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Content c SET c.isMain = false WHERE c.parentId = :parentId")
+    int updateIsMainFalseByParentId(@Param("parentId") Long parentId);
+
+    /** 특정 idx만 메인 지정 */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Content c SET c.isMain = true WHERE c.idx = :idx")
+    int updateIsMainTrueByIdx(@Param("idx") Long idx);
 
     /* ====== 사용 플래그 일괄 동기화용 ====== */
     /**

@@ -1,6 +1,7 @@
 package kr.co.itid.cms.service.cms.core.content;
 
 import kr.co.itid.cms.dto.cms.core.common.SearchOption;
+import kr.co.itid.cms.dto.cms.core.content.request.ChildContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.request.ContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.response.ContentResponse;
 import org.springframework.data.domain.Page;
@@ -60,7 +61,7 @@ public interface ContentService {
      * @param request 콘텐츠 등록 요청 객체
      * @throws Exception DB 저장 실패 또는 유효성 오류
      */
-    void createChildContent(Long parentId, ContentRequest request) throws Exception;
+    void createChildContent(Long parentId, ChildContentRequest request) throws Exception;
 
     /**
      * 콘텐츠를 수정합니다.
@@ -70,6 +71,14 @@ public interface ContentService {
      * @throws Exception DB 조회 또는 저장 실패 시
      */
     void updateContent(Long idx, ContentRequest request) throws Exception;
+
+    /**
+     * 콘텐츠를 활성화합니다.
+     *
+     * @param idx 활성화할 콘텐츠
+     * @throws Exception DB 조회 또는 저장 실패 시
+     */
+    void activeContent(Long idx) throws Exception;
 
     /**
      * 메뉴 트리 기준으로 사용 중인 콘텐츠만 is_use=1, 그 외는 is_use=0으로 동기화합니다.

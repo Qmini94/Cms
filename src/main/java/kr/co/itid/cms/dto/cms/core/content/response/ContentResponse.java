@@ -8,8 +8,8 @@ import lombok.Getter;
 public class ContentResponse {
     private Integer idx;
     private Integer parentId;
-    private Integer sort;
     private Boolean isUse;
+    private Boolean isMain;
     private String title;
     private String content;
     private String hostname;

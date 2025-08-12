@@ -1,5 +1,6 @@
 package kr.co.itid.cms.mapper.cms.core.content;
 
+import kr.co.itid.cms.dto.cms.core.content.request.ChildContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.request.ContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.response.ContentResponse;
 import kr.co.itid.cms.entity.cms.core.content.Content;
@@ -18,6 +19,10 @@ public interface ContentMapper {
     @Mapping(target = "createdDate", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "updatedDate", ignore = true)
     Content toEntity(ContentRequest request);
+
+    @Mapping(target = "createdDate", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "updatedDate", ignore = true)
+    Content toEntityChild(ChildContentRequest request);
 
     @Mapping(target = "createdDate", expression = "java(formatDateTime(entity.getCreatedDate()))")
     @Mapping(target = "updatedDate", expression = "java(formatDateTime(entity.getUpdatedDate()))")
