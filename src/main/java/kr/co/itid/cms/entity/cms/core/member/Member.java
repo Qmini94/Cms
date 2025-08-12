@@ -1,5 +1,6 @@
 package kr.co.itid.cms.entity.cms.core.member;
 
+import kr.co.itid.cms.config.jpa.StringCryptoConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -55,38 +56,46 @@ public class Member {
     @Column(name = "dept_work")
     private String deptWork;
 
+    // ===== 암/복호화 대상 (DB는 VARBINARY/BLOB) =====
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "dept_tel")
-    private byte[] deptTel;
+    private String deptTel;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "dept_fax")
-    private byte[] deptFax;
+    private String deptFax;
 
-    @Column(name = "dept_class")
-    private String deptClass;
-
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "email")
-    private byte[] email;
+    private String email;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "tel")
-    private byte[] tel;
+    private String tel;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "phone")
-    private byte[] phone;
+    private String phone;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "zipcode")
-    private byte[] zipcode;
+    private String zipcode;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "address1")
-    private byte[] address1;
+    private String address1;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "address2")
-    private byte[] address2;
+    private String address2;
 
     @Column(name = "pass_hint_question")
     private String passHintQuestion;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "pass_hint_answer")
-    private byte[] passHintAnswer;
+    private String passHintAnswer;
+    // ===========================================
 
     @Column(name = "reg_date")
     private LocalDateTime regDate;

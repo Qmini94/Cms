@@ -34,6 +34,11 @@ public class VisitorServiceImpl extends EgovAbstractServiceImpl implements Visit
             String today = LocalDate.now().toString();
             String hostname = getHostnameFromAuthentication();
 
+            if ("common".equalsIgnoreCase(hostname) || "unknown".equalsIgnoreCase(hostname)) {
+                loggingUtil.logAttempt(Action.CREATE, "Skip counting for hostname=" + hostname);
+                return;
+            }
+
             String visitKey = String.format("visitor:%s:%s:%s", ip, today, hostname);
             String countKey = String.format("visitors:daily:%s:%s:%s", today, hostname, deviceType);
 
