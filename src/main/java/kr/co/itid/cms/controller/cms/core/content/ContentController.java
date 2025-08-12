@@ -59,17 +59,17 @@ public class ContentController {
     }
 
     /**
-     * 특정 parentId 그룹의 하위 콘텐츠 목록 조회
+     * 특정 컨텐츠의 같은 그룹의 콘텐츠 목록 조회
      *
-     * @param parentId 대표 콘텐츠 ID
+     * @param idx 대표 콘텐츠 ID
      * @return 해당 그룹의 하위 콘텐츠 리스트
      */
     @PreAuthorize("@permService.hasAccess('ACCESS')")
-    @GetMapping("/group/{parentId}")
+    @GetMapping("/group/{idx}")
     public ResponseEntity<ApiResponse<List<ContentResponse>>> getGroupedContents(
-            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Long parentId) throws Exception {
+            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx) throws Exception {
 
-        List<ContentResponse> list = contentService.getContentsByParentId(parentId);
+        List<ContentResponse> list = contentService.getContentsByIdx(idx);
         return ResponseEntity.ok(ApiResponse.success(list));
     }
 

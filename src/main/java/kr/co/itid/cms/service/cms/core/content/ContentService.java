@@ -27,13 +27,13 @@ public interface ContentService {
     Page<ContentResponse> searchContents(SearchOption option, Pageable pageable) throws Exception;
 
     /**
-     * 특정 parentId(대표 콘텐츠 ID)에 소속된 하위 콘텐츠를 정렬순서대로 조회합니다.
+     * 특정 컨텐츠의 같은 그룹의 콘텐츠 목록을 순서대로 조회합니다.
      *
-     * @param parentId 콘텐츠 그룹 ID
+     * @param idx 콘텐츠 ID
      * @return 해당 그룹의 하위 콘텐츠 리스트
      * @throws Exception DB 조회 또는 매핑 오류 발생 시
      */
-    List<ContentResponse> getContentsByParentId(Long parentId) throws Exception;
+    List<ContentResponse> getContentsByIdx(Long idx) throws Exception;
 
     /**
      * 특정 콘텐츠를 parentId에 소속된 하위 콘텐츠중 사용중인 콘텐츠를 상세 조회합니다.

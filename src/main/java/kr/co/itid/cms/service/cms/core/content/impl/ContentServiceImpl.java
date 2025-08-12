@@ -60,12 +60,15 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public List<ContentResponse> getContentsByParentId(Long parentId) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get group contents by parentId=" + parentId);
+    public List<ContentResponse> getContentsByIdx(Long idx) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get group contents by idx=" + idx);
 
         try {
-            List<Content> list = contentRepository.findByParentIdOrderByCreatedDateAsc(parentId);
-            loggingUtil.logSuccess(Action.RETRIEVE, "Group contents loaded: parentId=" + parentId);
+            Content content = contentRepository.findById(idx)
+                    .orElseThrow(() -> new IllegalArgumentException("Content not found: " + idx));
+
+            List<Content> list = contentRepository.findByParentIdOrderByCreatedDateAsc(content.getParentId());
+            loggingUtil.logSuccess(Action.RETRIEVE, "Group contents loaded: idx=" + idx);
             return contentMapper.toResponseList(list);
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, e.getMessage());
@@ -79,7 +82,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get content by parentId=" + parentId);
 
         try {
-            Content content = contentRepository.findFirstByParentIdAndIsUseTrue(parentId)
+            Content content = contentRepository.findFirstByParentIdAndIsMainTrue(parentId)
                     .orElseThrow(() -> new IllegalArgumentException("Content not found for parentId=" + parentId));
 
             loggingUtil.logSuccess(Action.RETRIEVE, "Content loaded: idx=" + content.getIdx());

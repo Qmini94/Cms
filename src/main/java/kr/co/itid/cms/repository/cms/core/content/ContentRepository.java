@@ -23,9 +23,9 @@ public interface ContentRepository extends JpaRepository<Content, Long>, Content
     void deleteAllByParentIdOrIdx(Long parentId, Long idx);
 
     /**
-     * parentId 기준으로 사용 중인 콘텐츠 1건만 조회 (isUse = true)
+     * parentId 기준으로 사용 중인 콘텐츠 1건만 조회 (isMain = true)
      */
-    Optional<Content> findFirstByParentIdAndIsUseTrue(Long parentId);
+    Optional<Content> findFirstByParentIdAndIsMainTrue(Long parentId);
 
     /* ====== 메인 버전 활성화 (is_main) ====== */
     /** parentId 그룹 전체를 메인 해제 */
