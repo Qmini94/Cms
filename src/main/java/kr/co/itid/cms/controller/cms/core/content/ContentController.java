@@ -74,7 +74,7 @@ public class ContentController {
     }
 
     /**
-     * 특정 콘텐츠 상세 조회
+     * 콘텐츠의 group중 실제 is_main이 true인 콘텐츠 상세 조회
      *
      * @param idx 콘텐츠 ID
      * @return 콘텐츠 상세 정보

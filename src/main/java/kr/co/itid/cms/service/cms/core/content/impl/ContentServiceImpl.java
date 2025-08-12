@@ -78,12 +78,15 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
-    public ContentResponse getContentByParentId(Long parentId) throws Exception {
-        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get content by parentId=" + parentId);
+    public ContentResponse getContentByParentId(Long idx) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try to get content by idx=" + idx);
 
         try {
-            Content content = contentRepository.findFirstByParentIdAndIsMainTrue(parentId)
-                    .orElseThrow(() -> new IllegalArgumentException("Content not found for parentId=" + parentId));
+            Content target = contentRepository.findById(idx)
+                    .orElseThrow(() -> new IllegalArgumentException("Content not found: " + idx));
+
+            Content content = contentRepository.findFirstByParentIdAndIsMainTrue(target.getParentId())
+                    .orElseThrow(() -> new IllegalArgumentException("Content not found for parentId=" + target.getParentId()));
 
             loggingUtil.logSuccess(Action.RETRIEVE, "Content loaded: idx=" + content.getIdx());
             return contentMapper.toResponse(content);

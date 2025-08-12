@@ -36,13 +36,13 @@ public interface ContentService {
     List<ContentResponse> getContentsByIdx(Long idx) throws Exception;
 
     /**
-     * 특정 콘텐츠를 parentId에 소속된 하위 콘텐츠중 사용중인 콘텐츠를 상세 조회합니다.
+     * 콘텐츠의 group중 실제 isMain이 true인 콘텐츠 상세 조회
      *
-     * @param parentId 콘텐츠 고유번호
+     * @param idx 콘텐츠 고유번호
      * @return ContentResponse
      * @throws Exception DB 조회 실패 또는 데이터 없음
      */
-    ContentResponse getContentByParentId(Long parentId) throws Exception;
+    ContentResponse getContentByParentId(Long idx) throws Exception;
 
     /**
      * 대표 콘텐츠(루트 콘텐츠)를 생성합니다.
