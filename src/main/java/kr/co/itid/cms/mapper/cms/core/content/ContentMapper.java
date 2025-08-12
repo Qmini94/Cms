@@ -15,14 +15,9 @@ public interface ContentMapper {
 
     DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    @Mapping(target = "isUse", constant = "true")
     @Mapping(target = "createdDate", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "updatedDate", ignore = true)
     Content toEntity(ContentRequest request);
-
-    @Mapping(target = "createdDate", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "updatedDate", ignore = true)
-    Content toEntityChild(ChildContentRequest request);
 
     @Mapping(target = "createdDate", expression = "java(formatDateTime(entity.getCreatedDate()))")
     @Mapping(target = "updatedDate", expression = "java(formatDateTime(entity.getUpdatedDate()))")

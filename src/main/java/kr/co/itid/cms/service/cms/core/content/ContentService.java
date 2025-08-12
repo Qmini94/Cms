@@ -54,14 +54,13 @@ public interface ContentService {
     void createRootContent(ContentRequest request) throws Exception;
 
     /**
-     * 특정 parentId 그룹에 속하는 하위 콘텐츠를 생성합니다.
-     * sort는 자동 증가되거나 request에서 지정된 값으로 설정됩니다.
+     * 특정 콤텐츠 ID의 parentId 그룹에 속하는 하위 콘텐츠를 생성합니다.
      *
-     * @param parentId 루트 콘텐츠 ID
+     * @param idx 콘텐츠 ID
      * @param request 콘텐츠 등록 요청 객체
      * @throws Exception DB 저장 실패 또는 유효성 오류
      */
-    void createChildContent(Long parentId, ChildContentRequest request) throws Exception;
+    void createChildContent(Long idx, ContentRequest request) throws Exception;
 
     /**
      * 콘텐츠를 수정합니다.
@@ -99,8 +98,8 @@ public interface ContentService {
     /**
      * 루트 콘텐츠 + 그에 속한 모든 하위 콘텐츠를 삭제합니다.
      *
-     * @param parentId 삭제할 그룹 ID
+     * @param idx 삭제할 IDX
      * @throws Exception DB 삭제 실패 또는 트랜잭션 오류 발생 시
      */
-    void deleteContentByParentId(Long parentId) throws Exception;
+    void deleteContentByParentId(Long idx) throws Exception;
 }

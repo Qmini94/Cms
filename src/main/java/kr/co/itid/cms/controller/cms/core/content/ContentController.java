@@ -105,16 +105,16 @@ public class ContentController {
     /**
      * 하위 콘텐츠 등록 (parentId 콘텐츠 그룹에 소속)
      *
-     * @param parentId 루트 콘텐츠 ID
+     * @param idx 콘텐츠 ID
      * @param request 하위 콘텐츠 등록 요청
      */
     @PreAuthorize("@permService.hasAccess('WRITE')")
-    @PostMapping("/{parentId}")
+    @PostMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> createChildContent(
-            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Long parentId,
-            @Valid @RequestBody ChildContentRequest request) throws Exception {
+            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx,
+            @Valid @RequestBody ContentRequest request) throws Exception {
 
-        contentService.createChildContent(parentId, request);
+        contentService.createChildContent(idx, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
     }
 
@@ -160,14 +160,14 @@ public class ContentController {
     /**
      * 콘텐츠 그룹 전체 삭제 (루트 포함)
      *
-     * @param parentId 삭제할 그룹의 루트 ID
+     * @param idx 삭제할 IDX
      */
     @PreAuthorize("@permService.hasAccess('REMOVE')")
-    @DeleteMapping("/group/{parentId}")
+    @DeleteMapping("/group/{idx}")
     public ResponseEntity<ApiResponse<Void>> deleteGroupContent(
-            @PathVariable @Positive(message = "parentId는 1 이상의 값이어야 합니다") Long parentId) throws Exception {
+            @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx) throws Exception {
 
-        contentService.deleteContentByParentId(parentId);
+        contentService.deleteContentByParentId(idx);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

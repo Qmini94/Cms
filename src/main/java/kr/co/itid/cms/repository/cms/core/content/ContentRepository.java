@@ -15,12 +15,12 @@ public interface ContentRepository extends JpaRepository<Content, Long>, Content
     /**
      * 특정 parentId 그룹의 콘텐츠 목록 (정렬 순서대로)
      */
-    List<Content> findByParentIdOrderByCreatedDateAsc(Long parentId);
+    List<Content> findByParentIdOrderByCreatedDateDesc(Long parentId);
 
     /**
-     * 대표 콘텐츠 및 그 하위 콘텐츠 전체 삭제 (parentId 또는 idx가 일치하는 경우)
+     * 대표 콘텐츠 및 그 하위 콘텐츠 전체 삭제 (parentId가 일치하는 경우)
      */
-    void deleteAllByParentIdOrIdx(Long parentId, Long idx);
+    void deleteAllByParentId(Long parentId);
 
     /**
      * parentId 기준으로 사용 중인 콘텐츠 1건만 조회 (isMain = true)

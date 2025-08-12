@@ -67,7 +67,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
             Content content = contentRepository.findById(idx)
                     .orElseThrow(() -> new IllegalArgumentException("Content not found: " + idx));
 
-            List<Content> list = contentRepository.findByParentIdOrderByCreatedDateAsc(content.getParentId());
+            List<Content> list = contentRepository.findByParentIdOrderByCreatedDateDesc(content.getParentId());
             loggingUtil.logSuccess(Action.RETRIEVE, "Group contents loaded: idx=" + idx);
             return contentMapper.toResponseList(list);
         } catch (Exception e) {
@@ -103,7 +103,6 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
             // Step 1. toEntity + 강제 설정
             Content root = contentMapper.toEntity(request);
-            root.setHostname(user.hostname());
             root.setCreatedBy(user.userId());
             root.setIsMain(true);
 
@@ -124,19 +123,21 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional(rollbackFor = EgovBizException.class)
-    public void createChildContent(Long parentId, ChildContentRequest request) throws Exception {
-        loggingUtil.logAttempt(Action.CREATE, "Try to create child content: parentId=" + parentId);
-
+    public void createChildContent(Long idx, ContentRequest request) throws Exception {
+        loggingUtil.logAttempt(Action.CREATE, "Try to create child content: idx=" + idx);
         try {
             JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
+
+            Content content = contentRepository.findById(idx)
+                    .orElseThrow(() -> new IllegalArgumentException("Content not found: " + idx));
             // Step 1. entity 생성
-            Content child = contentMapper.toEntityChild(request);
-            child.setHostname(user.hostname());
+            Content child = contentMapper.toEntity(request);
             child.setCreatedBy(user.userId());
-            child.setParentId(parentId);
+            child.setParentId(content.getParentId());
+            child.setIsUse(content.getIsUse());
 
             contentRepository.save(child);
-            loggingUtil.logSuccess(Action.CREATE, "Child content created: parentId=" + parentId);
+            loggingUtil.logSuccess(Action.CREATE, "Child content created: parentId=" + content.getParentId());
         } catch (IllegalArgumentException e) {
             loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
             throw processException("Invalid input detected", e);
@@ -280,12 +281,15 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
     @Override
     @Transactional(rollbackFor = EgovBizException.class)
-    public void deleteContentByParentId(Long parentId) throws Exception {
-        loggingUtil.logAttempt(Action.DELETE, "Try to delete group contents: parentId=" + parentId);
+    public void deleteContentByParentId(Long idx) throws Exception {
+        loggingUtil.logAttempt(Action.DELETE, "Try to delete group contents: idx=" + idx);
 
         try {
-            contentRepository.deleteAllByParentIdOrIdx(parentId, parentId);
-            loggingUtil.logSuccess(Action.DELETE, "Group contents deleted: parentId=" + parentId);
+            // 1) 대상 로우 조회 (parentId 얻기)
+            Content target = contentRepository.findById(idx)
+                    .orElseThrow(() -> new IllegalArgumentException("Content not found: " + idx));
+            contentRepository.deleteAllByParentId(target.getParentId());
+            loggingUtil.logSuccess(Action.DELETE, "Group contents deleted: parentId=" + target.getParentId());
         } catch (IllegalArgumentException e) {
             loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
             throw processException("Invalid input detected", e);

@@ -20,6 +20,10 @@ public class ContentRequest {
     @Size(max = 200, message = "제목은 최대 200자까지 가능합니다")
     private String title;
 
+    @NotBlank(message = "호스트명은 필수입니다")
+    @Size(max = 50, message = "호스트명은 최대 50자까지 가능합니다")
+    private String hostname;
+
     @NotBlank(message = "본문은 필수입니다")
     private String content;
 }
