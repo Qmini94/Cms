@@ -8,7 +8,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "_cms_permission")
+@Table(name = "cms_permission")
 @Getter
 @Setter
 @Builder
