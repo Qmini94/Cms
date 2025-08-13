@@ -36,7 +36,7 @@ public final class CryptoUtil {
             bb.put(VERSION).put(iv).put(ct);
             return bb.array();
         } catch (Exception e) {
-            throw new IllegalStateException("Encryption failed", e);
+            throw new IllegalStateException("Encryption failed: " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
         }
     }
 

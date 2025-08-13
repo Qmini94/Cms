@@ -24,6 +24,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service("memberService")
 @RequiredArgsConstructor
 public class MemberServiceImpl extends EgovAbstractServiceImpl implements MemberService {
@@ -93,6 +95,8 @@ public class MemberServiceImpl extends EgovAbstractServiceImpl implements Member
             // 비밀번호 암호화
             entity.setUserPassword(passwordEncoder.encode(userId));
             entity.setUserPin(userId);
+
+            entity.setRegDate(LocalDateTime.now());
 
             // 기본값 정책(필요 시)
             if (entity.getUserLevel() == null) entity.setUserLevel(9); // 예: 기본 USER
