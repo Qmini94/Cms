@@ -160,17 +160,4 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
     private String getCacheKey(Long menuId) {
         return PERMISSION_KEY_PREFIX + menuId;
     }
-
-    /**
-     * 특정 메뉴 ID의 권한 캐시를 무효화합니다.
-     * TODO: 삭제할때 하위 ID들 캐쉬 같이 삭제해야함.
-     * @param menuId 삭제할 메뉴 ID
-     */
-    public void invalidateMenuPermission(Long menuId) {
-        try {
-            redisTemplate.delete(getCacheKey(menuId));
-        } catch (Exception e) {
-            throw new RuntimeException("Fail to invalidate menu permission cache", e);
-        }
-    }
 }

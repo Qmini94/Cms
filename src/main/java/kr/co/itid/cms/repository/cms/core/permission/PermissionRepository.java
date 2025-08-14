@@ -9,4 +9,6 @@ import java.util.List;
 public interface PermissionRepository extends JpaRepository<Permission, Long> {
     @Query("SELECT p FROM Permission p WHERE p.menuId IN :menuIds")
     List<Permission> findAllByMenuIds(List<Long> menuIds);
+
+    List<Permission> findByMenuId(Long menuIds);
 }
