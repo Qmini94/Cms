@@ -25,7 +25,7 @@ public class Permission {
     @Column(name = "menu_id", nullable = false)
     private Long menuId;
 
-    @Column(nullable = false, columnDefinition = "enum('id','name','department','level','all')")
+    @Column(nullable = false, columnDefinition = "enum('id','level')")
     private String type;
 
     @Column(length = 30)
@@ -43,7 +43,7 @@ public class Permission {
     @Column(columnDefinition = "enum('y','n') default 'n'")
     private String view;
 
-    @Column(columnDefinition = "enum('y','n','hidden','attest') default 'n'")
+    @Column(columnDefinition = "enum('y','n') default 'n'")
     private String write;
 
     @Column(columnDefinition = "enum('y','n') default 'n'")
