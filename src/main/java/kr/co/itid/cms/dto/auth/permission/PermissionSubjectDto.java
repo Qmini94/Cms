@@ -11,15 +11,16 @@ import javax.validation.constraints.Size;
 @Builder
 @Jacksonized
 public class PermissionSubjectDto {
-    @NotBlank(message = "subject.key는 필수입니다.")
-    private final String key;
-
     @NotNull(message = "subject.id는 필수입니다.")
     private final Object id;
 
     @NotBlank(message = "subject.name은 필수입니다.")
     @Size(max = 80, message = "subject.name은 80자 이내여야 합니다.")
     private final String name;
+
+    @NotBlank(message = "subject.value은 필수입니다.")
+    @Size(max = 80, message = "subject.value은 80자 이내여야 합니다.")
+    private final String value;
 
     @NotNull(message = "subject.type은 필수입니다.")
     private final SubjectType type;

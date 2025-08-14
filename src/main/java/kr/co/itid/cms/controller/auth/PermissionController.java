@@ -26,7 +26,6 @@ public class PermissionController {
 
     /**
      * 권한 체인(현재 + 상속) 조회
-     * 예: GET /back-api/permission/chain?menuId=123&pathId=1.3.8
      */
     @PreAuthorize("@permService.hasAccess('MANAGE')")
     @GetMapping("/chain")
@@ -50,7 +49,6 @@ public class PermissionController {
 
     /**
      * 현재 메뉴 권한 일괄 업서트(정렬 포함)
-     * 예: PUT /back-api/permission/{menuId}/entries
      */
     @PreAuthorize("@permService.hasAccess('MANAGE')")
     @PutMapping("/{menuId}/entries")

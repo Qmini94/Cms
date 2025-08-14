@@ -25,6 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 @Service("memberService")
 @RequiredArgsConstructor
@@ -71,6 +74,52 @@ public class MemberServiceImpl extends EgovAbstractServiceImpl implements Member
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "회원 조회 실패: " + e.getMessage());
             throw processException("회원 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
+    public Map<String, String> getDisplayNamesByIds(Set<String> idxList) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE,
+                "배치 이름 조회 시도: count=" + (idxList == null ? 0 : idxList.size()));
+        try {
+            if (idxList == null || idxList.isEmpty()) {
+                return java.util.Collections.emptyMap();
+            }
+
+            // 문자열 ID → Long (숫자만)
+            java.util.LinkedHashSet<Long> ids = new java.util.LinkedHashSet<>();
+            for (String s : idxList) {
+                if (s == null) continue;
+                String t = s.trim();
+                if (t.isEmpty()) continue;
+                if (t.matches("\\d+")) {
+                    ids.add(Long.parseLong(t));
+                }
+            }
+            if (ids.isEmpty()) {
+                return java.util.Collections.emptyMap();
+            }
+
+            // 배치 조회
+            java.util.List<Member> members = memberRepository.findAllById(ids);
+
+            // 결과: key="idx"(문자열), value=userName
+            java.util.LinkedHashMap<String, String> out =
+                    new java.util.LinkedHashMap<>(members.size());
+            for (Member m : members) {
+                out.put(String.valueOf(m.getIdx()), m.getUserName());
+            }
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "배치 이름 조회 성공: found=" + out.size());
+            return out;
+
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
+            throw processException("회원 이름 배치 조회 중 DB 오류가 발생했습니다.", e);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Unknown error: " + e.getMessage());
+            throw processException("회원 이름 배치 조회 중 오류가 발생했습니다.", e);
         }
     }
 

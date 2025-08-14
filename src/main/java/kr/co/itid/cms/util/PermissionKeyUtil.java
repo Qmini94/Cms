@@ -42,11 +42,6 @@ public final class PermissionKeyUtil {
         return SYNONYMS.getOrDefault(up, up);
     }
 
-    /** 정규 키 여부 */
-    public static boolean isCanon(String key) {
-        return key != null && CANON_KEYS.contains(key);
-    }
-
     /** 맵에서 정규 키 기준으로 boolean 값 얻기 (동의어 포함 탐색) */
     public static boolean getBool(Map<String, Boolean> map, String canonicalKey, String... extraSynonyms) {
         if (map == null || canonicalKey == null) return false;

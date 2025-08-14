@@ -16,6 +16,7 @@ import kr.co.itid.cms.service.auth.PermissionResolverService;
 import kr.co.itid.cms.service.auth.PermissionService;
 import kr.co.itid.cms.service.auth.model.MenuPermissionData;
 import kr.co.itid.cms.service.auth.model.PermissionEntry;
+import kr.co.itid.cms.service.cms.core.member.MemberService;
 import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
+import static kr.co.itid.cms.constanrt.LevelConstants.LEVEL_NAME_MAP;
 import static kr.co.itid.cms.constanrt.PermissionConstants.*;
 import static kr.co.itid.cms.constanrt.RedisConstants.PERMISSION_KEY_PREFIX;
 import static kr.co.itid.cms.util.PermissionKeyUtil.getBool;
@@ -45,6 +47,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     private final LoggingUtil loggingUtil;
     private final JwtTokenProvider jwtTokenProvider;
     private final PermissionResolverService permissionResolverService;
+    private final MemberService memberService;
 
     private final MenuRepository menuRepository;
     private final PermissionRepository permissionRepository;
@@ -136,6 +139,9 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             // 3) 한 번만 조회
             final List<Permission> all = permissionRepository.findAllByMenuIds(fullPath);
 
+            // ID → 이름 맵을 한 번만 생성
+            final Map<String, String> idNameMap = buildIdNameMap(all);
+
             // 4) 현재/상속 분리
             final List<Permission> current = all.stream()
                     .filter(p -> Objects.equals(p.getMenuId(), menuId))
@@ -148,12 +154,13 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
             // 5) 매핑 + 정규화
             final List<PermissionEntryDto> currentDtos = current.stream()
-                    .map(this::toDto)
+                    .map(e -> toDto(e, idNameMap))
                     .map(this::normalizeEntry) // 반환값 사용
                     .collect(toList());
 
             // 가까운 상위 우선으로 dedupe(동일 subject 한 번만)
-            final List<PermissionEntryDto> inheritedDtos = mergeNearestAncestorFirst(inherited, ancestors);
+            final List<PermissionEntryDto> inheritedDtos =
+                    mergeNearestAncestorFirst(inherited, ancestors, idNameMap);
 
             loggingUtil.logSuccess(Action.RETRIEVE,
                     "Chain loaded: current=" + currentDtos.size() + ", inherited=" + inheritedDtos.size());
@@ -195,7 +202,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             // 업서트 (normalized 사용)
             for (PermissionEntryDto dto : normalized) {
                 String type  = toEntityTypeOrInfer(dto);
-                String value = String.valueOf(dto.getSubject().getId());
+                String value = String.valueOf(dto.getSubject().getValue());
                 String pair  = pairKey(menuId, type, value);
                 alivePairs.add(pair);
 
@@ -259,14 +266,17 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 .collect(toList());
     }
 
-    private PermissionEntryDto toDto(Permission e) {
-        // subject (Permission.type: "id" | "login")
+    /** Entity → DTO (value 사용, name 채우기) */
+    private PermissionEntryDto toDto(Permission e, Map<String, String> idNameMap) {
         SubjectType type = "id".equalsIgnoreCase(e.getType()) ? SubjectType.ID : SubjectType.LEVEL;
+
+        final String value = String.valueOf(e.getValue());
+        final String name  = resolveSubjectName(type, value, idNameMap);
+
         PermissionSubjectDto subject = PermissionSubjectDto.builder()
-                .key(type == SubjectType.ID ? "ID:" + e.getValue() : "LEVEL:" + e.getValue())
-                .id(e.getValue())
-                .name(null) // 필요 시 라벨링
                 .type(type)
+                .value(value)
+                .name(name)
                 .build();
 
         Map<String, Boolean> perms = new LinkedHashMap<>();
@@ -286,6 +296,44 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 .build();
     }
 
+    private String resolveSubjectName(SubjectType type, String value, java.util.Map<String, String> idNameMap) {
+        if (type == SubjectType.ID) {
+            return idNameMap != null ? idNameMap.getOrDefault(value, "unknown") : "unknown";
+        }
+        // LEVEL: 매핑 없으면 "레벨 {value}"로 표시
+        String named = LEVEL_NAME_MAP.get(value);
+        return (named != null) ? named : ("레벨 " + value);
+    }
+
+    /** Permission 리스트에서 ID 타입만 모아 회원 이름을 배치로 조회 */
+    private Map<String, String> buildIdNameMap(Collection<Permission> permissions) {
+        if (permissions == null || permissions.isEmpty()) return Map.of();
+
+        // type = "id" 인 엔트리의 value 수집
+        Set<String> ids = permissions.stream()
+                .filter(p -> p.getType() != null && p.getValue() != null)
+                .filter(p -> "id".equalsIgnoreCase(p.getType()))
+                .map(Permission::getValue)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (ids.isEmpty()) return Map.of();
+
+        Map<String, String> result = new LinkedHashMap<>();
+        try {
+            // 키: 회원ID(String), 값: 표시명(String)
+            Map<String, String> fetched = memberService.getDisplayNamesByIds(ids);
+            if (fetched != null) result.putAll(fetched);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Failed to fetch usernames (ids=" + ids.size() + "): " + e.getMessage());
+        } finally {
+            // 누락/실패 모두 기본값으로 보정
+            for (String id : ids) {
+                result.putIfAbsent(id, "unknown");
+            }
+        }
+        return result;
+    }
+
     private void fillEntityFromDto(Permission entity, PermissionEntryDto dto) {
         entity.setSort(dto.getSort());
 
@@ -300,11 +348,15 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         entity.setAdmin (yn(getBool(p, ADMIN)));
     }
 
-    /** dto 정규화: PermissionKeyUtil로 동의어 → 정규키, 허용 키만 유지 */
+    /** dto 정규화: 동의어 → 정규키, 허용 키만 유지 (key 필드 의존 제거) */
     private PermissionEntryDto normalizeEntry(PermissionEntryDto dto) {
         if (dto == null) return null;
-        if (dto.getSubject() == null || dto.getSubject().getKey() == null || dto.getSubject().getKey().isBlank())
-            throw new IllegalArgumentException("subject.key is required");
+        if (dto.getSubject() == null
+                || dto.getSubject().getType() == null
+                || dto.getSubject().getValue() == null)
+        {
+            throw new IllegalArgumentException("subject.type 및 subject.value 는 필수입니다.");
+        }
 
         Map<String, Boolean> out = normalizePermissions(dto.getPermissions(), true); // ASSIGNEE 허용
         return PermissionEntryDto.builder()
@@ -329,18 +381,13 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         return (t == SubjectType.ID) ? "id" : "login";
     }
 
-    /** type 누락 시 key/id로 유추 */
+    /** type 누락 시 value로 유추 (key 의존 제거) */
     private String toEntityTypeOrInfer(PermissionEntryDto dto) {
-        SubjectType t = dto.getSubject() != null ? dto.getSubject().getType() : null;
+        SubjectType t = (dto.getSubject() != null) ? dto.getSubject().getType() : null;
         if (t != null) return toEntityType(t);
-        String key = dto.getSubject() != null ? dto.getSubject().getKey() : null;
-        if (key != null) {
-            String up = key.toUpperCase(Locale.ROOT);
-            if (up.startsWith("ID:"))    return "id";
-            if (up.startsWith("LEVEL:")) return "login";
-        }
-        Object id = dto.getSubject() != null ? dto.getSubject().getId() : null;
-        if (id != null && String.valueOf(id).matches("\\d+")) return "id";
+
+        Object v = (dto.getSubject() != null) ? dto.getSubject().getValue() : null;
+        if (v != null && String.valueOf(v).matches("\\d+")) return "id";
         return "login";
     }
 
@@ -352,8 +399,11 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     }
 
     /** 조상 엔트리를 "가까운 상위 우선"으로 dedupe해서 DTO로 변환 */
-    private List<PermissionEntryDto> mergeNearestAncestorFirst(List<Permission> list, List<Long> orderedAncestors) {
-        // menuId → 순위 (0: 가장 가까운 상위)
+    private List<PermissionEntryDto> mergeNearestAncestorFirst(
+            List<Permission> list,
+            List<Long> orderedAncestors,
+            Map<String, String> idNameMap
+    ) {
         Map<Long, Integer> rank = new HashMap<>();
         for (int i = 0; i < orderedAncestors.size(); i++) rank.put(orderedAncestors.get(i), i);
 
@@ -365,7 +415,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         for (Permission e : list) {
             String subjectPair = e.getType() + ":" + e.getValue(); // 동일 subject dedupe
             if (!picked.containsKey(subjectPair)) {
-                PermissionEntryDto dto = normalizeEntry(toDto(e));  // 정규화 반영
+                PermissionEntryDto dto = normalizeEntry(toDto(e, idNameMap));
                 picked.put(subjectPair, dto);
             }
         }

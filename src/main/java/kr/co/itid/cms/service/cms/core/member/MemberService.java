@@ -8,6 +8,10 @@ import kr.co.itid.cms.dto.cms.core.member.response.MemberResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * 회원 관리 서비스 인터페이스입니다.
  * 회원 목록 조회, 단일 조회, 생성(임시 비밀번호 정책), 수정 기능을 제공합니다.
@@ -32,6 +36,15 @@ public interface MemberService {
      * @throws Exception 데이터 없음 등 오류 발생 시 (예: 미존재 시 EgovBizException)
      */
     MemberResponse getMemberByIdx(Long idx) throws Exception;
+
+    /**
+     * 내부 기본키(idx) 목록으로 표시 이름을 배치 조회합니다.
+     *
+     * @param idxList 회원 idx 목록
+     * @return key: idx, value: 표시 이름
+     * @throws Exception 조회 실패 시
+     */
+    Map<String, String> getDisplayNamesByIds(Set<String> idxList) throws Exception;
 
     /**
      * 회원을 생성합니다.
