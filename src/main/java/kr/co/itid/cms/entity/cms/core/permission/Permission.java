@@ -6,6 +6,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 @Entity
 @Table(name = "cms_permission")
@@ -25,6 +26,7 @@ public class Permission {
     @Column(name = "menu_id", nullable = false)
     private Long menuId;
 
+    // ENUM('id','level')에 맞춰 저장 직전에 소문자 정규화/검증
     @Column(nullable = false, columnDefinition = "enum('id','level')")
     private String type;
 
@@ -40,13 +42,14 @@ public class Permission {
     @Column(columnDefinition = "enum('y','n') default 'n'")
     private String access;
 
-    @Column(columnDefinition = "enum('y','n') default 'n'")
+    // 예약어 가능성 있는 컬럼은 백틱 인용
+    @Column(name = "`view`", columnDefinition = "enum('y','n') default 'n'")
     private String view;
 
-    @Column(columnDefinition = "enum('y','n') default 'n'")
+    @Column(name = "`write`", columnDefinition = "enum('y','n') default 'n'")
     private String write;
 
-    @Column(columnDefinition = "enum('y','n') default 'n'")
+    @Column(name = "`modify`", columnDefinition = "enum('y','n') default 'n'")
     private String modify;
 
     @Column(columnDefinition = "enum('y','n') default 'n'")
@@ -77,4 +80,19 @@ public class Permission {
 
     @Column(name = "del_date")
     private LocalDateTime delDate;
+
+    /* ====== 정규화/검증 로직 ====== */
+
+    public void setType(String type) {
+        this.type = normalizeType(type);
+    }
+
+    private static String normalizeType(String in) {
+        if (in == null) throw new IllegalArgumentException("type cannot be null");
+        String v = in.trim().toLowerCase(Locale.ROOT);
+        if (!"id".equals(v) && !"level".equals(v)) {
+            throw new IllegalArgumentException("Invalid type: " + in + " (allowed: 'id','level')");
+        }
+        return v;
+    }
 }

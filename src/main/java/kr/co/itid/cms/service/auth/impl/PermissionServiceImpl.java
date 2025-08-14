@@ -338,13 +338,13 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         entity.setSort(dto.getSort());
 
         Map<String, Boolean> p = Optional.ofNullable(dto.getPermissions()).orElse(Map.of());
-        entity.setView  (yn(getBool(p, VIEW, "READ")));
+        entity.setView  (yn(getBool(p, VIEW)));
         entity.setWrite (yn(getBool(p, WRITE)));
-        entity.setModify(yn(getBool(p, MODIFY, "UPDATE")));
-        entity.setRemove(yn(getBool(p, REMOVE, "DELETE")));
-        entity.setManage(yn(getBool(p, MANAGE, ADMIN))); // MANAGE or ADMIN
-        entity.setAccess(yn(getBool(p, ACCESS, "MENU_ACCESS")));
-        entity.setReply (yn(getBool(p, REPLY, "COMMENT")));
+        entity.setModify(yn(getBool(p, MODIFY)));
+        entity.setRemove(yn(getBool(p, REMOVE)));
+        entity.setManage(yn(getBool(p, MANAGE))); // MANAGE or ADMIN
+        entity.setAccess(yn(getBool(p, ACCESS)));
+        entity.setReply (yn(getBool(p, REPLY)));
         entity.setAdmin (yn(getBool(p, ADMIN)));
     }
 
@@ -378,7 +378,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     }
 
     private String toEntityType(SubjectType t) {
-        return (t == SubjectType.ID) ? "id" : "login";
+        return (t == SubjectType.ID) ? "id" : "level";
     }
 
     /** type 누락 시 value로 유추 (key 의존 제거) */
@@ -388,7 +388,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
         Object v = (dto.getSubject() != null) ? dto.getSubject().getValue() : null;
         if (v != null && String.valueOf(v).matches("\\d+")) return "id";
-        return "login";
+        return "level";
     }
 
     private String pairKey(Permission p) {
