@@ -20,6 +20,9 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
 
     Optional<Menu> findById(Long id);
 
+    @Query("select m.pathId from Menu m where m.id = :id")
+    String findPathIdById(@Param("id") Long id);
+
     Optional<Menu> findByTypeAndName(String type, String name);
 
     boolean existsByTypeAndName(String type, String name);
@@ -35,4 +38,8 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
 
     @Query("SELECT m FROM Menu m WHERE m.pathId LIKE CONCAT(:pathIdWithDot, '%')")
     List<Menu> findAllDescendantsByPathIdWithDot(@Param("pathIdWithDot") String pathIdWithDot);
+
+    // 자기 자신 제외: prefix를 "자기 path + '.'" 로 넣으므로 후손만 매칭됨
+    @Query("select m.id from Menu m where m.pathId like concat(:prefix, '%')")
+    List<Long> findDescendantIdsByPathPrefix(@Param("prefix") String prefix);
 }

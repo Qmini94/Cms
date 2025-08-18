@@ -105,7 +105,7 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
                                     .orElseThrow(() -> new IllegalArgumentException("Login idx is null"))
                     );
                     permissionData.addPermissionEntry(sort, idx, null, permissionSet);
-                } else if ("login".equalsIgnoreCase(perm.getType())) {
+                } else if ("level".equalsIgnoreCase(perm.getType())) {
                     int level = Integer.parseInt(
                             Optional.ofNullable(perm.getValue())
                                     .orElseThrow(() -> new IllegalArgumentException("Login level is null"))

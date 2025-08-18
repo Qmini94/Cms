@@ -225,7 +225,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 permissionRepository.deleteAllInBatch(toDelete);
             }
 
-            // 캐시 무효화 (현재 메뉴 — TODO: 하위 메뉴 전파 무효화)
+            // 캐시 무효화 (하위 메뉴 전파 무효화)
             invalidateMenuPermission(menuId);
 
             loggingUtil.logSuccess(Action.UPDATE,
@@ -425,8 +425,35 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     /* === 캐시 무효화(Resolver와 동일 키 규칙) === */
     private void invalidateMenuPermission(Long menuId) {
         try {
-            redisTemplate.delete(PERMISSION_KEY_PREFIX + menuId);
-            // TODO: 하위 메뉴 전파 무효화(필요 시 path 기반으로 자식들 키 삭제)
+            // 1) 자기 자신 키 삭제
+            String selfKey = PERMISSION_KEY_PREFIX + menuId;
+            redisTemplate.delete(selfKey);
+
+            // 2) 자신의 path_id 조회
+            String selfPath = menuRepository.findPathIdById(menuId);
+            if (selfPath == null || selfPath.isBlank()) {
+                loggingUtil.logFail(Action.UPDATE, "Cache invalidate: pathId not found for menuId=" + menuId);
+                return;
+            }
+            String prefix = selfPath + ".";
+            // 4) 후손 menuId들 조회
+            List<Long> descendants = menuRepository.findDescendantIdsByPathPrefix(prefix);
+            if (descendants.isEmpty()) {
+                loggingUtil.logSuccess(Action.UPDATE, "Cache invalidate: no descendants for menuId=" + menuId);
+                return;
+            }
+            // 5) 후손 키들 일괄 삭제
+            List<String> keys = descendants.stream()
+                    .map(id -> PERMISSION_KEY_PREFIX + id)
+                    .collect(Collectors.toList());
+            redisTemplate.delete(keys);
+
+            loggingUtil.logSuccess(
+                    Action.UPDATE,
+                    "Cache invalidate success: menuId=" + menuId +
+                            ", descendants=" + descendants.size() +
+                            ", deletedKeys=" + (keys.size() + 1)
+            );
         } catch (Exception e) {
             loggingUtil.logFail(Action.UPDATE, "Cache invalidate failed: " + e.getMessage());
         }
