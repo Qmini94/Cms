@@ -31,9 +31,6 @@ public class SiteLayout {
     @Column(name = "html", columnDefinition = "LONGTEXT", nullable = false)
     private String html;
 
-    @Column(name = "css", columnDefinition = "LONGTEXT")
-    private String css;
-
     @Column(name = "version", nullable = false)
     private Integer version = 1;
 
@@ -42,4 +39,10 @@ public class SiteLayout {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @Column(name="extra_css_urls", columnDefinition="LONGTEXT")
+    private String extraCssUrlsJson;   // JSON 배열 문자열
+
+    @Column(name="extra_js_urls", columnDefinition="LONGTEXT")
+    private String extraJsUrlsJson;    // JSON 배열 문자열
 }

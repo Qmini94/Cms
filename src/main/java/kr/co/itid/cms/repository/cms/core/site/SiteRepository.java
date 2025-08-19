@@ -13,5 +13,7 @@ public interface SiteRepository extends JpaRepository<Site, Long> {
 
     Optional<Site> findBySiteHostName(String siteHostName);
 
+    Optional<Site> findByIdx(Long siteIdx);
+
     boolean existsBySiteHostName(String siteHostName);
 }
