@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 public class LayoutSaveRequest {
     @NotNull
-    private Long siteIdx;     // ★ site 식별자 (idx)
+    private Long siteIdx;     // site 식별자 (idx)
 
     @NotNull
     private LayoutKind kind;  // MAIN / SUB

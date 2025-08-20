@@ -2,49 +2,41 @@ package kr.co.itid.cms.controller.cms.core.render;
 
 import kr.co.itid.cms.dto.cms.core.render.response.RenderResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
-import kr.co.itid.cms.enums.LayoutKind;
-import kr.co.itid.cms.service.cms.core.page.LayoutService;
-import kr.co.itid.cms.service.cms.core.page.PageService;
-import kr.co.itid.cms.service.cms.core.page.WidgetService;
 import kr.co.itid.cms.service.cms.core.render.RenderService;
-import kr.co.itid.cms.util.HtmlComposerUtil;
-import kr.co.itid.cms.util.HtmlSanitizerUtil;
-import kr.co.itid.cms.util.WidgetCtx;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotBlank;
+import java.util.Optional;
 
 /**
- * 렌더링 데이터를 제공하는 API 컨트롤러입니다.
- * 사용자의 메뉴 접근 권한에 따라 메뉴 타입(board, contents 등)에 맞는 렌더링 데이터를 반환합니다.
+ * 렌더링 컨트롤러
+ *
+ * 설계 원칙
+ * - 컨트롤러는 파라미터 바인딩/검증 + 서비스 위임만 수행(얇게 유지)
+ * - 로깅/예외 래핑/캐시 결정/보안 헤더(CSP, nonce)는 서비스/필터에서 처리
+ * - JSON 응답은 ApiResponse 래핑, HTML 응답은 text/html로 직접 반환(프론트 parseAs:text 대응)
  */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/back-api/render")
+@Validated
 public class RenderController {
+
     private final RenderService renderService;
-    private final LayoutService layoutSvc;
-    private final PageService pageSvc;
-    private final WidgetService widgetSvc;
+
+    /* =========================
+       JSON: 권한 기반 렌더 데이터
+       ========================= */
 
     /**
-     * 현재 사용자의 menuId에 해당하는 메뉴의 타입(type),
-     * 타입에 따르는 board 또는 contents key값,
-     * 옵션, 사용자에 대한 권한데이터를 렌더링하여 응답합니다.
-     *
-     * 권한이 있는 사용자만 접근할 수 있으며,
-     * JwtAuthenticatedUser에 포함된 menuId를 기준으로 렌더링 데이터를 제공합니다.
-     *
-     * @return ApiResponse&lt;RenderResponse&gt; 렌더링된 데이터와 타입 정보를 포함한 응답
-     * @throws Exception 렌더링 처리 중 오류 발생 시
+     * 현재 사용자 컨텍스트(JWT 내 menuId 등)에 기반한 렌더 데이터(JSON)를 반환합니다.
+     * 권한 체크는 ACCESS 로 제한합니다.
      */
     @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
@@ -53,81 +45,58 @@ public class RenderController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    /**
-     * 상세 보기 권한 확인
-     */
-    @PreAuthorize("@permService.hasAccess('VIEW')")
-    @GetMapping("/view")
-    public ResponseEntity<ApiResponse<RenderResponse>> renderView() throws Exception {
-        RenderResponse response = renderService.getRenderData(); //TODO: 글 idx값을 가져와서 추가 처리해함.
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
+    /* =========================
+       HTML: composed / shell
+       ========================= */
 
     /**
-     * 글쓰기 권한 확인
+     * 퍼블리시/버전/위젯치환/자산주입/Sanitizer 적용된 최종 HTML.
+     *
+     * 주의
+     * - 공개 페이지 캐시 적중률을 위해 인증 영향이 없도록 permitAll 로 개방(개인화는 위젯/API로 분리)
+     * - 보안 헤더(CSP/nonce)와 캐시정책은 SecurityHeaderFilter 등에서 처리
+     * - 프론트는 safeFetch(parseAs:text)로 그대로 렌더
+     *
+     * @param site          사이트 식별자(호스트/코드 등)
+     * @param path          페이지 경로(기본값 "/")
+     * @param layoutVersion 특정 레이아웃 버전 지정(없으면 mode에 따라 선택)
+     * @param mode          published | draft (기본: published)
      */
-    @PreAuthorize("@permService.hasAccess('WRITE')")
-    @GetMapping("/write")
-    public ResponseEntity<ApiResponse<Boolean>> checkWriteAccess() {
-        return ResponseEntity.ok(ApiResponse.success(true));
-    }
-
-    /**
-     * 수정 권한 확인
-     */
-    @PreAuthorize("@permService.hasAccess('MODIFY')")
-    @GetMapping("/modify")
-    public ResponseEntity<ApiResponse<Boolean>> checkModifyAccess() {
-        return ResponseEntity.ok(ApiResponse.success(true));
-    }
-
-    @GetMapping(value="/composed", produces=MediaType.TEXT_HTML_VALUE)
+    @PreAuthorize("@permService.hasAccess('ACCESS')")
+    @GetMapping(value = "/composed", produces = MimeTypeUtils.TEXT_HTML_VALUE)
     public ResponseEntity<String> composed(
-            @RequestParam String site,
-            @RequestParam String path,
-            HttpServletRequest req) {
-
-        LayoutKind kind = path.equals("/"+site) ? LayoutKind.MAIN : LayoutKind.SUB;
-
-        String rawLayout = layoutSvc.getPublishedHtml(site, kind);
-        String rawPage   = pageSvc.getCurrentHtml(site, path);
-
-        String safeLayout = HtmlSanitizerUtil.sanitizeLayout(rawLayout);
-        String safePage   = HtmlSanitizerUtil.sanitizePage(rawPage);
-
-        String renderedBody = widgetSvc.render(safePage, new WidgetCtx(site, path, req));
-        String body = HtmlComposerUtil.compose(safeLayout, java.util.Map.of("content", renderedBody));
-
-        String html = """
-                      <!doctype html><html><head><meta charset="utf-8">
-                      <meta name="viewport" content="width=device-width,initial-scale=1">
-                      <title>%s</title></head><body>%s</body></html>
-                      """.formatted(site.toUpperCase(), body);
-
-        HttpHeaders h = new HttpHeaders();
-        h.add("Content-Security-Policy",
-                "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; " +
-                        "script-src 'none'; frame-ancestors 'self' http://localhost:3000;");
-        return ResponseEntity.ok().headers(h).body(html);
+            @RequestParam @NotBlank String site,
+            @RequestParam(defaultValue = "/") String path,
+            @RequestParam(required = false) Optional<Long> layoutVersion,
+            @RequestParam(required = false, defaultValue = "published") String mode
+    ) throws Exception {
+        String html = renderService.composePage(site, path, layoutVersion.orElse(null), mode);
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML)
+                .body(html);
     }
 
-    // composed()와 동일 로직이되 renderedBody = "" 로 고정
-    @GetMapping(value="/shell", produces=MediaType.TEXT_HTML_VALUE)
-    public ResponseEntity<String> shell(@RequestParam String site,
-                                        @RequestParam String path) {
-        LayoutKind kind = path.equals("/"+site) ? LayoutKind.MAIN : LayoutKind.SUB;
-
-        String rawLayout = layoutSvc.getPublishedHtml(site, kind);
-        String safeLayout = HtmlSanitizerUtil.sanitizeLayout(rawLayout);
-
-        String body = HtmlComposerUtil.compose(safeLayout, java.util.Map.of("content",""));
-
-        String html = """
-                    <!doctype html><html><head><meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width,initial-scale=1">
-                    <title>%s</title></head><body>%s</body></html>
-                    """.formatted(site.toUpperCase(), body);
-
-        return ResponseEntity.ok(html);
+    /**
+     * Vue Teleport용 최소 Shell HTML.
+     *
+     * 주의
+     * - 거의 정적이므로 CDN/프록시에서 장기 캐시 권장(필터에서 헤더 적용)
+     * - 개인화/동적 블록은 클라이언트 위젯(API)로 주입
+     *
+     * @param site 사이트 식별자
+     * @param path 페이지 경로
+     * @param mode published | draft (기본: published)
+     */
+    @PreAuthorize("@permService.hasAccess('ACCESS')")
+    @GetMapping(value = "/shell", produces = MimeTypeUtils.TEXT_HTML_VALUE)
+    public ResponseEntity<String> shell(
+            @RequestParam @NotBlank String site,
+            @RequestParam(defaultValue = "/") String path,
+            @RequestParam(required = false, defaultValue = "published") String mode
+    ) throws Exception {
+        String html = renderService.buildShell(site, path, mode);
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML)
+                .body(html);
     }
 }
