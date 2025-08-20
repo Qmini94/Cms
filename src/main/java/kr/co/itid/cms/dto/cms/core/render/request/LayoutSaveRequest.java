@@ -3,24 +3,48 @@ package kr.co.itid.cms.dto.cms.core.render.request;
 import kr.co.itid.cms.enums.LayoutKind;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.validation.constraints.NotNull;
+import lombok.ToString;
+import javax.validation.constraints.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-@Getter
-@Setter
+@Getter @Setter @ToString
 public class LayoutSaveRequest {
-    @NotNull
-    private Long siteIdx;     // site 식별자 (idx)
 
-    @NotNull
-    private LayoutKind kind;  // MAIN / SUB
+    @NotNull(message = "siteIdx is required")
+    private Long siteIdx;
 
-    @NotNull
-    private String html;      // 레이아웃 HTML (cms-slot 포함)      // siteName or domain or hostName
+    @NotNull(message = "kind is required")
+    private LayoutKind kind;
 
-    private List<String> cssUrls;       // 허용 CSS 경로 목록
-    private List<String> jsUrls;        // 허용 JS 경로 목록
-    private Integer version;      // optional
-    private Boolean publishNow;   // 즉시 공개여부
+    @NotBlank(message = "html is required")
+    @Size(max = 1_000_000, message = "html too long")
+    private String html;
+
+    @Size(max = 200_000, message = "css too long")
+    private String css; // 선택(인라인)
+
+    private List<@Size(max = 2048, message = "url too long") String> cssUrls;
+    private List<@Size(max = 2048, message = "url too long") String> jsUrls;
+
+    private Boolean publishNow; // null → false
+
+    /* ----------------- 정규화/기본값 헬퍼 ----------------- */
+
+    public String safeCss() { return css == null ? "" : css; }
+    public boolean isPublishNow() { return Boolean.TRUE.equals(publishNow); }
+
+    public List<String> normalizedCssUrls() { return normList(cssUrls); }
+    public List<String> normalizedJsUrls()  { return normList(jsUrls); }
+
+    private static List<String> normList(List<String> in) {
+        if (in == null) return Collections.emptyList();
+        return in.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
 }

@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service("layoutService")
 @RequiredArgsConstructor
@@ -35,24 +34,23 @@ public class LayoutServiceImpl extends EgovAbstractServiceImpl implements Layout
     private final LoggingUtil loggingUtil;
     private final SiteRepository siteRepository;
     private final SiteLayoutRepository siteLayoutRepository;
-    private final WidgetService widgetService; // 미리보기에서도 위젯 치환 필요
-
-    private final ObjectMapper objectMapper = new ObjectMapper(); // JSON ←→ List 파싱/직렬화
+    private final WidgetService widgetService;
+    private final ObjectMapper objectMapper;
 
     @Override
     public LayoutResolveResult resolveForRender(String siteCode, String path, Long layoutVersion, String mode) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE,
                 "layout.resolve attempt: site=" + siteCode + ", path=" + path + ", ver=" + layoutVersion + ", mode=" + mode);
         try {
-            final String normPath = (path == null || path.isBlank()) ? "/" : path.trim();
-            final String normMode = (mode == null || mode.isBlank()) ? "published" : mode.trim();
+            String normPath = (path == null || path.isBlank()) ? "/" : path.trim();
+            String normMode = (mode == null || mode.isBlank()) ? "published" : mode.trim();
 
-            Site site = siteRepository.findBySiteHostName(siteCode).orElseThrow(
-                    () -> processException("layout.resolve.site.notfound"));
+            Site site = siteRepository.findBySiteHostName(siteCode)
+                    .orElseThrow(() -> processException("layout.resolve.site.notfound"));
 
             LayoutKind kind = resolveKind(normPath);
 
-            final SiteLayout layout;
+            SiteLayout layout;
             if (layoutVersion != null) {
                 layout = siteLayoutRepository
                         .findBySiteAndKindAndVersion(site, kind, layoutVersion.intValue())
@@ -99,37 +97,27 @@ public class LayoutServiceImpl extends EgovAbstractServiceImpl implements Layout
         loggingUtil.logAttempt(Action.RETRIEVE,
                 "layout.preview attempt: siteIdx=" + req.getSiteIdx() + ", path=" + req.getPath() + ", kind=" + req.getKind());
         try {
-            // 0) 입력 정규화 / 필수 체크 (DTO에 @NotNull 있으나 방어)
-            final Long siteIdx = req.getSiteIdx();
-            final LayoutKind kind = req.getKind();
-            final String path = (req.getPath() == null || req.getPath().isBlank()) ? "/preview" : req.getPath().trim();
+            // DTO에서 정규화/검증 끝난 값 사용
+            Long siteIdx = req.getSiteIdx();
+            LayoutKind kind = req.getKind();
+            String path = req.normalizedPath();
 
-            // 1) Site 조회 (idx 기반)
-            final Site site = siteRepository.findById(siteIdx)
+            Site site = siteRepository.findById(siteIdx)
                     .orElseThrow(() -> processException("layout.preview.site.notfound"));
 
-            // 2) 컨텍스트 구성 (WidgetCtx는 site 식별자로 hostName/코드 중 하나를 사용)
-            //    Site 엔티티에 맞춰 적절한 식별자 사용: getSiteHostName() 또는 getCode()
-            final String siteIdent = site.getSiteHostName(); // ← 필드명에 맞춰 조정
-            final WidgetCtx ctx = widgetService.buildContext(siteIdent, path, kind);
+            String siteIdent = site.getSiteHostName(); // or site.getCode()
+            WidgetCtx ctx = widgetService.buildContext(siteIdent, path, kind);
 
-            // 3) 템플릿/페이지/자산 소스
-            final String layoutHtml = (req.getLayoutHtml() == null) ? "" : req.getLayoutHtml();
-            final String pageHtml   = (req.getPageHtml()   == null) ? "" : req.getPageHtml();
-            final List<String> cssUrls = (req.getCssUrls() == null) ? List.of() : req.getCssUrls();
-            final List<String> jsUrls  = (req.getJsUrls()  == null) ? List.of() : req.getJsUrls();
-            final String inlineCss     = (req.getInlineCss() == null) ? "" : req.getInlineCss();
+            String layoutHtml = req.safeLayoutHtml();
+            String pageHtml   = req.safePageHtml();
+            List<String> cssUrls = req.normalizedCssUrls();
+            List<String> jsUrls  = req.normalizedJsUrls();
+            String inlineCss     = req.safeInlineCss();
 
-            // 4) 레이아웃 병합 (슬롯/섹션 + 페이지 본문 삽입)
             String merged = HtmlComposerUtil.composeLayout(layoutHtml, pageHtml, ctx);
-
-            // 5) 위젯 치환
             String withWidgets = widgetService.render(merged, ctx);
-
-            // 6) head 자산 주입 (CSS/JS 목록 + 미리보기 전용 inline CSS 지원)
             String withAssets = HtmlComposerUtil.injectHeadAssets(withWidgets, cssUrls, jsUrls, inlineCss);
 
-            // 7) Sanitizer + 접근성 보정
             String sanitized = HtmlSanitizerUtil.clean(withAssets);
             String finalHtml = HtmlComposerUtil.applyAccessibilityFix(sanitized);
 
@@ -153,13 +141,11 @@ public class LayoutServiceImpl extends EgovAbstractServiceImpl implements Layout
         loggingUtil.logAttempt(Action.CREATE,
                 "layout.save attempt: siteIdx=" + req.getSiteIdx() + ", kind=" + req.getKind() + ", publishNow=" + req.getPublishNow());
         try {
-            // 1) Site 조회 (idx 기반)
             Site site = siteRepository.findById(req.getSiteIdx())
                     .orElseThrow(() -> processException("layout.save.site.notfound"));
 
             LayoutKind kind = req.getKind();
 
-            // 최신 published/draft 버전 가져오기
             Integer latestPubVer = siteLayoutRepository
                     .findFirstBySiteAndKindAndIsPublishedTrueOrderByVersionDesc(site, kind)
                     .map(SiteLayout::getVersion).orElse(0);
@@ -170,15 +156,14 @@ public class LayoutServiceImpl extends EgovAbstractServiceImpl implements Layout
 
             int nextVersion = Math.max(latestPubVer, latestDraftVer) + 1;
 
-            // 저장 엔티티 생성
             SiteLayout layout = new SiteLayout();
             layout.setSite(site);
             layout.setKind(kind);
             layout.setHtml(req.getHtml());
             layout.setVersion(nextVersion);
-            layout.setIsPublished(Boolean.TRUE.equals(req.getPublishNow()));
-            layout.setExtraCssUrlsJson(toJsonArray(req.getCssUrls()));
-            layout.setExtraJsUrlsJson(toJsonArray(req.getJsUrls()));
+            layout.setIsPublished(req.isPublishNow());
+            layout.setExtraCssUrlsJson(toJsonArray(req.normalizedCssUrls()));
+            layout.setExtraJsUrlsJson(toJsonArray(req.normalizedJsUrls()));
 
             siteLayoutRepository.save(layout);
 
@@ -190,28 +175,23 @@ public class LayoutServiceImpl extends EgovAbstractServiceImpl implements Layout
         }
     }
 
-    /* "/" → MAIN, 그 외 → SUB */
     private LayoutKind resolveKind(String path) {
         return (path == null || "/".equals(path.trim())) ? LayoutKind.MAIN : LayoutKind.SUB;
     }
 
-    /** ["a.css","b.css"] 같은 JSON 배열 → List<String>, null/공백/비배열 허용 */
     private List<String> parseJsonArray(String json) {
         if (json == null || json.isBlank()) return List.of();
         try {
-            return objectMapper.readValue(json, new TypeReference<>() {});
+            return objectMapper.readValue(json, new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
         } catch (Exception ignore) {
-            // 포맷이 배열이 아닌 경우: 단일 URL 문자열일 수 있으므로 하나짜리 리스트로 반환
             return List.of(json.trim());
         }
     }
 
-    /** List<String> → JSON 배열 문자열 ([], ["..."]) */
     private String toJsonArray(List<String> urls) {
         try {
             return objectMapper.writeValueAsString(urls == null ? List.of() : urls);
         } catch (Exception e) {
-            // 실패 시 안전하게 빈 배열로
             return "[]";
         }
     }
