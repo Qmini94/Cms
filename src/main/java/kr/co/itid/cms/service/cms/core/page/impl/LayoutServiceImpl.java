@@ -1,6 +1,5 @@
 package kr.co.itid.cms.service.cms.core.page.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.itid.cms.dto.cms.core.render.LayoutResolveResult;
 import kr.co.itid.cms.dto.cms.core.render.request.LayoutPreviewRequest;
@@ -13,10 +12,10 @@ import kr.co.itid.cms.repository.cms.core.page.SiteLayoutRepository;
 import kr.co.itid.cms.repository.cms.core.site.SiteRepository;
 import kr.co.itid.cms.service.cms.core.page.LayoutService;
 import kr.co.itid.cms.service.cms.core.page.WidgetService;
+import kr.co.itid.cms.service.cms.core.page.widget.model.WidgetCtx;
 import kr.co.itid.cms.util.HtmlComposerUtil;
 import kr.co.itid.cms.util.HtmlSanitizerUtil;
 import kr.co.itid.cms.util.LoggingUtil;
-import kr.co.itid.cms.util.WidgetCtx;
 import lombok.RequiredArgsConstructor;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
