@@ -3,7 +3,7 @@ package kr.co.itid.cms.repository.cms.core.board;
 import kr.co.itid.cms.dto.cms.core.board.response.FieldDefinitionResponse;
 import kr.co.itid.cms.dto.cms.core.common.PaginationOption;
 import kr.co.itid.cms.dto.cms.core.common.SearchOption;
-import kr.co.itid.cms.service.cms.core.page.widget.handlers.board.BoardPostSummary;
+import kr.co.itid.cms.service.cms.core.template.widget.handlers.board.BoardPostSummary;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

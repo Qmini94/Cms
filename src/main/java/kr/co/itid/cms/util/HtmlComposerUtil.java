@@ -1,6 +1,6 @@
 package kr.co.itid.cms.util;
 
-import kr.co.itid.cms.service.cms.core.page.widget.model.WidgetCtx;
+import kr.co.itid.cms.service.cms.core.template.widget.model.WidgetCtx;
 
 import java.util.*;
 import java.util.function.UnaryOperator;
