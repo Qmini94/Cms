@@ -39,7 +39,7 @@ public interface MenuService {
      *
      * @param type 메뉴 유형 (예: 'drive')
      * @param name 메뉴 이름 (예: siteHostName)
-     * @return Optional<Menu> 해당 조건에 맞는 메뉴 (없을 경우 empty)
+     * @return Optional&lt;Menu&gt; 해당 조건에 맞는 메뉴 (없을 경우 empty)
      * @throws Exception 데이터베이스 접근 오류 또는 처리 중 예외
      */
     Optional<Menu> getMenuByTypeAndName(String type, String name) throws Exception;

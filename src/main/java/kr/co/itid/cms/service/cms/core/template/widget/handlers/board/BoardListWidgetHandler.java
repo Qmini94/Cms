@@ -17,18 +17,17 @@ import java.util.stream.Collectors;
  * 게시판 목록 위젯 (board.list)
  *
  * 사용 예)
- * <cms-widget type="board.list" board="notice" limit="5" fields="title,createdAt" class="notice-list">
- *   <template header><h3 class="sr-only">공지사항</h3></template>
- *   <template item>
- *     <li>
- *       <a href="/board/{{slug}}">{{title}}</a>
- *       <time>{{createdAt|date:yyyy.MM.dd}}</time>
- *     </li>
- *   </template>
- *   <template empty><li class="empty">게시글이 없습니다.</li></template>
- *   <template wrapper><ul class="{{class}}">{{items}}</ul></template>
- * </cms-widget>
- *
+ * &lt;cms-widget type="board.list" board="notice" limit="5" fields="title,createdAt" class="notice-list"&gt;
+ *   &lt;template header&gt;&lt;h3 class="sr-only"&gt;공지사항&lt;/h3&gt;&lt;/template&gt;
+ *   &lt;template item&gt;
+ *     &lt;li&gt;
+ *       &lt;a href="/board/{{slug}}"&gt;{{title}}&lt;/a&gt;
+ *       &lt;time&gt;{{createdAt|date:yyyy.MM.dd}}&lt;/time&gt;
+ *     &lt;/li&gt;
+ *   &lt;/template&gt;
+ *   &lt;template empty&gt;&lt;li class="empty"&gt;게시글이 없습니다.&lt;/li&gt;&lt;/template&gt;
+ *   &lt;template wrapper&gt;&lt;ul class="{{class}}"&gt;{{items}}&lt;/ul&gt;&lt;/template&gt;
+ * &lt;/cms-widget&gt;
  * 속성
  * - board   (필수): 게시판 코드
  * - limit   (선택): 기본 5, 1~50

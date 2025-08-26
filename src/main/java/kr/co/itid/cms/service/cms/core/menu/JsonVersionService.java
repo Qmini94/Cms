@@ -43,18 +43,18 @@ public interface JsonVersionService {
     /**
      * 특정 메뉴 버전 파일을 읽어 DB에 동기화한 후, 해당 버전을 활성화 상태로 기록합니다.
      *
-     * <p>
+     * &lt;p&gt;
      * 이 메서드는 다음 작업을 수행합니다:
-     * <ol>
-     *     <li>지정된 메뉴 버전(JSON) 파일을 읽어 메뉴 트리를 파싱합니다.</li>
-     *     <li>해당 메뉴 트리를 DB에 저장(동기화)합니다.</li>
-     *     <li>DB 저장이 성공한 경우에만 active.json에 해당 버전을 활성화 상태로 기록합니다.</li>
-     * </ol>
-     * </p>
+     * &lt;ol&gt;
+     *     &lt;li&gt;지정된 메뉴 버전(JSON) 파일을 읽어 메뉴 트리를 파싱합니다.&lt;/li&gt;
+     *     &lt;li&gt;해당 메뉴 트리를 DB에 저장(동기화)합니다.&lt;/li&gt;
+     *     &lt;li&gt;DB 저장이 성공한 경우에만 active.json에 해당 버전을 활성화 상태로 기록합니다.&lt;/li&gt;
+     * &lt;/ol&gt;
+     * &lt;/p&gt;
      *
-     * <p>
+     * &lt;p&gt;
      * 만약 DB 저장 도중 오류가 발생하면, active.json은 수정되지 않습니다.
-     * </p>
+     * &lt;/p&gt;
      *
      * @param domain 도메인 이름 (driveName과 동일)
      * @param fileName 활성화할 메뉴 버전 파일 이름

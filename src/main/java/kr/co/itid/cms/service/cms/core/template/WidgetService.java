@@ -7,7 +7,7 @@ import kr.co.itid.cms.service.cms.core.template.widget.model.WidgetCtx;
  * 위젯 처리 서비스 (파사드)
  *
  * - 컨트롤러/다른 서비스는 본 인터페이스만 의존한다.
- * - 내부적으로 WidgetEngine/WidgetHandler들로 위젯 태그(<cms-widget>, <cms-slot>)를 치환한다.
+ * - 내부적으로 WidgetEngine/WidgetHandler들로 위젯 태그(&lt;cms-widget&gt;, &lt;cms-slot&gt;)를 치환한다.
  */
 public interface WidgetService {
 
@@ -22,17 +22,17 @@ public interface WidgetService {
     WidgetCtx buildContext(String site, String path, LayoutKind kind) throws Exception;
 
     /**
-     * 주어진 HTML에서 <cms-widget>, <cms-slot> 태그를 실제 HTML로 치환한다.
+     * 주어진 HTML에서 &lt;cms-widget&gt;, &lt;cms-slot&gt; 태그를 실제 HTML로 치환한다.
      *
      * 입력 예시:
-     *   <div>
-     *     <cms-widget type="auth.status" loginText="로그인" logoutText="로그아웃"/>
-     *   </div>
+     *   &lt;div&gt;
+     *     &lt;cms-widget type="auth.status" loginText="로그인" logoutText="로그아웃"/&gt;
+     *   &lt;/div&gt;
      *
      * 출력 예시:
-     *   <div>
-     *     <div class="auth"><a href="/auth/login">로그인</a></div>
-     *   </div>
+     *   &lt;div&gt;
+     *     &lt;div class="auth"&gt;&lt;a href="/auth/login"&gt;로그인&lt;/a&gt;&lt;/div&gt;
+     *   &lt;/div&gt;
      *
      * @param html 템플릿 HTML (위젯 태그 포함)
      * @param ctx  위젯 컨텍스트

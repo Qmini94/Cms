@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 위젯 엔진
- * - HTML 내 <cms-slot>, <cms-widget> 태그를 순회하며 위젯 핸들러로 치환한다.
+ * - HTML 내 &lt;cms-slot&gt;, &lt;cms-widget&gt; 태그를 순회하며 위젯 핸들러로 치환한다.
  * - Preview/Composed 렌더링 모두에서 호출된다.
  */
 @Component

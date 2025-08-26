@@ -318,11 +318,8 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             Set<String> usedContentIds
     ) {
         Menu entity;
-
-        // (선택) 타입/이름 중복 체크는 '같은 부모 아래'로 제한하는 게 실무적으로 안전합니다.
-        // existsByTypeAndNameAndParentId / existsByTypeAndNameAndParentIdAndIdNot 형태면 더 좋습니다.
-
         boolean isRealEntity = dto.getId() != null && dto.getId() > 0 && existingMenuMap.containsKey(dto.getId());
+
         if (isRealEntity) {
             entity = existingMenuMap.get(dto.getId());
 

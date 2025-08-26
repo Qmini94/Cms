@@ -2,10 +2,10 @@ package kr.co.itid.cms.service.cms.core.menu.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.VersionListResponse;
 import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
 import kr.co.itid.cms.enums.Action;
-import kr.co.itid.cms.mapper.cms.core.menu.MenuMapper;
 import kr.co.itid.cms.service.cms.core.menu.JsonVersionService;
 import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.util.JsonFileWriterUtil;
@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 public class JsonVersionServiceImpl extends EgovAbstractServiceImpl implements JsonVersionService {
 
     private final MenuService menuService;
-    private final MenuMapper menuMapper;
     private final JsonFileWriterUtil jsonFileWriterUtil;
     private final LoggingUtil loggingUtil;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -124,6 +123,28 @@ public class JsonVersionServiceImpl extends EgovAbstractServiceImpl implements J
 
             // 2. DB 반영
             menuService.syncMenuTree(domain, tree); // domain == driveName
+
+            // 2-1) DB에서 '정규화된' children 배열 재조회 (기존 서비스 메서드 재사용)
+            List<MenuTreeLiteResponse> liteChildren = menuService.getMenuTreeLiteByName(domain);
+
+            // 2-2) 프론트 저장 규격(MenuRequest[])으로 맞추고 싶으면 convertValue로 1:1 매핑
+            // (필드명이 동일/유사하면 별도 매퍼 없이 Jackson이 변환)
+            List<MenuRequest> normalizedChildren = objectMapper.convertValue(
+                    liteChildren, new TypeReference<>() {}
+            );
+
+            // 2-3) 해당 버전 파일을 정규화본으로 "덮어쓰기" (음수 ID 제거본)
+            Path versionPath = getVersionFilePath(fileName);
+            String normalizedJson = objectMapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(normalizedChildren);
+            Files.writeString(
+                    versionPath,
+                    normalizedJson,
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING
+            );
 
             // 3. 성공 시에만 활성화 처리
             Path activePath = getActiveFilePath();

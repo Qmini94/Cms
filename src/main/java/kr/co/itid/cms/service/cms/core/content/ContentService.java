@@ -21,7 +21,7 @@ public interface ContentService {
      *
      * @param option 콘텐츠 검색 조건
      * @param pageable Pageable 객체
-     * @return Page<ContentResponse> 페이징 처리된 콘텐츠 목록
+     * @return Page&lt;ContentResponse&gt; 페이징 처리된 콘텐츠 목록
      * @throws Exception 콘텐츠 조회 중 오류 발생 시
      */
     Page<ContentResponse> searchContents(SearchOption option, Pageable pageable) throws Exception;

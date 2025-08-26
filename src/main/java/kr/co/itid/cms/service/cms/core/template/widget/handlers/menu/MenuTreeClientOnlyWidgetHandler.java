@@ -18,12 +18,12 @@ import java.util.Map;
  * 실제 렌더링은 프론트(MenuStore/컴포넌트)에서 수행한다.
  *
  * 사용 예)
- *   <cms-widget type="menu.tree" root="/" depth="2" class="gnb"/>
+ *   &lt;cms-widget type="menu.tree" root="/" depth="2" class="gnb"/&gt;
  *
  * 출력 예)
- *   <div class="gnb"
+ *   &lt;div class="gnb"
  *        data-cms-widget="menu.tree"
- *        data-props='{"root":"/","depth":2,"currentPath":"/dept/intro"}'></div>
+ *        data-props='{"root":"/","depth":2,"currentPath":"/dept/intro"}'&gt;&lt;/div&gt;
  */
 @Component
 @RequiredArgsConstructor

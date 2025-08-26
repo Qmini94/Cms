@@ -17,12 +17,12 @@ import java.util.Map;
  * 서버에서는 실제 HTML을 그리지 않고, Vue가 마운트할 수 있는 스텁만 반환한다.
  *
  * 사용 예)
- *   <cms-widget type="nav.breadcrumb" class="breadcrumb" homeLabel="홈" baseUrl="/" />
+ *   &lt;cms-widget type="nav.breadcrumb" class="breadcrumb" homeLabel="홈" baseUrl="/" /&gt;
  *
  * 출력 예)
- *   <div class="breadcrumb"
+ *   &lt;div class="breadcrumb"
  *        data-cms-widget="nav.breadcrumb"
- *        data-props='{"path":"/notice/list","homeLabel":"홈","baseUrl":"/"}'></div>
+ *        data-props='{"path":"/notice/list","homeLabel":"홈","baseUrl":"/"}'&gt;&lt;/div&gt;
  *
  * 프론트:
  *   mountCmsWidgets() 가 data-cms-widget="nav.breadcrumb" 요소를 찾아

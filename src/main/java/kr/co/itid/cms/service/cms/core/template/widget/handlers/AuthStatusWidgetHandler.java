@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
  * 인증 상태 위젯
  *
  * 사용 예)
- *   <cms-widget type="auth.status" loginText="로그인" logoutText="로그아웃" class="auth-box"/>
+ *   (cms-widget type="auth.status" loginText="로그인" logoutText="로그아웃" class="auth-box"/)
  *
  * 출력 예)
- *   비로그인: <div class="auth-box"><a href="/auth/login">로그인</a></div>
- *   로그인  : <div class="auth-box"><span class="user">홍길동</span> <a href="/auth/logout">로그아웃</a></div>
+ *   비로그인: &lt;div class="auth-box"&gt;&lt;a href="/auth/login"&gt;로그인&lt;/a&gt;&lt;/div&gt;
+ *   로그인  : &lt;div class="auth-box"&gt;&lt;span class="user"&gt;홍길동&lt;/span&gt; &lt;a href="/auth/logout"&gt;로그아웃&lt;/&gt;&lt;/div&gt;
  *
  * 주의: 인라인 스크립트 금지, 텍스트는 escape 처리
  */

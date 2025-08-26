@@ -9,14 +9,14 @@ import org.springframework.stereotype.Component;
  * HTML 블록 위젯
  *
  * 사용 예)
- *   <cms-widget type="html.block">
- *     <![CDATA[
- *       <div class="banner"><img src="/assets/banner.png"/></div>
- *     ]]>
- *   </cms-widget>
+ *   &lt;cms-widget type="html.block"&gt;
+ *     &lt;![CDATA[
+ *       &lt;div class="banner"&gt;&lt;img src="/assets/banner.png"/&gt;&lt;/div&gt;
+ *     ]]&gt;
+ *   &lt;/cms-widget&gt;
  *
  * 출력 예)
- *   <div class="banner"><img src="/assets/banner.png"/></div>
+ *   &lt;div class="banner"&gt;&lt;img src="/assets/banner.png"/&gt;&lt;/div&gt;
  *
  * 특징
  * - 개발자/관리자가 직접 작성한 HTML 조각을 그대로 삽입.
