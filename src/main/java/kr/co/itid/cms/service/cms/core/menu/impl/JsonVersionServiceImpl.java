@@ -126,7 +126,7 @@ public class JsonVersionServiceImpl extends EgovAbstractServiceImpl implements J
             menuService.syncMenuTree(domain, tree); // domain == driveName
 
             // 2-1) DB에서 '정규화된' children 배열 재조회 (기존 서비스 메서드 재사용)
-            List<MenuTreeResponse> children = menuService.getMenuTreeByName(domain);
+            List<MenuTreeLiteResponse> children = menuService.getMenuTreeLiteByName(domain);
 
             // 2-2) 프론트 저장 규격(MenuRequest[])으로 맞추고 싶으면 convertValue로 1:1 매핑
             // (필드명이 동일/유사하면 별도 매퍼 없이 Jackson이 변환)

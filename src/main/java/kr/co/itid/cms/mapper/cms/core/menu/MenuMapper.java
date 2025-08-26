@@ -36,6 +36,7 @@ public interface MenuMapper {
                 .name(menu.getName())
                 .type(menu.getType())
                 .value(menu.getValue())
+                .level(menu.getLevel())
                 .isShow(menu.getIsShow())
                 .pathUrl(menu.getPathUrl())
                 .pathId(menu.getPathId())

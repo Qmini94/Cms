@@ -15,6 +15,7 @@ public class MenuTreeLiteResponse {
     private String name;
     private String type;
     private String value;
+    private Long level;
 
     private Boolean isShow;
 
