@@ -16,6 +16,8 @@ public interface DynamicBoardDao {
 
     Map<String, Object> selectOneByMenuId(Long menuId, Long id) throws Exception;
 
+    String selectRegIdByMenuId(Long menuId, Long id) throws Exception;
+
     void increaseViewCountByMenuId(Long menuId, Long idx) throws Exception;
 
     void insertByMenuId(Long menuId, Map<String, Object> data) throws Exception;

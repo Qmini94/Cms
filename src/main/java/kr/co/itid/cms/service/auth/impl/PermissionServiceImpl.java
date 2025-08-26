@@ -16,6 +16,7 @@ import kr.co.itid.cms.service.auth.PermissionResolverService;
 import kr.co.itid.cms.service.auth.PermissionService;
 import kr.co.itid.cms.service.auth.model.MenuPermissionData;
 import kr.co.itid.cms.service.auth.model.PermissionEntry;
+import kr.co.itid.cms.service.cms.core.board.DynamicBoardService;
 import kr.co.itid.cms.service.cms.core.member.MemberService;
 import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
@@ -48,6 +49,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     private final JwtTokenProvider jwtTokenProvider;
     private final PermissionResolverService permissionResolverService;
     private final MemberService memberService;
+    private final DynamicBoardService dynamicBoardService;
 
     private final MenuRepository menuRepository;
     private final PermissionRepository permissionRepository;
@@ -57,30 +59,81 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
     /* ================= 런타임 권한 ================= */
 
+    // 추가: 오버로드 (글 단위 검사)
+    @Override
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
+    public boolean hasAccess(String permission, Long postId) throws Exception {
+        return hasAccessInternal(permission, postId);
+    }
+
+    // 기존 메서드는 내부 공통 로직 호출로 변경(동작 동일)
     @Override
     @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
     public boolean hasAccess(String permission) throws Exception {
+        return hasAccessInternal(permission, null);
+    }
+
+    // 내부 공통 로직
+    private boolean hasAccessInternal(String permission, Long postId) throws Exception {
         try {
             JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
             jwtTokenProvider.refreshIfNeeded(user);
             user = SecurityUtil.getCurrentUser();
 
             loggingUtil.logAttempt(Action.RETRIEVE,
-                    "Check access: user=" + user.userId() + ", menuId=" + user.menuId() + ", perm=" + permission);
+                    "Check access: user=" + user.userId()
+                            + ", menuId=" + user.menuId()
+                            + ", perm=" + permission
+                            + (postId != null ? (", postId=" + postId) : ""));
 
+            // 1) 관리자면 바로 허용
             if (user.isAdmin()) {
                 loggingUtil.logSuccess(Action.RETRIEVE, "Admin override");
                 return true;
             }
 
+            // 2) 메뉴 권한(체인) 충족 여부
             boolean granted = permissionResolverService.hasPermission(user, permission);
-            if (granted) loggingUtil.logSuccess(Action.RETRIEVE, "Granted");
-            else         loggingUtil.logFail(Action.RETRIEVE, "Denied");
+            if (!granted) {
+                loggingUtil.logFail(Action.RETRIEVE, "Denied (menu permission)");
+                return false;
+            }
 
-            return granted;
+            // 3) 글 단위 권한: MODIFY/REMOVE는 본인 글만 허용 (postId가 있을 때만)
+            if (postId != null && ("MODIFY".equalsIgnoreCase(permission) || "REMOVE".equalsIgnoreCase(permission))) {
+                boolean own = isOwner(user, postId);
+                if (!own) {
+                    loggingUtil.logFail(Action.RETRIEVE, "Denied (not owner)");
+                    return false;
+                }
+                loggingUtil.logSuccess(Action.RETRIEVE, "Granted (owner)");
+                return true;
+            }
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "Granted");
+            return true;
+
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Access check error: " + e.getMessage());
             throw processException("권한 확인 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    /**
+     * 소유자 확인 훅 메서드.
+     */
+    protected boolean isOwner(JwtAuthenticatedUser user, Long postId) {
+        try {
+            String regId = dynamicBoardService.getRegIdByBoard(postId);
+            if (regId == null) return false;
+
+            return !regId.isEmpty()
+                    ? regId.equals(user.userId())
+                    : false;
+
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Owner check failed: " + e.getMessage());
+            return false;
         }
     }
 

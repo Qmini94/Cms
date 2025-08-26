@@ -25,6 +25,16 @@ public interface PermissionService {
     boolean hasAccess(String permission) throws Exception;
 
     /**
+     * 현재 로그인한 사용자가 특정 권한(permission)을 가지고 있는지 확인합니다(게시글 단위 검사 포함).
+     *
+     * @param permission 확인할 권한 유형 (예: VIEW, WRITE, MODIFY, REMOVE, MANAGE, ACCESS, REPLY, ADMIN)
+     * @param postId     소유자 검사를 수행할 게시글 식별자 (null이면 소유자 검사 생략)
+     * @return 권한이 있을 경우 true, 없으면 false
+     * @throws Exception 예외 발생 시
+     */
+    boolean hasAccess(String permission, Long postId) throws Exception;
+
+    /**
      * 현재 로그인한 사용자가 접근 중인 메뉴에 대해 갖고 있는 모든 권한 정보를 반환합니다.
      *
      * @param user 인증된 사용자 정보

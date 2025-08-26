@@ -60,7 +60,7 @@ public class DynamicBoardController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
     }
 
-    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @PreAuthorize("@permService.hasAccess('MODIFY', #idx)")
     @PutMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> update(
             @PathVariable Long idx,
@@ -70,7 +70,7 @@ public class DynamicBoardController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @PreAuthorize("@permService.hasAccess('REMOVE')")
+    @PreAuthorize("@permService.hasAccess('REMOVE', #idx)")
     @DeleteMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable Long idx

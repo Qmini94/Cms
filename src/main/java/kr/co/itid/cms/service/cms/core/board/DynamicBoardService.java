@@ -40,6 +40,14 @@ public interface DynamicBoardService {
     Map<String, Object> getOne(Long idx) throws Exception;
 
     /**
+     * 게시판에서 특정 게시글의 등록자를 조회합니다.
+     *
+     * @param idx 게시글 고유 ID
+     * @return String 게시글 데이터
+     */
+    String getRegIdByBoard(Long idx) throws Exception;
+
+    /**
      * 게시글을 등록하거나 수정합니다.
      * ID가 null이면 등록, 존재하면 수정 처리됩니다.
      *

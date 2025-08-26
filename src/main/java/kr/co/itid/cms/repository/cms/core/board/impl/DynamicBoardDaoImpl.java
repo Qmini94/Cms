@@ -160,6 +160,21 @@ public class DynamicBoardDaoImpl implements DynamicBoardDao {
     }
 
     @Override
+    public String selectRegIdByMenuId(Long menuId, Long idx) throws Exception {
+        // 1) 보드 식별 및 검증
+        String boardId = resolveBoardIdByMenuId(menuId);
+        validateBoardId(boardId);
+
+        // 2) 쿼리
+        String sql = "SELECT reg_id FROM board_" + boardId +
+                " WHERE idx = :idx AND is_deleted = false";
+        Map<String, Object> params = Map.of("idx", idx);
+
+        // 3) 결과가 없으면 null 반환
+        return jdbcTemplate.query(sql, params, rs -> rs.next() ? rs.getString("reg_id") : null);
+    }
+
+    @Override
     public void increaseViewCountByMenuId(Long menuId, Long idx) {
         String boardId = resolveBoardIdByMenuId(menuId);
         String sql = String.format("UPDATE board_%s SET view_count = view_count + 1 WHERE idx = :idx AND is_deleted = false", boardId);

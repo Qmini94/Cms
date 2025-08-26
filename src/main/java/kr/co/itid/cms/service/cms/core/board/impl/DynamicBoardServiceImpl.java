@@ -84,6 +84,23 @@ public class DynamicBoardServiceImpl extends EgovAbstractServiceImpl implements 
     }
 
     @Override
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
+    public String getRegIdByBoard(Long idx) throws Exception {
+        JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
+        Long menuId = user.menuId();
+        loggingUtil.logAttempt(Action.RETRIEVE, "[게시글 등록자 조회] menuId=" + menuId + ", idx=" + idx);
+        try {
+            String regId = dynamicBoardDao.selectRegIdByMenuId(menuId, idx);
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "[게시글 조회 성공] idx=" + idx);
+            return regId;
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "[게시글 조회 실패] idx=" + idx + " / " + e.getMessage());
+            throw processException("게시글 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    @Override
     @Transactional(rollbackFor = EgovBizException.class)
     public void save(Long idx, Map<String, Object> data) throws Exception {
         JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
