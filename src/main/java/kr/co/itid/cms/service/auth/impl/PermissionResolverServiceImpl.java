@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static kr.co.itid.cms.constanrt.PermissionConstants.*;
 import static kr.co.itid.cms.constanrt.RedisConstants.PERMISSION_KEY_PREFIX;
@@ -75,45 +76,77 @@ public class PermissionResolverServiceImpl extends EgovAbstractServiceImpl imple
         permissionData.setMenuId(menuId);
         permissionData.setLastUpdate(new Date());
 
-        List<Long> menuHierarchy;
+        // 1) 경로 조회
+        final List<Long> menuHierarchy;
         try {
-            menuHierarchy = findMenuHierarchy(menuId);
+            menuHierarchy = findMenuHierarchy(menuId); // 보통 [root ... current]
         } catch (Exception e) {
             throw processException("Cannot find menu path", e);
         }
-
         if (menuHierarchy.isEmpty()) {
             throw processException("Menu path is empty");
         }
 
-        List<Permission> allPermissions;
+        // 2) menuId -> distance 맵 (현재=0, 부모=1, ...)
+        final int n = menuHierarchy.size();
+        final Map<Long, Integer> distanceByMenuId = new HashMap<>(n * 2);
+        // [root..current] 가정: current가 맨 뒤
+        for (int i = 0; i < n; i++) {
+            distanceByMenuId.put(menuHierarchy.get(i), (n - 1) - i);
+        }
+
+        // 3) 권한 전체 조회
+        final List<Permission> allPermissions;
         try {
             allPermissions = permissionRepository.findAllByMenuIds(menuHierarchy);
         } catch (Exception e) {
             throw processException("Fail to get permission list", e);
         }
 
-        for (Permission perm : allPermissions) {
-            List<String> allowed = extractAllowedPermissions(perm);
-            int sort = perm.getSort() != null ? perm.getSort() : 9999;
-            Set<String> permissionSet = new HashSet<>(allowed);
+        // 4) 거리별 그룹핑
+        Map<Integer, List<Permission>> byDistance = new TreeMap<>(); // 0,1,2 ... 오름차순
+        for (Permission p : allPermissions) {
+            int d = distanceByMenuId.getOrDefault(p.getMenuId(), Integer.MAX_VALUE);
+            byDistance.computeIfAbsent(d, k -> new ArrayList<>()).add(p);
+        }
 
-            try {
-                if ("id".equalsIgnoreCase(perm.getType())) {
-                    Long idx = Long.parseLong(
-                            Optional.ofNullable(perm.getValue())
-                                    .orElseThrow(() -> new IllegalArgumentException("Login idx is null"))
-                    );
-                    permissionData.addPermissionEntry(sort, idx, null, permissionSet);
-                } else if ("level".equalsIgnoreCase(perm.getType())) {
-                    int level = Integer.parseInt(
-                            Optional.ofNullable(perm.getValue())
-                                    .orElseThrow(() -> new IllegalArgumentException("Login level is null"))
-                    );
-                    permissionData.addPermissionEntry(sort, null, level, permissionSet);
-                }
-            } catch (Exception e) {
-                throw processException("Fail to parse permission data", e);
+        // 같은 거리 안 정렬: sort -> pk
+        Comparator<Permission> inGroup = Comparator
+                .comparing((Permission p) -> Optional.ofNullable(p.getSort()).orElse(9999))
+                .thenComparing(p -> Optional.ofNullable(p.getIdx()).orElse(Long.MAX_VALUE));
+
+        // 5) 최종 삽입 순서: 거리(가까운→먼) 안에서 user(id) 먼저, 그다음 level
+        int order = 0; // 0부터 1씩 증가
+        for (Map.Entry<Integer, List<Permission>> bucket : byDistance.entrySet()) {
+            List<Permission> perms = bucket.getValue();
+
+            List<Permission> userPerms = perms.stream()
+                    .filter(p -> "id".equalsIgnoreCase(p.getType()))
+                    .sorted(inGroup)
+                    .collect(Collectors.toList());
+
+            List<Permission> levelPerms = perms.stream()
+                    .filter(p -> "level".equalsIgnoreCase(p.getType()))
+                    .sorted(inGroup)
+                    .collect(Collectors.toList());
+
+            // user(idx) 먼저
+            for (Permission perm : userPerms) {
+                final Set<String> permissionSet = new HashSet<>(extractAllowedPermissions(perm));
+                final Long idx = Long.parseLong(
+                        Optional.ofNullable(perm.getValue())
+                                .orElseThrow(() -> new IllegalArgumentException("Login idx is null"))
+                );
+                permissionData.addPermissionEntry(order++, idx, null, permissionSet);
+            }
+            // level 다음
+            for (Permission perm : levelPerms) {
+                final Set<String> permissionSet = new HashSet<>(extractAllowedPermissions(perm));
+                final Integer level = Integer.parseInt(
+                        Optional.ofNullable(perm.getValue())
+                                .orElseThrow(() -> new IllegalArgumentException("Login level is null"))
+                );
+                permissionData.addPermissionEntry(order++, null, level, permissionSet);
             }
         }
 

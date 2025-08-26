@@ -69,28 +69,25 @@ public class MenuPermissionData implements Serializable {
     /**
      * 현재 사용자에게 적용되는 권한 엔트리를 반환합니다.
      * 1. userIdx가 일치하면 즉시 반환
-     * 2. level 일치 항목 중 가장 마지막으로 일치한 엔트리를 반환
+     * 2. level 일치 항목 중 가장 처음으로 일치한 엔트리를 반환
      *
      * @param user 인증된 사용자 객체
      * @return PermissionEntry 해당 사용자에게 적용되는 권한
      */
     public PermissionEntry getEffectivePermissionEntryForUser(JwtAuthenticatedUser user) {
-        PermissionEntry levelMatch = null;
+        for (Map.Entry<Integer, List<PermissionEntry>> bucket : sortedPermissionMap.entrySet()) {
+            PermissionEntry levelMatch = null;
 
-        for (Map.Entry<Integer, List<PermissionEntry>> entry : sortedPermissionMap.entrySet()) {
-            for (PermissionEntry permissionEntry : entry.getValue()) {
-                if (permissionEntry.getUserIdx() != null &&
-                        permissionEntry.getUserIdx().equals(user.userIdx())) {
-                    return permissionEntry; // userIdx 완전 일치 → 즉시 반환
+            for (PermissionEntry pe : bucket.getValue()) {
+                if (pe.getUserIdx() != null && pe.getUserIdx().equals(user.userIdx())) {
+                    return pe; // 정확매치 우선
                 }
-
-                if (permissionEntry.getLevel() != null &&
-                        permissionEntry.getLevel().equals(user.userLevel())) {
-                    levelMatch = permissionEntry; // userLevel 일치 → 일단 기록
+                if (pe.getLevel() != null && pe.getLevel().equals(user.userLevel()) && levelMatch == null) {
+                    levelMatch = pe; // 같은 거리에서 첫 레벨 매치만 기억
                 }
             }
+            if (levelMatch != null) return levelMatch; // 가까운 거리의 레벨 매치 확정
         }
-
-        return levelMatch != null ? levelMatch : new PermissionEntry(); // 기본 권한 (빈 permissions)
+        return new PermissionEntry();
     }
 }
