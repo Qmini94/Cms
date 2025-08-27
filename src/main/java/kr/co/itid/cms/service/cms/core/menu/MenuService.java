@@ -92,4 +92,26 @@ public interface MenuService {
      * @throws Exception 처리 중 오류 발생 시
      */
     void deleteDriveAndAllChildren(String driveName) throws Exception;
+
+    // === Permission 서비스에서 사용하는 메서드들 ===
+
+    /**
+     * 메뉴 ID로 pathId를 조회합니다.
+     * Permission 서비스에서 메뉴 경로 추적 시 사용됩니다.
+     *
+     * @param menuId 메뉴 ID
+     * @return pathId (예: "1.3.8")
+     * @throws Exception 메뉴가 존재하지 않거나 조회 중 오류 발생 시
+     */
+    String getPathIdById(Long menuId) throws Exception;
+
+    /**
+     * pathId 프리픽스에 해당하는 모든 하위 메뉴의 ID 목록을 조회합니다.
+     * Permission 서비스에서 캐시 무효화 시 하위 메뉴들을 찾기 위해 사용됩니다.
+     *
+     * @param pathPrefix pathId 프리픽스 (예: "1.3.")
+     * @return 하위 메뉴 ID 목록
+     * @throws Exception 조회 중 오류 발생 시
+     */
+    List<Long> getDescendantIdsByPathPrefix(String pathPrefix) throws Exception;
 }

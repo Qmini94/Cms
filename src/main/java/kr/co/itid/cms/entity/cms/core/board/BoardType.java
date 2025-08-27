@@ -22,8 +22,8 @@ public class BoardType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idx;
 
-    @Column(name = "type_id", nullable = false, unique = true, length = 50)
-    private String typeId;
+    @Column(name = "type", nullable = false, unique = true, length = 50)
+    private String type;
 
     @Column(name = "type_name", nullable = false, length = 100)
     private String typeName;

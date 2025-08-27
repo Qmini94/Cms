@@ -7,10 +7,8 @@ import kr.co.itid.cms.dto.auth.permission.PermissionEntryDto;
 import kr.co.itid.cms.dto.auth.permission.PermissionSubjectDto;
 import kr.co.itid.cms.dto.auth.permission.SubjectType;
 import kr.co.itid.cms.dto.auth.permission.response.PermissionChainResponse;
-import kr.co.itid.cms.entity.cms.core.menu.Menu;
 import kr.co.itid.cms.entity.cms.core.permission.Permission;
 import kr.co.itid.cms.enums.Action;
-import kr.co.itid.cms.repository.cms.core.menu.MenuRepository;
 import kr.co.itid.cms.repository.cms.core.permission.PermissionRepository;
 import kr.co.itid.cms.service.auth.PermissionResolverService;
 import kr.co.itid.cms.service.auth.PermissionService;
@@ -18,6 +16,7 @@ import kr.co.itid.cms.service.auth.model.MenuPermissionData;
 import kr.co.itid.cms.service.auth.model.PermissionEntry;
 import kr.co.itid.cms.service.cms.core.board.DynamicBoardService;
 import kr.co.itid.cms.service.cms.core.member.MemberService;
+import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +50,8 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     private final MemberService memberService;
     private final DynamicBoardService dynamicBoardService;
 
-    private final MenuRepository menuRepository;
+    // 도메인 분리: MenuService 사용 (Repository 직접 사용 제거)
+    private final MenuService menuService;
     private final PermissionRepository permissionRepository;
 
     // Resolver와 동일한 캐시 스키마 사용
@@ -157,11 +157,11 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             return UserPermissionResponse.builder()
                     .access(entry.getPermissions().contains(ACCESS))
                     .manage(entry.getPermissions().contains(MANAGE))
-                    .view  (entry.getPermissions().contains(VIEW))
-                    .write (entry.getPermissions().contains(WRITE))
+                    .view(entry.getPermissions().contains(VIEW))
+                    .write(entry.getPermissions().contains(WRITE))
                     .modify(entry.getPermissions().contains(MODIFY))
                     .remove(entry.getPermissions().contains(REMOVE))
-                    .reply (entry.getPermissions().contains(REPLY))
+                    .reply(entry.getPermissions().contains(REPLY))
                     .build();
         } catch (Exception e) {
             loggingUtil.logFail(Action.RETRIEVE, "Resolve failed: " + e.getMessage());
@@ -176,7 +176,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     public PermissionChainResponse getPermissionChain(Long menuId, String pathId) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Load chain (single query): menuId=" + menuId + ", pathId=" + pathId);
         try {
-            // 1) 전체 경로(현재 포함) 확보
+            // 1) 전체 경로(현재 포함) 확보 - MenuService 사용
             final List<Long> fullPath = getFullPathIds(menuId, pathId);
             if (fullPath.isEmpty()) {
                 throw new IllegalStateException("메뉴 경로가 비어있습니다: menuId=" + menuId);
@@ -254,9 +254,9 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
             // 업서트 (normalized 사용)
             for (PermissionEntryDto dto : normalized) {
-                String type  = toEntityTypeOrInfer(dto);
+                String type = toEntityTypeOrInfer(dto);
                 String value = String.valueOf(dto.getSubject().getValue());
-                String pair  = pairKey(menuId, type, value);
+                String pair = pairKey(menuId, type, value);
                 alivePairs.add(pair);
 
                 Permission entity = existingByPair.get(pair);
@@ -278,7 +278,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 permissionRepository.deleteAllInBatch(toDelete);
             }
 
-            // 캐시 무효화 (하위 메뉴 전파 무효화)
+            // 캐시 무효화 (하위 메뉴 전파 무효화) - MenuService 사용
             invalidateMenuPermission(menuId);
 
             loggingUtil.logSuccess(Action.UPDATE,
@@ -294,37 +294,44 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
 
     /* ================== 매핑/유틸 ================== */
 
-    /** menuId, pathId를 이용해 전체 pathId 리스트([1,3,8]) 생성 */
-    private List<Long> getFullPathIds(Long menuId, String pathId) {
+    /**
+     * menuId, pathId를 이용해 전체 pathId 리스트([1,3,8]) 생성 - MenuService 사용
+     */
+    private List<Long> getFullPathIds(Long menuId, String pathId) throws Exception {
         if (pathId != null && !pathId.isBlank()) {
             return parsePathAll(pathId);
         }
-        // DB에서 Menu.pathId 조회
-        String dbPath = menuRepository.findById(menuId)
-                .map(Menu::getPathId)
-                .orElseThrow(() -> new NoSuchElementException("Menu not found: " + menuId));
+        // MenuService를 통해 조회 (도메인 분리)
+        String dbPath = menuService.getPathIdById(menuId);
         return parsePathAll(dbPath);
     }
 
-    /** "1.3.8" → [1,3,8] */
+    /**
+     * "1.3.8" → [1,3,8]
+     */
     private List<Long> parsePathAll(String pathId) {
         if (pathId == null || pathId.isBlank()) return List.of();
         return Arrays.stream(pathId.split("\\."))
                 .filter(s -> s != null && !s.isBlank())
                 .map(s -> {
-                    try { return Long.parseLong(s.trim()); }
-                    catch (NumberFormatException e) { return null; }
+                    try {
+                        return Long.parseLong(s.trim());
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
                 })
                 .filter(Objects::nonNull)
                 .collect(toList());
     }
 
-    /** Entity → DTO (value 사용, name 채우기) */
+    /**
+     * Entity → DTO (value 사용, name 채우기)
+     */
     private PermissionEntryDto toDto(Permission e, Map<String, String> idNameMap) {
         SubjectType type = "id".equalsIgnoreCase(e.getType()) ? SubjectType.ID : SubjectType.LEVEL;
 
         final String value = String.valueOf(e.getValue());
-        final String name  = resolveSubjectName(type, value, idNameMap);
+        final String name = resolveSubjectName(type, value, idNameMap);
 
         PermissionSubjectDto subject = PermissionSubjectDto.builder()
                 .type(type)
@@ -333,14 +340,14 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 .build();
 
         Map<String, Boolean> perms = new LinkedHashMap<>();
-        putYN(perms, VIEW,   e.getView());
-        putYN(perms, WRITE,  e.getWrite());
+        putYN(perms, VIEW, e.getView());
+        putYN(perms, WRITE, e.getWrite());
         putYN(perms, MODIFY, e.getModify());
         putYN(perms, REMOVE, e.getRemove());
         putYN(perms, MANAGE, e.getManage());
         putYN(perms, ACCESS, e.getAccess());
-        putYN(perms, REPLY,  e.getReply());
-        putYN(perms, ADMIN,  e.getAdmin());
+        putYN(perms, REPLY, e.getReply());
+        putYN(perms, ADMIN, e.getAdmin());
 
         return PermissionEntryDto.builder()
                 .subject(subject)
@@ -358,7 +365,9 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         return (named != null) ? named : ("레벨 " + value);
     }
 
-    /** Permission 리스트에서 ID 타입만 모아 회원 이름을 배치로 조회 */
+    /**
+     * Permission 리스트에서 ID 타입만 모아 회원 이름을 배치로 조회
+     */
     private Map<String, String> buildIdNameMap(Collection<Permission> permissions) {
         if (permissions == null || permissions.isEmpty()) return Map.of();
 
@@ -391,23 +400,24 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         entity.setSort(dto.getSort());
 
         Map<String, Boolean> p = Optional.ofNullable(dto.getPermissions()).orElse(Map.of());
-        entity.setView  (yn(getBool(p, VIEW)));
-        entity.setWrite (yn(getBool(p, WRITE)));
+        entity.setView(yn(getBool(p, VIEW)));
+        entity.setWrite(yn(getBool(p, WRITE)));
         entity.setModify(yn(getBool(p, MODIFY)));
         entity.setRemove(yn(getBool(p, REMOVE)));
         entity.setManage(yn(getBool(p, MANAGE))); // MANAGE or ADMIN
         entity.setAccess(yn(getBool(p, ACCESS)));
-        entity.setReply (yn(getBool(p, REPLY)));
-        entity.setAdmin (yn(getBool(p, ADMIN)));
+        entity.setReply(yn(getBool(p, REPLY)));
+        entity.setAdmin(yn(getBool(p, ADMIN)));
     }
 
-    /** dto 정규화: 동의어 → 정규키, 허용 키만 유지 (key 필드 의존 제거) */
+    /**
+     * dto 정규화: 동의어 → 정규키, 허용 키만 유지 (key 필드 의존 제거)
+     */
     private PermissionEntryDto normalizeEntry(PermissionEntryDto dto) {
         if (dto == null) return null;
         if (dto.getSubject() == null
                 || dto.getSubject().getType() == null
-                || dto.getSubject().getValue() == null)
-        {
+                || dto.getSubject().getValue() == null) {
             throw new IllegalArgumentException("subject.type 및 subject.value 는 필수입니다.");
         }
 
@@ -419,7 +429,9 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 .build();
     }
 
-    /** sort 보정 (음수/누락 시 인덱스로 대체) */
+    /**
+     * sort 보정 (음수/누락 시 인덱스로 대체)
+     */
     private PermissionEntryDto withFixedSort(PermissionEntryDto dto, int index) {
         int sort = (dto.getSort() < 0) ? index : dto.getSort();
         if (sort == dto.getSort()) return dto;
@@ -434,7 +446,9 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         return (t == SubjectType.ID) ? "id" : "level";
     }
 
-    /** type 누락 시 value로 유추 (key 의존 제거) */
+    /**
+     * type 누락 시 value로 유추 (key 의존 제거)
+     */
     private String toEntityTypeOrInfer(PermissionEntryDto dto) {
         SubjectType t = (dto.getSubject() != null) ? dto.getSubject().getType() : null;
         if (t != null) return toEntityType(t);
@@ -447,11 +461,14 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     private String pairKey(Permission p) {
         return pairKey(p.getMenuId(), p.getType(), p.getValue());
     }
+
     private String pairKey(Long menuId, String type, String value) {
         return menuId + "|" + (type == null ? "" : type.toLowerCase(Locale.ROOT)) + "|" + String.valueOf(value);
     }
 
-    /** 조상 엔트리를 "가까운 상위 우선"으로 dedupe해서 DTO로 변환 */
+    /**
+     * 조상 엔트리를 "가까운 상위 우선"으로 dedupe해서 DTO로 변환
+     */
     private List<PermissionEntryDto> mergeNearestAncestorFirst(
             List<Permission> list,
             List<Long> orderedAncestors,
@@ -475,27 +492,30 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         return new ArrayList<>(picked.values());
     }
 
-    /* === 캐시 무효화(Resolver와 동일 키 규칙) === */
+    /* === 캐시 무효화 (MenuService 사용으로 도메인 분리) === */
     private void invalidateMenuPermission(Long menuId) {
         try {
             // 1) 자기 자신 키 삭제
             String selfKey = PERMISSION_KEY_PREFIX + menuId;
             redisTemplate.delete(selfKey);
 
-            // 2) 자신의 path_id 조회
-            String selfPath = menuRepository.findPathIdById(menuId);
+            // 2) MenuService를 통해 자신의 pathId 조회 (도메인 분리)
+            String selfPath = menuService.getPathIdById(menuId);
             if (selfPath == null || selfPath.isBlank()) {
                 loggingUtil.logFail(Action.UPDATE, "Cache invalidate: pathId not found for menuId=" + menuId);
                 return;
             }
+
             String prefix = selfPath + ".";
-            // 4) 후손 menuId들 조회
-            List<Long> descendants = menuRepository.findDescendantIdsByPathPrefix(prefix);
+
+            // 3) MenuService를 통해 후손 menuId들 조회 (도메인 분리)
+            List<Long> descendants = menuService.getDescendantIdsByPathPrefix(prefix);
             if (descendants.isEmpty()) {
                 loggingUtil.logSuccess(Action.UPDATE, "Cache invalidate: no descendants for menuId=" + menuId);
                 return;
             }
-            // 5) 후손 키들 일괄 삭제
+
+            // 4) 후손 키들 일괄 삭제
             List<String> keys = descendants.stream()
                     .map(id -> PERMISSION_KEY_PREFIX + id)
                     .collect(Collectors.toList());
