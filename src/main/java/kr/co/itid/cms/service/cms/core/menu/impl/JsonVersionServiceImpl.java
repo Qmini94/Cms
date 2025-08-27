@@ -3,7 +3,6 @@ package kr.co.itid.cms.service.cms.core.menu.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeLiteResponse;
-import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.VersionListResponse;
 import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
 import kr.co.itid.cms.enums.Action;
