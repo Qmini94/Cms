@@ -109,7 +109,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     public List<MenuTreeLiteResponse> getMenuTreeLiteByName(String name) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree (lite) for: " + name);
         try {
-            Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(name)
+            Menu rootMenu = menuRepository.findByNameAndType(name, "drive")
                     .orElseThrow(() -> processException("Drive not found: " + name));
 
             // 한 번의 쿼리로 후손 노드 전체 로드
@@ -136,10 +136,14 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     public List<MenuTreeResponse> getMenuTreeByName(String name) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to get menu tree for: " + name);
         try {
-            Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(name)
+            Menu rootMenu = menuRepository.findByNameAndType(name, "drive")
                     .orElseThrow(() -> processException("Drive not found: " + name));
 
             List<Menu> allDescendants = menuRepository.findAllDescendantsByPathId(rootMenu.getPathId());
+            if (allDescendants == null || allDescendants.isEmpty()) {
+                loggingUtil.logSuccess(Action.RETRIEVE, "Drive has no children: " + name);
+                return Collections.emptyList();
+            }
 
             // 루트 + 후손을 모두 전달하여 메모리에서 트리 구성
             List<Menu> allNodes = new ArrayList<>(1 + allDescendants.size());
@@ -149,8 +153,6 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             List<MenuTreeResponse> result = menuMapper.toTree(allNodes);
             loggingUtil.logSuccess(Action.RETRIEVE, "Got full tree for: " + name);
             return result;
-        } catch (NoSuchElementException e) {
-            throw e;
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "Database error while getting tree: " + name);
             throw processException("Cannot access database", e);
@@ -166,7 +168,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
         loggingUtil.logAttempt(Action.UPDATE, "Try to sync menu tree for drive: " + driveName);
         try {
             // 1) 루트 조회
-            Menu rootMenu = menuRepository.findByNameOrderByPositionAsc(driveName)
+            Menu rootMenu = menuRepository.findByNameAndType(driveName, "drive")
                     .orElseThrow(() -> processException("Drive not found: " + driveName));
             final Long rootId = rootMenu.getId();
             final String rootPathId = rootMenu.getPathId();
@@ -338,6 +340,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
                 List<Menu> latestMenus = menuRepository.findAllDescendantsByPathId(String.valueOf(menu.getId()));
                 List<MenuTreeResponse> tree = menuMapper.toTree(latestMenus);
                 jsonFileWriterUtil.writeJsonFile("menu", "menu_" + request.getName(), tree, true);
+                loggingUtil.logSuccess(action, "Menu json file created: " + request.getName());
             }
         } catch (Exception e) {
             loggingUtil.logFail(action, "Failed to " + (isNew ? "create" : "update") + " menu: " + e.getMessage());
@@ -361,7 +364,6 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             }
             menuRepository.delete(rootDrive);
 
-            jsonFileWriterUtil.writeJsonFile("menu", "menu_" + driveName, Collections.emptyList(), true);
             loggingUtil.logSuccess(Action.DELETE, "Deleted drive and all children: " + driveName);
         } catch (Exception e) {
             loggingUtil.logFail(Action.DELETE, "Failed to delete drive and children: " + e.getMessage());

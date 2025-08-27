@@ -17,7 +17,7 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     List<Menu> findByParentIdIsNull();
 
     // 이름으로 루트(드라이브) 조회
-    Optional<Menu> findByNameOrderByPositionAsc(String name);
+    Optional<Menu> findByNameAndType(String name, String drive);
 
     // 중복 체크/조회
     Optional<Menu> findByTypeAndName(String type, String name);
