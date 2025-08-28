@@ -159,7 +159,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isAdminAccess(String uri, String hostname) throws Exception {
-        if (hostname == null || uri.startsWith("/api/auth/")) {
+        if (hostname == null || uri.startsWith("/back-api/auth/")) {
             return false;
         }
 
