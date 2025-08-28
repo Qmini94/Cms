@@ -43,7 +43,6 @@ public class JwtTokenProvider {
     private long accessTokenValidity;
 
     private final StringRedisTemplate redisTemplate;
-    private final MemberRepository memberService; // TODO: 나중에 service로 변경해야함
     private Key key;
 
 

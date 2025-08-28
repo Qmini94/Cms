@@ -16,6 +16,7 @@ import kr.co.itid.cms.service.auth.model.MenuPermissionData;
 import kr.co.itid.cms.service.auth.model.PermissionEntry;
 import kr.co.itid.cms.service.cms.core.board.DynamicBoardService;
 import kr.co.itid.cms.service.cms.core.member.MemberService;
+import kr.co.itid.cms.service.cms.core.menu.MenuQueryService;
 import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
@@ -50,8 +51,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     private final MemberService memberService;
     private final DynamicBoardService dynamicBoardService;
 
-    // 도메인 분리: MenuService 사용 (Repository 직접 사용 제거)
-    private final MenuService menuService;
+    private final MenuQueryService menuQueryService;
     private final PermissionRepository permissionRepository;
 
     // Resolver와 동일한 캐시 스키마 사용
@@ -309,13 +309,13 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
                 targets.add(id); // self
 
                 try {
-                    final String selfPath = menuService.getPathIdById(id); // ex) "1.3.8"
+                    final String selfPath = menuQueryService.getPathIdById(id); // ex) "1.3.8"
                     if (selfPath == null || selfPath.isBlank()) {
                         // pathId 없으면 후손 확장은 skip (self 키만 제거)
                         continue;
                     }
                     final String prefix = selfPath + ".";
-                    final List<Long> descendants = menuService.getDescendantIdsByPathPrefix(prefix);
+                    final List<Long> descendants = menuQueryService.getDescendantIdsByPathPrefix(prefix);
                     if (descendants != null && !descendants.isEmpty()) {
                         targets.addAll(descendants);
                     }
@@ -383,7 +383,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             return parsePathAll(pathId);
         }
         // MenuService를 통해 조회 (도메인 분리)
-        String dbPath = menuService.getPathIdById(menuId);
+        String dbPath = menuQueryService.getPathIdById(menuId);
         return parsePathAll(dbPath);
     }
 
@@ -581,7 +581,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             redisTemplate.delete(selfKey);
 
             // 2) MenuService를 통해 자신의 pathId 조회 (도메인 분리)
-            String selfPath = menuService.getPathIdById(menuId);
+            String selfPath = menuQueryService.getPathIdById(menuId);
             if (selfPath == null || selfPath.isBlank()) {
                 loggingUtil.logFail(Action.UPDATE, "Cache invalidate: pathId not found for menuId=" + menuId);
                 return;
@@ -590,7 +590,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
             String prefix = selfPath + ".";
 
             // 3) MenuService를 통해 후손 menuId들 조회 (도메인 분리)
-            List<Long> descendants = menuService.getDescendantIdsByPathPrefix(prefix);
+            List<Long> descendants = menuQueryService.getDescendantIdsByPathPrefix(prefix);
             if (descendants.isEmpty()) {
                 loggingUtil.logSuccess(Action.UPDATE, "Cache invalidate: no descendants for menuId=" + menuId);
                 return;

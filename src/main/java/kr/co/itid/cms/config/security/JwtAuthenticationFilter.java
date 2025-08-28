@@ -3,8 +3,8 @@ package kr.co.itid.cms.config.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
+import kr.co.itid.cms.config.security.port.SiteAccessChecker;
 import kr.co.itid.cms.dto.common.ApiResponse;
-import kr.co.itid.cms.service.cms.core.site.SiteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,7 +23,7 @@ import java.time.ZonedDateTime;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final SiteService siteService;
+    private final SiteAccessChecker siteAccessChecker;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String clientIp = getClientIp(request);
             logger.info("[JWT] 클라이언트 IP: " + clientIp);
 
-            if (!siteService.isIpAllowed(hostname, clientIp)) {
+            if (!siteAccessChecker.isIpAllowed(hostname, clientIp)) {
                 logger.warn("[JWT] 차단된 IP 접근 감지 → IP: " + clientIp + ", Hostname: " + hostname);
                 writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "차단된 IP입니다.");
                 return;
@@ -163,7 +163,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return false;
         }
 
-        boolean result = siteService.isClosedSite(hostname);
+        boolean result = siteAccessChecker.isClosedSite(hostname);
 
         logger.info("[JWT] 관리자 접근 판단 - siteHostName: " + hostname + ", result: " + result);
         return result;

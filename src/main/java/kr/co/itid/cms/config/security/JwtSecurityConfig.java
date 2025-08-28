@@ -1,6 +1,6 @@
 package kr.co.itid.cms.config.security;
 
-import kr.co.itid.cms.service.cms.core.site.SiteService;
+import kr.co.itid.cms.config.security.port.SiteAccessChecker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,11 +24,11 @@ import java.util.List;
 public class JwtSecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final SiteService siteService;
+    private final SiteAccessChecker siteAccessChecker;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider, siteService);
+        return new JwtAuthenticationFilter(jwtTokenProvider, siteAccessChecker);
     }
 
     @Bean
