@@ -9,6 +9,7 @@ import kr.co.itid.cms.entity.cms.core.menu.Menu;
 import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.mapper.cms.core.menu.MenuMapper;
 import kr.co.itid.cms.repository.cms.core.menu.MenuRepository;
+import kr.co.itid.cms.service.auth.PermissionService;
 import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
 import kr.co.itid.cms.service.cms.core.content.ContentService;
 import kr.co.itid.cms.service.cms.core.menu.MenuService;
@@ -34,6 +35,7 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
     private final LoggingUtil loggingUtil;
     private final JsonFileWriterUtil jsonFileWriterUtil;
     private final BoardMasterService boardMasterService;
+    private final PermissionService permissionService;
     private final ContentService contentService;
 
     @Override
@@ -284,6 +286,9 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
             // 7) 후처리 (참조 플래그)
             boardMasterService.syncUsageFlagsByBoardIds(usedBoardIds);
             contentService.syncUsageFlagsByContentIds(usedContentIds);
+
+            // 8) 권한 캐시 무효화 (이번 동기화로 영향 받은 모든 메뉴: 생성/수정/이동/삭제)
+            permissionService.evictPermissionsCacheForIdsUnion(processedIds, toDeleteIds, rootId);
 
             loggingUtil.logSuccess(Action.UPDATE, "Synced menu tree for drive: " + driveName);
         } catch (DataIntegrityViolationException e) {

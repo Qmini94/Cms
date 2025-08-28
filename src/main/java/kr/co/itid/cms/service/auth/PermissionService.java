@@ -6,6 +6,7 @@ import kr.co.itid.cms.dto.auth.permission.PermissionEntryDto;
 import kr.co.itid.cms.dto.auth.permission.response.PermissionChainResponse;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 사용자 권한 처리 + 권한 관리(체인 조회/업서트) 서비스 퍼사드
@@ -64,4 +65,17 @@ public interface PermissionService {
      * @throws Exception 저장 중 오류
      */
     void upsertPermissions(Long menuId, List<PermissionEntryDto> entries) throws Exception;
+
+    /**
+     * 메뉴 동기화 작업 등에서 변경되거나 삭제된 메뉴들의 권한 캐시를 무효화합니다.
+     *
+     * - processedIds: 이번 동기화에서 생성/수정된 메뉴 ID 집합
+     * - toDeleteIds : 이번 동기화에서 삭제된 메뉴 ID 목록
+     * - rootId      : 루트 메뉴 ID (옵션, 필요 시 포함)
+     *
+     * 세트로 받은 모든 메뉴 ID와 그 자손 메뉴들의 Redis 캐시를 삭제합니다.
+     *
+     * @throws Exception 권한 캐시 무효화 중 오류
+     */
+    void evictPermissionsCacheForIdsUnion(Set<Long> processedIds, List<Long> toDeleteIds, Long rootId) throws Exception;
 }

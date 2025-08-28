@@ -292,6 +292,87 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
         }
     }
 
+    @Override
+    public void evictPermissionsCacheForIdsUnion(Set<Long> processedIds,
+                                                 List<Long> toDeleteIds,
+                                                 Long rootId) throws Exception {
+        loggingUtil.logAttempt(Action.UPDATE, "Evict permission caches (union)");
+        try {
+            // 1) 입력 정규화
+            final Set<Long> processed = (processedIds == null) ? Collections.emptySet() : new LinkedHashSet<>(processedIds);
+            final List<Long> deletedList = (toDeleteIds == null) ? Collections.emptyList() : toDeleteIds;
+            final Set<Long> targets = new LinkedHashSet<>();
+
+            // 2) processedIds: self + descendants 추가
+            for (Long id : processed) {
+                if (id == null) continue;
+                targets.add(id); // self
+
+                try {
+                    final String selfPath = menuService.getPathIdById(id); // ex) "1.3.8"
+                    if (selfPath == null || selfPath.isBlank()) {
+                        // pathId 없으면 후손 확장은 skip (self 키만 제거)
+                        continue;
+                    }
+                    final String prefix = selfPath + ".";
+                    final List<Long> descendants = menuService.getDescendantIdsByPathPrefix(prefix);
+                    if (descendants != null && !descendants.isEmpty()) {
+                        targets.addAll(descendants);
+                    }
+                } catch (Exception ex) {
+                    // 개별 메뉴 확장 실패는 전체 실패로 보지 않고 로그 후 계속
+                    loggingUtil.logFail(Action.UPDATE, "Descendant fetch failed for menuId=" + id + " : " + ex.getMessage());
+                }
+            }
+
+            // 3) toDeleteIds: self 키만 제거 (삭제된 노드는 후손도 보통 함께 삭제되어 목록에 포함됨)
+            for (Long id : deletedList) {
+                if (id != null) targets.add(id);
+            }
+
+            // 4) rootId: 필요 시 자기 자신 키만 제거
+            if (rootId != null) {
+                targets.add(rootId);
+            }
+
+            if (targets.isEmpty()) {
+                loggingUtil.logSuccess(Action.UPDATE, "No targets to evict (empty sets).");
+                return;
+            }
+
+            // 5) 키 변환 후 일괄 삭제 (대량이면 청크)
+            final List<String> keys = targets.stream()
+                    .map(id -> PERMISSION_KEY_PREFIX + id)
+                    .toList();
+
+            final long deleted = deleteKeysInChunks(keys, 1000);
+
+            loggingUtil.logSuccess(
+                    Action.UPDATE,
+                    "Evicted permission caches (union): processed=" + processed.size()
+                            + ", toDelete=" + deletedList.size()
+                            + ", rootIncluded=" + (rootId != null)
+                            + ", affectedIds=" + targets.size()
+                            + ", deletedKeys=" + deleted
+            );
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.UPDATE, "Evict permission caches (union) failed: " + e.getMessage());
+            throw processException("권한 캐시 무효화 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    /** Redis DEL을 청크 단위로 수행 (대량 키 삭제 시 안전) */
+    private long deleteKeysInChunks(List<String> keys, int chunkSize) {
+        if (keys == null || keys.isEmpty()) return 0L;
+        long total = 0L;
+        for (int i = 0; i < keys.size(); i += chunkSize) {
+            final List<String> part = keys.subList(i, Math.min(i + chunkSize, keys.size()));
+            final Long deleted = redisTemplate.delete(part);
+            total += (deleted == null ? 0L : deleted);
+        }
+        return total;
+    }
+
     /* ================== 매핑/유틸 ================== */
 
     /**
