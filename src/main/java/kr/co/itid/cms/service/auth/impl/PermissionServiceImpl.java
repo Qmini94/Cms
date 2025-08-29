@@ -544,7 +544,7 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     }
 
     private String pairKey(Long menuId, String type, String value) {
-        return menuId + "|" + (type == null ? "" : type.toLowerCase(Locale.ROOT)) + "|" + String.valueOf(value);
+        return menuId + "|" + (type == null ? "" : type.toLowerCase(Locale.ROOT)) + "|" + value;
     }
 
     /**

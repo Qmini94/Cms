@@ -110,7 +110,7 @@ public class MemberServiceImpl extends EgovAbstractServiceImpl implements Member
             java.util.LinkedHashMap<String, String> out =
                     new java.util.LinkedHashMap<>(members.size());
             for (Member m : members) {
-                out.put(String.valueOf(m.getIdx()), m.getUserName());
+                out.put(String.valueOf(m.getIdx()), m.getUserName() + "(" + m.getUserId() + ")");
             }
 
             loggingUtil.logSuccess(Action.RETRIEVE, "배치 이름 조회 성공: found=" + out.size());
