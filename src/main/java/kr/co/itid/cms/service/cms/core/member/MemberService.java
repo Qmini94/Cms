@@ -8,7 +8,7 @@ import kr.co.itid.cms.dto.cms.core.member.response.MemberResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,7 +23,7 @@ public interface MemberService {
      *
      * @param option   검색 조건(키워드, 검색 대상 필드, 기간 등)
      * @param pageable 페이징 및 정렬 정보
-     * @return Page&lt;MemberListResponse&gt; 페이징 처리된 회원 목록
+     * @return Page<MemberListResponse> 페이징 처리된 회원 목록
      * @throws Exception 조회 중 오류 발생 시
      */
     Page<MemberListResponse> searchMembers(SearchOption option, Pageable pageable) throws Exception;
@@ -67,4 +67,16 @@ public interface MemberService {
      * @throws Exception 수정 중 오류 발생 시 (예: 미존재 시 EgovBizException)
      */
     void updateMember(Long idx, MemberUpdateRequest request) throws Exception;
+
+    /**
+     * 자동완성(권한 대상 추가용) 회원 검색.
+     * - keyword가 공백/빈 문자열이면 빈 리스트 반환
+     * - size 상한은 구현체에서 적절히 제한 권장(예: 최대 20)
+     *
+     * @param keyword 검색어(이름/아이디 일부 일치)
+     * @param size    최대 반환 개수
+     * @return List<MemberListResponse> 간략 회원 정보 목록
+     * @throws Exception 조회 실패 시
+     */
+    List<MemberListResponse> searchMembersForSuggest(String keyword, int size) throws Exception;
 }

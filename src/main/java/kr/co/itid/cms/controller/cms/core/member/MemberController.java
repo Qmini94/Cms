@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
+import java.util.Collections;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -78,5 +80,26 @@ public class MemberController {
 
         memberService.updateMember(idx, request);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    // -------------------------------------------
+    // 자동완성 검색 API (권한 대상 추가용)
+    // GET /back-api/member/search?q=keyword&size=10
+    // -------------------------------------------
+    @PreAuthorize("@permService.hasAccess('ACCESS')")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<MemberListResponse>>> searchMembersForSuggest(
+            @RequestParam(name = "q", required = false) String keyword,
+            @RequestParam(name = "size", defaultValue = "10") @Positive int size
+    ) throws Exception {
+
+        String q = (keyword == null) ? "" : keyword.trim();
+        if (q.isEmpty()) {
+            // 빈 검색어는 빈 리스트 반환 (프론트 자동완성 UX를 위한 빠른 응답)
+            return ResponseEntity.ok(ApiResponse.success(Collections.emptyList()));
+        }
+
+        List<MemberListResponse> list = memberService.searchMembersForSuggest(q, size);
+        return ResponseEntity.ok(ApiResponse.success(list));
     }
 }

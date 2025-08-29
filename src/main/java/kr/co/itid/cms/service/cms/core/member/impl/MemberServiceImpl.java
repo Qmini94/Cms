@@ -25,9 +25,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 @Service("memberService")
 @RequiredArgsConstructor
@@ -197,6 +199,43 @@ public class MemberServiceImpl extends EgovAbstractServiceImpl implements Member
         } catch (Exception e) {
             loggingUtil.logFail(Action.UPDATE, "회원 수정 실패: " + e.getMessage());
             throw processException("회원 수정 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true, rollbackFor = EgovBizException.class)
+    public List<MemberListResponse> searchMembersForSuggest(String keyword, int size) throws Exception {
+        final String q = (keyword == null) ? "" : keyword.trim();
+        loggingUtil.logAttempt(Action.RETRIEVE, "회원 자동완성 검색 시도: q='" + q + "', size=" + size);
+
+        if (q.isEmpty()) {
+            loggingUtil.logSuccess(Action.RETRIEVE, "빈 검색어 → 빈 결과 반환");
+            return Collections.emptyList();
+        }
+
+        // 상한 보정 (과도한 조회 방지)
+        final int limit = Math.max(1, Math.min(size, 20));
+
+        try {
+            // 레포지토리 커스텀 메서드(다음 단계에서 구현 예정)
+            // - 이름/아이디 LIKE 검색
+            // - 상위 limit개만 반환
+            List<Member> list = memberRepository.searchForSuggest(q, limit);
+
+            List<MemberListResponse> out = new ArrayList<>(list.size());
+            for (Member m : list) {
+                out.add(memberMapper.toListResponse(m));
+            }
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "자동완성 검색 성공: found=" + out.size());
+            return out;
+
+        } catch (DataAccessException e) {
+            loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
+            throw processException("회원 자동완성 검색 중 DB 오류가 발생했습니다.", e);
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Unknown error: " + e.getMessage());
+            throw processException("회원 자동완성 검색 중 오류가 발생했습니다.", e);
         }
     }
 }

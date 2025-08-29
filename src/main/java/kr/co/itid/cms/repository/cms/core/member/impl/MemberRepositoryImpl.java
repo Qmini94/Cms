@@ -84,6 +84,33 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         );
     }
 
+    // ------------------------------------------------------
+    // 자동완성(권한 대상 추가용)
+    // userId / userName LIKE 검색, 상위 limit개 반환
+    // ------------------------------------------------------
+    @Override
+    public List<Member> searchForSuggest(String keyword, int limit) {
+        final String kw = (keyword == null) ? "" : keyword.trim();
+        if (!hasText(kw)) {
+            return java.util.Collections.emptyList();
+        }
+        final int lim = Math.max(1, Math.min(limit, 20)); // 상한 20
+
+        BooleanBuilder condition = new BooleanBuilder()
+                .and(
+                        qMember.userId.containsIgnoreCase(kw)
+                                .or(qMember.userName.containsIgnoreCase(kw))
+                );
+
+        // 정렬 정책: 최근 등록 우선 → 동일 점수 시 userName ASC
+        return queryFactory
+                .selectFrom(qMember)
+                .where(condition)
+                .orderBy(qMember.regDate.desc(), qMember.userName.asc())
+                .limit(lim)
+                .fetch();
+    }
+
     private boolean hasText(String s) {
         return s != null && !s.isBlank();
     }
