@@ -79,7 +79,7 @@ public class ContentController {
      * @param idx 콘텐츠 ID
      * @return 콘텐츠 상세 정보
      */
-    @PreAuthorize("@permService.hasAccess('VIEW')")
+    @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping("/{idx}/view")
     public ResponseEntity<ApiResponse<ContentResponse>> getContentsDetail(
             @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx) throws Exception {
