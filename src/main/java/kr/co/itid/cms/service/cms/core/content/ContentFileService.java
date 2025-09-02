@@ -33,15 +33,6 @@ public interface ContentFileService {
      */
     List<UploadedFileResponse> saveFiles(Long parentId, List<MultipartFile> files) throws Exception;
 
-    /**
-     * 단일 파일을 업로드합니다.
-     *
-     * @param parentId 파일 그룹(콘텐츠 parentId)
-     * @param file 업로드할 파일
-     * @return 저장된 파일 정보
-     * @throws Exception 저장 실패, 용량/타입 제약 위반 등
-     */
-    UploadedFileResponse saveFile(Long parentId, MultipartFile file) throws Exception;
 
     /**
      * 업로드된 파일을 삭제합니다.

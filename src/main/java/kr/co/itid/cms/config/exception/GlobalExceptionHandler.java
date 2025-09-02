@@ -12,6 +12,9 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import javax.validation.ConstraintViolationException;
 import java.util.NoSuchElementException;
@@ -29,6 +32,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleBadRequest(Exception e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(400, extractMessage(e, "잘못된 요청입니다")));
+    }
+
+    // 400 - 멀티파트 파싱/형식 오류 (경계(boundary) 깨짐, 잘못된 Content-Type 등)
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMultipart(MultipartException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(400, "멀티파트 요청 형식이 올바르지 않습니다: " + e.getMessage()));
+    }
+
+    // 400 - 필수 part 누락 (files 파라미터가 없을 때)
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingPart(MissingServletRequestPartException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(400, "필수 파일 파라미터가 없습니다: " + e.getRequestPartName()));
     }
 
     // 400 - @Valid 사용 시 DTO 유효성 검증 실패
@@ -85,6 +102,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleMethodNotAllowed(HttpRequestMethodNotSupportedException e) {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(ApiResponse.error(405, extractMessage(e, "지원하지 않는 HTTP 메서드입니다")));
+    }
+
+    // 413 - 업로드 용량 초과 (Spring이 감지)
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSize(MaxUploadSizeExceededException e) {
+        String msg = "업로드 용량을 초과했습니다.";
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ApiResponse.error(413, msg));
     }
 
     // 500 - 비즈니스 예외

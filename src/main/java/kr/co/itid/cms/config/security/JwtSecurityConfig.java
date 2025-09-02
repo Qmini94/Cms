@@ -53,7 +53,7 @@ public class JwtSecurityConfig {
                 "https://localhost:3000",     // 개발용 프론트 주소
                 "https://cms.itid.co.kr"     // 운영용 프론트 주소
         ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);

@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -36,12 +35,11 @@ public class ContentFileServiceImpl extends EgovAbstractServiceImpl implements C
 
     private final LoggingUtil loggingUtil;
 
-    /** 기본 저장 루트: ./public/contents/cms */
-    @Value("${content.files.base-path:./public/contents/cms}")
+    @Value("${content.files.base-path}")
     private String baseDir;
 
     /** 공개 URL prefix */
-    @Value("${content.files.public-url-prefix:/contents/cms}")
+    @Value("${content.files.public-url-prefix}")
     private String publicUrlPrefix;
 
     /** 허용 확장자 */
@@ -121,21 +119,6 @@ public class ContentFileServiceImpl extends EgovAbstractServiceImpl implements C
     }
 
     @Override
-    public UploadedFileResponse saveFile(Long parentId, MultipartFile file) throws Exception {
-        loggingUtil.logAttempt(Action.CREATE, "[Files] upload single, parentId=" + parentId);
-        if (file == null || file.isEmpty()) {
-            throw processException("업로드 파일이 비어있습니다.");
-        }
-        Path dir = resolveParentDir(parentId);
-        if (!Files.exists(dir)) {
-            Files.createDirectories(dir);
-        }
-        UploadedFileResponse resp = saveOne(parentId, dir, file);
-        loggingUtil.logSuccess(Action.CREATE, "[Files] saved: " + resp.getFilename());
-        return resp;
-    }
-
-    @Override
     public void deleteFile(Long parentId, String filename) throws Exception {
         loggingUtil.logAttempt(Action.DELETE, "[Files] delete parentId=" + parentId + ", filename=" + filename);
         String safe = sanitizeFilename(filename);
@@ -188,9 +171,15 @@ public class ContentFileServiceImpl extends EgovAbstractServiceImpl implements C
         }
 
         try {
-            Files.copy(mf.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+            mf.transferTo(target.toFile());
+
             return toResponse(parentId, target);
         } catch (Exception e) {
+            // (선택) 예외 클래스도 로그에 남기면 디버깅 편함
+            loggingUtil.logFail(Action.CREATE,
+                    "[Files] transferTo failed: " + safeName
+                            + " - ex=" + e.getClass().getName()
+                            + ", msg=" + String.valueOf(e.getMessage()));
             throw processException("파일 저장 중 오류가 발생했습니다.", e);
         }
     }

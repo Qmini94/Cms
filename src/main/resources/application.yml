@@ -1,8 +1,20 @@
-#json:
-#  path: C:/Users/user/Desktop/egov/cms_frontend/public/json
-
 json:
   path: /data/egovframe-cms/front/public/json
+
+content:
+  files:
+    base-path: /data/egovframe-cms/front/public/contents/cms     # 서버 절대경로
+    public-url-prefix: /contents/cms
+
+#json:
+#  path: C:/Users/user/Desktop/egov/egovframe-cms-frontend-q/public/json
+#
+#content:
+#  files:
+#    base-path: C:/Users/user/Desktop/egov/egovframe-cms-frontend-q/public/contents/cms     # 서버 절대경로
+#    public-url-prefix: /contents/cms
+
+
 
 spring:
   task:
@@ -47,6 +59,14 @@ spring:
           format_sql: true    # SQL 정렬
           use_sql_comments: true   # SQL 주석 사용
           id.new_generator_mappings: false   # Hibernate 호환 설정
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 60MB
+      resolve-lazily: true   # 예외를 컨트롤러 쪽에서 받도록(디버깅 유리)
+
   logging:
     level:
       org.hibernate.SQL: DEBUG
@@ -72,13 +92,17 @@ spring:
       enabled: false
 
 server:
+  tomcat:
+    max-swallow-size: -1
+    max-http-form-post-size: 0
+
   error:
     whitelabel:
       enabled: false
 
 jwt:
   secret: your-super-secret-key-32bytes-or-more
-  access-token-validity: 3600
+  access-token-validity: 3600  #3600
 
 springdoc:
   swagger-ui:
