@@ -2,7 +2,6 @@ package kr.co.itid.cms.service.cms.core.content.impl;
 
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.dto.cms.core.common.SearchOption;
-import kr.co.itid.cms.dto.cms.core.content.request.ChildContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.request.ContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.response.ContentResponse;
 import kr.co.itid.cms.entity.cms.core.content.Content;
@@ -23,8 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 
 @Service("contentService")
 @RequiredArgsConstructor
@@ -163,9 +160,7 @@ public class ContentServiceImpl extends EgovAbstractServiceImpl implements Conte
 
             contentMapper.updateEntity(content, request);
 
-            // 서버에서만 채워야 하는 정보
             content.setUpdatedBy(user.userId());
-            content.setHostname(user.hostname());
 
             contentRepository.save(content);
 
