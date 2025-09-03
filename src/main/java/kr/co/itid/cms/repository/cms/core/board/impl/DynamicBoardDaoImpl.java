@@ -12,6 +12,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +24,7 @@ public class DynamicBoardDaoImpl implements DynamicBoardDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final DynamicBoardSqlBuilder dynamicBoardSqlBuilder;
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     /**
      * menu_id로 board_id를 조회
@@ -135,8 +139,14 @@ public class DynamicBoardDaoImpl implements DynamicBoardDao {
         String boardId = resolveBoardIdByMenuId(menuId);
         List<FieldDefinitionResponse> fields = getFieldDefinitionsByMenuId(menuId);
 
+        // KST 기준 현재 시각
+        LocalDateTime now = LocalDateTime.now(KST);
+        // 이미 값이 들어오면 덮어쓰지 않음
+        data.putIfAbsent("created_date", Timestamp.valueOf(now));
+        data.put("updated_date", Timestamp.valueOf(now));
+
         String sql = dynamicBoardSqlBuilder.buildInsertQuery(boardId, fields, data);
-        jdbcTemplate.update(sql, data);
+        jdbcTemplate.update(sql, data); // NamedParameterJdbcTemplate 가정
     }
 
     @Override
@@ -144,8 +154,10 @@ public class DynamicBoardDaoImpl implements DynamicBoardDao {
         String boardId = resolveBoardIdByMenuId(menuId);
         List<FieldDefinitionResponse> fields = getFieldDefinitionsByMenuId(menuId);
 
-        String sql = dynamicBoardSqlBuilder.buildUpdateQuery(boardId, fields, data);
         data.put("idx", idx);
+        data.put("updated_date", Timestamp.valueOf(LocalDateTime.now(KST)));
+
+        String sql = dynamicBoardSqlBuilder.buildUpdateQuery(boardId, fields, data);
         jdbcTemplate.update(sql, data);
     }
 
