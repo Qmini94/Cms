@@ -153,6 +153,9 @@ public class JwtTokenProvider {
     public void refreshIfNeeded(JwtAuthenticatedUser user) {
         if (user.isGuest() || user.isDev()) return;
 
+        // TODO : 매 요청마다 토큰 재발급이 요구사항인지 확인. 현재는 항상 재발급
+        // TODO : 성능 고려하면, 일반적으로 토큰 만료시 or 만료 30분 이내에만 재발급하는게 좋음
+
         // 1. 항상 accessToken 재발급 (슬라이딩 유지)
         String newToken = recreateTokenFrom(user.token());
         ResponseCookie cookie = createAccessTokenCookie(newToken);
