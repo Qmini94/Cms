@@ -6,6 +6,10 @@ import kr.co.itid.cms.service.auth.SessionManager;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -39,6 +43,11 @@ public class AuthInterceptor implements HandlerInterceptor {
             // Redis 세션 TTL 연장
             boolean sessionExtended = sessionManager.extendSession(sessionId);
             
+            // JWT 토큰 갱신 체크 (만료 5분 전에 갱신)
+            if (sessionExtended && isTokenNearExpiry(user)) {
+                refreshJwtToken(user, response);
+            }
+            
             if (!sessionExtended) {
                 // Redis 장애이거나 세션이 만료된 경우
                 if (!sessionManager.isRedisHealthy()) {
@@ -66,5 +75,54 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
         return true;
+    }
+    
+    /**
+     * JWT 토큰이 만료 임박인지 확인 (5분 이내)
+     */
+    private boolean isTokenNearExpiry(JwtAuthenticatedUser user) {
+        long currentTime = System.currentTimeMillis() / 1000; // 현재 시간 (초)
+        long tokenExpiry = user.exp(); // 토큰 만료 시간 (초)
+        long timeUntilExpiry = tokenExpiry - currentTime;
+        
+        // 5분(300초) 이내에 만료되면 갱신
+        return timeUntilExpiry <= 300;
+    }
+    
+    /**
+     * JWT 토큰 갱신
+     */
+    private void refreshJwtToken(JwtAuthenticatedUser user, HttpServletResponse response) {
+        try {
+            // 기존 토큰에서 새 토큰 생성
+            String newToken = jwtTokenProvider.recreateTokenFrom(user.token());
+            
+            // 새 쿠키 설정
+            ResponseCookie cookie = jwtTokenProvider.createAccessTokenCookie(newToken);
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            
+            // SecurityContext 업데이트
+            var claims = jwtTokenProvider.getClaimsFromToken(newToken);
+            JwtAuthenticatedUser newUser = new JwtAuthenticatedUser(
+                    claims.get("idx", Long.class),
+                    claims.getSubject(),
+                    claims.get("userName", String.class),
+                    claims.get("userLevel", Integer.class),
+                    claims.get("exp", Long.class),
+                    newToken,
+                    user.hostname(),
+                    user.menuId(),
+                    claims.get("sid", String.class)
+            );
+            
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(newUser, null, null);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            log.debug("[AuthInterceptor] JWT 토큰 갱신 완료: userId={}", user.userId());
+            
+        } catch (Exception e) {
+            log.error("[AuthInterceptor] JWT 토큰 갱신 실패: {}", e.getMessage());
+        }
     }
 }

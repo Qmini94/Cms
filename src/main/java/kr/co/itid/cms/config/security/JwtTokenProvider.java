@@ -82,7 +82,9 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // TODO : 제거 검토
+    /**
+     * 기존 토큰에서 새로운 토큰 생성 (만료 시간 갱신)
+     */
     public String recreateTokenFrom(String oldToken) {
         Claims oldClaims = Jwts.parserBuilder()
                 .setSigningKey(key)
