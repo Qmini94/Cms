@@ -1,25 +1,23 @@
 package kr.co.itid.cms.config.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.entity.cms.core.member.Member;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Duration;
@@ -33,6 +31,7 @@ import static kr.co.itid.cms.constanrt.SecurityConstants.*;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtTokenProvider {
 
     @Value("${jwt.secret}")
@@ -40,6 +39,9 @@ public class JwtTokenProvider {
 
     @Value("${jwt.access-token-validity}")
     private long accessTokenValidity;
+    
+    @Value("${jwt.fallback-token-validity}")
+    private long fallbackTokenValidity;
 
     private final StringRedisTemplate redisTemplate;
     private Key key;
@@ -51,9 +53,23 @@ public class JwtTokenProvider {
     }
 
     public String createToken(String userId, Map<String, Object> claims) {
+        return createToken(userId, claims, false);
+    }
+    
+    /**
+     * JWT 토큰 생성
+     * @param userId 사용자 ID
+     * @param claims 토큰에 포함할 클레임
+     * @param isRedisDown Redis 장애 여부 (true면 긴 만료 시간 사용)
+     * @return JWT 토큰
+     */
+    public String createToken(String userId, Map<String, Object> claims, boolean isRedisDown) {
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
         Date issuedAt = Date.from(now.toInstant());
-        Date expiration = Date.from(now.plusSeconds(accessTokenValidity).toInstant());
+        
+        // Redis 장애 시 긴 만료 시간 사용
+        long validity = isRedisDown ? fallbackTokenValidity : accessTokenValidity;
+        Date expiration = Date.from(now.plusSeconds(validity).toInstant());
 
         claims.putIfAbsent("jti", UUID.randomUUID().toString());
 
@@ -66,6 +82,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    // TODO : 제거 검토
     public String recreateTokenFrom(String oldToken) {
         Claims oldClaims = Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -87,7 +104,7 @@ public class JwtTokenProvider {
         return createToken(userId, claims);
     }
 
-    public Map<String, Object> getClaims(Member member) {
+    public Map<String, Object> getClaims(Member member, String sessionId) {
         Map<String, Object> claims = new HashMap<>();
 
         Long idx = member.getIdx();
@@ -97,6 +114,7 @@ public class JwtTokenProvider {
         claims.put("userLevel", userLevel);
         claims.put("userName", userName);
         claims.put("idx", idx);
+        claims.put("sid", sessionId); // 세션 ID 추가
 
         return claims;
     }
@@ -150,38 +168,14 @@ public class JwtTokenProvider {
         }
     }
 
+    /**
+     * @deprecated Redis 세션 방식으로 대체됨. 더 이상 사용하지 않음.
+     * 개발/게스트 사용자의 경우에만 필요시 호출 가능.
+     */
+    @Deprecated
     public void refreshIfNeeded(JwtAuthenticatedUser user) {
-        if (user.isGuest() || user.isDev()) return;
-
-        // 1. 항상 accessToken 재발급 (슬라이딩 유지)
-        String newToken = recreateTokenFrom(user.token());
-        ResponseCookie cookie = createAccessTokenCookie(newToken);
-
-        HttpServletResponse response = ((ServletRequestAttributes)
-                RequestContextHolder.currentRequestAttributes()).getResponse();
-
-        if (response != null) {
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        }
-
-        // 2. 새 토큰을 기반으로 SecurityContext 갱신
-        Claims claims = getClaimsFromToken(newToken);
-
-        JwtAuthenticatedUser refreshedUser = new JwtAuthenticatedUser(
-                claims.get("idx", Long.class),
-                claims.getSubject(),
-                claims.get("userName", String.class),
-                claims.get("userLevel", Integer.class),
-                claims.get("exp", Long.class),
-                newToken,
-                user.hostname(),
-                user.menuId()
-        );
-
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(refreshedUser, null, null);
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        // Redis 세션 방식으로 대체되어 더 이상 사용하지 않음
+        log.warn("[JWT] refreshIfNeeded 호출됨 - Redis 세션 방식으로 대체 권장");
     }
 
     public void validateToken(String token) throws Exception {
@@ -209,7 +203,7 @@ public class JwtTokenProvider {
                     .getBody();
 
             String jti = claims.get("jti", String.class);
-            return jti != null && Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_KEY_PREFIX + jti));
+            return jti != null && redisTemplate.hasKey(BLACKLIST_KEY_PREFIX + jti);
         } catch (JwtException | IllegalArgumentException e) {
             return true;
         }

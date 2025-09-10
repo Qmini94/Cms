@@ -102,7 +102,8 @@ server:
 
 jwt:
   secret: your-super-secret-key-32bytes-or-more
-  access-token-validity: 3600  #3600
+  access-token-validity: 900    # 15분 (하이브리드 모드)
+  fallback-token-validity: 3600 # 1시간 (Redis 장애 시 사용)
 
 springdoc:
   swagger-ui:

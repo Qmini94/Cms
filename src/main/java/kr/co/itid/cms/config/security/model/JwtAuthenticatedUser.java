@@ -10,7 +10,8 @@ public record JwtAuthenticatedUser(
         Long exp,
         String token,
         String hostname,
-        Long menuId
+        Long menuId,
+        String sessionId  // 세션 ID 추가
 ) implements Serializable {
 
     public boolean isAdmin() {

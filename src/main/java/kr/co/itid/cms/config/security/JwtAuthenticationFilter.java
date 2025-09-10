@@ -69,7 +69,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             claims.get("exp", Long.class),
                             token,
                             hostname,
-                            menuId
+                            menuId,
+                            claims.get("sid", String.class)  // 세션 ID 추가
                     );
 
                 } catch (Exception e) {
@@ -142,7 +143,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     exp,
                     "dev-token",
                     hostname,
-                    menuId
+                    menuId,
+                    null  // 개발환경에서는 세션 ID 없음
             );
         }
 
@@ -154,7 +156,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 exp,
                 "not has token",
                 hostname,
-                menuId
+                menuId,
+                null  // 게스트는 세션 ID 없음
         );
     }
 
