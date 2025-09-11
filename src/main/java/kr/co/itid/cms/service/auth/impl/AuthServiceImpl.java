@@ -27,7 +27,6 @@ import java.util.Map;
 
 @Service("authService")
 @RequiredArgsConstructor
-@Slf4j
 public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthService {
 
     private final MemberRepository memberRepository;

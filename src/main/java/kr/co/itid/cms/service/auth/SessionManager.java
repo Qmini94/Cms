@@ -16,7 +16,7 @@ public interface SessionManager {
      * @param hostname 사이트 호스트명
      * @return 세션 ID (sid)
      */
-    String createSession(Member member, String hostname);
+    String createSession(Member member, String hostname) throws Exception;
     
     /**
      * 세션 존재 확인 및 TTL 연장
@@ -36,7 +36,7 @@ public interface SessionManager {
      * 세션 삭제 (로그아웃 시)
      * @param sid 세션 ID
      */
-    void deleteSession(String sid);
+    void deleteSession(String sid) throws Exception;
     
     /**
      * 세션의 남은 TTL 조회 (초 단위)

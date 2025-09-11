@@ -170,16 +170,6 @@ public class JwtTokenProvider {
         }
     }
 
-    /**
-     * @deprecated Redis 세션 방식으로 대체됨. 더 이상 사용하지 않음.
-     * 개발/게스트 사용자의 경우에만 필요시 호출 가능.
-     */
-    @Deprecated
-    public void refreshIfNeeded(JwtAuthenticatedUser user) {
-        // Redis 세션 방식으로 대체되어 더 이상 사용하지 않음
-        log.warn("[JWT] refreshIfNeeded 호출됨 - Redis 세션 방식으로 대체 권장");
-    }
-
     public void validateToken(String token) throws Exception {
         if (isBlacklisted(token)) {
             throw new Exception("Token is blacklisted");
