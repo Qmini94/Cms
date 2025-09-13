@@ -77,7 +77,6 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     private boolean hasAccessInternal(String permission, Long postId) throws Exception {
         try {
             JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
-            jwtTokenProvider.refreshIfNeeded(user);
             user = SecurityUtil.getCurrentUser();
 
             loggingUtil.logAttempt(Action.RETRIEVE,

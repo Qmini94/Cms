@@ -1,5 +1,6 @@
 package kr.co.itid.cms.controller.cms.core.site;
 
+import kr.co.itid.cms.aop.ExecutionTime;
 import kr.co.itid.cms.dto.cms.core.site.request.SiteRequest;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.dto.cms.core.site.response.SiteResponse;
@@ -31,6 +32,7 @@ public class SiteController {
      * @return ApiResponse&lt;List&lt;SiteResponse&gt;&gt; 사이트 목록을 포함한 응답
      * @throws Exception 데이터 조회 중 오류 발생 시
      */
+    @ExecutionTime(description = "활성 사이트 목록 조회", unit = ExecutionTime.TimeUnit.MILLISECONDS)
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteyIsDeletedFalse() throws Exception {
 
@@ -44,6 +46,7 @@ public class SiteController {
      * @return ApiResponse&lt;List&lt;SiteResponse&gt;&gt; 사이트 목록을 포함한 응답
      * @throws Exception 데이터 조회 중 오류 발생 시
      */
+    @ExecutionTime(description = "전체 사이트 목록 조회", unit = ExecutionTime.TimeUnit.MILLISECONDS)
     @GetMapping("/list/all")
     public ResponseEntity<ApiResponse<List<SiteResponse>>> getSiteAllData() throws Exception {
 
@@ -57,6 +60,7 @@ public class SiteController {
      * @param request 생성할 사이트 정보
      * @return 성공 여부 (true)
      */
+    @ExecutionTime(description = "사이트 생성", unit = ExecutionTime.TimeUnit.MILLISECONDS, level = ExecutionTime.LogLevel.INFO)
     @PreAuthorize("@permService.hasAccess('MODIFY')")
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> createSite(
@@ -73,6 +77,7 @@ public class SiteController {
      * @param request      수정할 사이트 정보
      * @return 성공 여부 (true)
      */
+    @ExecutionTime(description = "사이트 수정", unit = ExecutionTime.TimeUnit.MILLISECONDS)
     @PreAuthorize("@permService.hasAccess('MODIFY')")
     @PutMapping("/{siteHostName}")
     public ResponseEntity<ApiResponse<Void>> updateSiteByHostName(

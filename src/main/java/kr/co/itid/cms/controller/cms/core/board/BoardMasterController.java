@@ -1,13 +1,14 @@
 package kr.co.itid.cms.controller.cms.core.board;
 
+import kr.co.itid.cms.aop.ExecutionTime;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardCreateRequest;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardFieldDefinitionsUpsertRequest;
 import kr.co.itid.cms.dto.cms.core.board.request.BoardUpdateRequest;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardFieldDefinitionResponse;
-import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
-import kr.co.itid.cms.dto.cms.core.common.SearchOption;
-import kr.co.itid.cms.dto.cms.core.common.PaginationOption;
 import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterListResponse;
+import kr.co.itid.cms.dto.cms.core.board.response.BoardMasterResponse;
+import kr.co.itid.cms.dto.cms.core.common.PaginationOption;
+import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class BoardMasterController {
     // 목록
     @PreAuthorize("@permService.hasAccess('ACCESS')")
     @GetMapping
+    @ExecutionTime
     public ResponseEntity<ApiResponse<Page<BoardMasterListResponse>>> getBoardMasters(
             @Valid @ModelAttribute SearchOption option,
             @Valid @ModelAttribute PaginationOption pagination,
