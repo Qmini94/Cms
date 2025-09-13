@@ -79,25 +79,9 @@ public class BoardMasterCacheService {
     /**
      * 게시판 마스터 캐시 무효화 (전체)
      */
-    @CacheEvict(value = {"boardMasters", "boardMaster", "boardFieldDefinitions", "boardMasterByBoardId", "activeBoardMasters"}, allEntries = true)
+    @CacheEvict(value = {"boardMasters", "boardMaster", "boardFieldDefinitions", "activeBoardMasters"}, allEntries = true)
     public void evictAllBoardMasterCache() {
         // 캐시 무효화만 수행
-    }
-
-    /**
-     * 특정 게시판 캐시 무효화
-     */
-    @CacheEvict(value = {"boardMaster", "boardFieldDefinitions", "boardMasterByBoardId"}, key = "#idx")
-    public void evictBoardMasterCache(Long idx) {
-        // 특정 게시판 캐시 무효화
-    }
-
-    /**
-     * 게시판 ID로 캐시 무효화
-     */
-    @CacheEvict(value = {"boardMaster", "boardMasterByBoardId"}, key = "#boardId")
-    public void evictBoardMasterCacheByBoardId(String boardId) {
-        // 게시판 ID로 캐시 무효화
     }
 
     /**

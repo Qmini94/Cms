@@ -28,7 +28,6 @@ public class CacheConfig {
             "boardMasters", 
             "boardMaster",
             "boardFieldDefinitions",
-            "boardMasterByBoardId",
             "activeBoardMasters"
         ));
         
