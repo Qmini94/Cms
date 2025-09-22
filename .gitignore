@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 deploy.sh
 logs/
+.env
 
 ### STS ###
 .apt_generated
