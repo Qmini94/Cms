@@ -11,6 +11,7 @@ import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.mapper.cms.core.board.BoardMasterMapper;
 import kr.co.itid.cms.repository.cms.core.board.BoardMasterDao;
 import kr.co.itid.cms.repository.cms.core.board.BoardMasterRepository;
+import kr.co.itid.cms.service.cms.core.board.BoardMasterCacheService;
 import kr.co.itid.cms.service.cms.core.board.BoardMasterService;
 import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
@@ -36,6 +37,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     private final BoardMasterRepository boardMasterRepository;
     private final BoardMasterMapper boardMapper;
     private final BoardMasterDao boardMasterDao;
+    private final BoardMasterCacheService boardMasterCacheService;
     private final LoggingUtil loggingUtil;
     private final ValidationUtil validationUtil;
 
@@ -45,9 +47,9 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     public Page<BoardMasterListResponse> searchBoardMasters(SearchOption option, Pageable pageable) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try to search board master list");
         try {
-            Page<BoardMaster> resultPage = boardMasterRepository.searchByCondition(option, pageable);
+            Page<BoardMasterListResponse> resultPage = boardMasterCacheService.searchBoardMasters(option, pageable);
             loggingUtil.logSuccess(Action.RETRIEVE, "Board master list retrieved successfully (total=" + resultPage.getTotalElements() + ")");
-            return resultPage.map(boardMapper::toListResponse);
+            return resultPage;
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.RETRIEVE, "DB error: " + e.getMessage());
             throw processException("DB 오류가 발생했습니다.", e);
@@ -63,7 +65,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     public BoardMasterResponse getBoardByIdx(Long idx) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "게시판 단건 조회 시도: idx=" + idx);
         try {
-            BoardMasterResponse response = boardMasterDao.findBoardMasterByIdx(idx);
+            BoardMasterResponse response = boardMasterCacheService.getBoardByIdx(idx);
             if (response == null) {
                 throw new IllegalArgumentException("게시판이 존재하지 않습니다: idx=" + idx);
             }
@@ -100,6 +102,9 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
             boardMasterDao.createBoardTable(boardId);
 
             loggingUtil.logSuccess(Action.CREATE, "게시판 생성 완료: board_id=" + boardId + ", masterIdx=" + masterIdx);
+            
+            // 캐시 무효화
+            boardMasterCacheService.evictAllBoardMasterCache();
         } catch (Exception e) {
             loggingUtil.logFail(Action.CREATE, "게시판 생성 실패: " + e.getMessage());
             // === 보상 롤백(DDL 실패 시 논리 데이터 복구) ===
@@ -148,6 +153,11 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
             boardMasterDao.syncPhysicalTableWithDefinitions(idx);
 
             loggingUtil.logSuccess(Action.UPDATE, "게시판 수정 및 스키마 동기화 완료: idx=" + idx);
+            
+            // 캐시 무효화
+            boardMasterCacheService.evictBoardMasterCache(idx);
+            boardMasterCacheService.evictFieldDefinitionsCache(idx);
+            boardMasterCacheService.evictSearchCache();
         } catch (Exception e) {
             loggingUtil.logFail(Action.UPDATE, "게시판 수정 실패: " + e.getMessage());
 
@@ -194,6 +204,9 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
             boardMasterDao.dropBoardTable(boardId);
 
             loggingUtil.logSuccess(Action.DELETE, "게시판 삭제 완료: board_id=" + boardId);
+            
+            // 캐시 무효화
+            boardMasterCacheService.evictAllBoardMasterCache();
         } catch (Exception e) {
             loggingUtil.logFail(Action.DELETE, "게시판 삭제 실패: " + e.getMessage());
             // === 보상: 테이블이 남았는데 메타만 지워졌다면 복구 시도 ===
@@ -239,6 +252,9 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
                     Action.UPDATE,
                     "Board is_use synced. on=" + on + ", off=" + off + ", inUseSize=" + ids.size()
             );
+            
+            // 캐시 무효화
+            boardMasterCacheService.evictAllBoardMasterCache();
         } catch (DataAccessException e) {
             loggingUtil.logFail(Action.UPDATE, "DB error during board is_use sync");
             throw processException("Database error while syncing board usage flags", e);
@@ -254,7 +270,7 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
     public List<BoardFieldDefinitionResponse> getFieldDefinitions(Long boardMasterIdx) throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "필드 정의 조회 시도: masterIdx=" + boardMasterIdx);
         try {
-            List<BoardFieldDefinitionResponse> list = boardMasterDao.selectFieldDefinitions(boardMasterIdx);
+            List<BoardFieldDefinitionResponse> list = boardMasterCacheService.getFieldDefinitions(boardMasterIdx);
             loggingUtil.logSuccess(Action.RETRIEVE, "필드 정의 조회 성공: count=" + (list != null ? list.size() : 0));
             return list;
         } catch (Exception e) {
@@ -284,6 +300,10 @@ public class BoardMasterServiceImpl extends EgovAbstractServiceImpl implements B
             boardMasterDao.syncPhysicalTableWithDefinitions(masterIdx);
 
             loggingUtil.logSuccess(Action.UPDATE, "필드 정의 업서트 + 동기화 완료: masterIdx=" + masterIdx);
+            
+            // 캐시 무효화
+            boardMasterCacheService.evictFieldDefinitionsCache(masterIdx);
+            boardMasterCacheService.evictBoardMasterCache(masterIdx);
         } catch (Exception e) {
             loggingUtil.logFail(Action.UPDATE, "필드 정의 업서트/동기화 실패: " + e.getMessage());
             // === 보상: 이전 필드로 복원 + 재동기화 ===
