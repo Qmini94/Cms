@@ -2,11 +2,11 @@ package kr.co.itid.cms.controller.cms.core.content;
 
 import kr.co.itid.cms.dto.cms.core.common.SearchOption;
 import kr.co.itid.cms.dto.cms.core.common.PaginationOption;
-import kr.co.itid.cms.dto.cms.core.content.request.ChildContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.request.ContentRequest;
 import kr.co.itid.cms.dto.cms.core.content.response.ContentResponse;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.cms.core.content.ContentService;
+import kr.co.itid.cms.utils.HtmlSanitizer; // HTML 새니타이저 추가
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +31,7 @@ import java.util.List;
 public class ContentController {
 
     private final ContentService contentService;
+    private final HtmlSanitizer htmlSanitizer; // HTML 새니타이저 의존성 추가
 
     /**
      * 콘텐츠 목록을 조회합니다.
@@ -98,7 +99,14 @@ public class ContentController {
     public ResponseEntity<ApiResponse<Void>> createRootContent(
             @Valid @RequestBody ContentRequest request) throws Exception {
 
-        contentService.createRootContent(request);
+        // HTML 콘텐츠 XSS 방어 처리 - 새니타이즈된 요청으로 재생성
+        ContentRequest sanitizedRequest = ContentRequest.builder()
+                .title(request.getTitle())
+                .hostname(request.getHostname())
+                .content(request.getContent() != null ? htmlSanitizer.sanitize(request.getContent()) : null)
+                .build();
+
+        contentService.createRootContent(sanitizedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
     }
 
@@ -114,7 +122,14 @@ public class ContentController {
             @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx,
             @Valid @RequestBody ContentRequest request) throws Exception {
 
-        contentService.createChildContent(idx, request);
+        // HTML 콘텐츠 XSS 방어 처리 - 새니타이즈된 요청으로 재생성
+        ContentRequest sanitizedRequest = ContentRequest.builder()
+                .title(request.getTitle())
+                .hostname(request.getHostname())
+                .content(request.getContent() != null ? htmlSanitizer.sanitize(request.getContent()) : null)
+                .build();
+
+        contentService.createChildContent(idx, sanitizedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
     }
 
@@ -127,7 +142,14 @@ public class ContentController {
             @PathVariable @Positive(message = "idx는 1 이상의 값이어야 합니다") Long idx,
             @Valid @RequestBody ContentRequest request) throws Exception {
 
-        contentService.updateContent(idx, request);
+        // HTML 콘텐츠 XSS 방어 처리 - 새니타이즈된 요청으로 재생성
+        ContentRequest sanitizedRequest = ContentRequest.builder()
+                .title(request.getTitle())
+                .hostname(request.getHostname())
+                .content(request.getContent() != null ? htmlSanitizer.sanitize(request.getContent()) : null)
+                .build();
+
+        contentService.updateContent(idx, sanitizedRequest);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

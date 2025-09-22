@@ -17,7 +17,6 @@ import kr.co.itid.cms.service.auth.model.PermissionEntry;
 import kr.co.itid.cms.service.cms.core.board.DynamicBoardService;
 import kr.co.itid.cms.service.cms.core.member.MemberService;
 import kr.co.itid.cms.service.cms.core.menu.MenuQueryService;
-import kr.co.itid.cms.service.cms.core.menu.MenuService;
 import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +35,7 @@ import static java.util.stream.Collectors.toList;
 import static kr.co.itid.cms.constanrt.LevelConstants.LEVEL_NAME_MAP;
 import static kr.co.itid.cms.constanrt.PermissionConstants.*;
 import static kr.co.itid.cms.constanrt.RedisConstants.PERMISSION_KEY_PREFIX;
-import static kr.co.itid.cms.util.PermissionKeyUtil.getBool;
-import static kr.co.itid.cms.util.PermissionKeyUtil.normalizePermissions;
-import static kr.co.itid.cms.util.PermissionKeyUtil.putYN;
-import static kr.co.itid.cms.util.PermissionKeyUtil.yn;
+import static kr.co.itid.cms.util.PermissionKeyUtil.*;
 
 @Service("permService")
 @RequiredArgsConstructor
