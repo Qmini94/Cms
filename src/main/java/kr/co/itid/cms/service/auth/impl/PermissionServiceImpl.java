@@ -1,6 +1,5 @@
 package kr.co.itid.cms.service.auth.impl;
 
-import kr.co.itid.cms.config.security.JwtTokenProvider;
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.dto.auth.UserPermissionResponse;
 import kr.co.itid.cms.dto.auth.permission.PermissionEntryDto;
@@ -42,7 +41,6 @@ import static kr.co.itid.cms.util.PermissionKeyUtil.*;
 public class PermissionServiceImpl extends EgovAbstractServiceImpl implements PermissionService {
 
     private final LoggingUtil loggingUtil;
-    private final JwtTokenProvider jwtTokenProvider;
     private final PermissionResolverService permissionResolverService;
     private final MemberService memberService;
     private final DynamicBoardService dynamicBoardService;
@@ -73,7 +71,6 @@ public class PermissionServiceImpl extends EgovAbstractServiceImpl implements Pe
     private boolean hasAccessInternal(String permission, Long postId) throws Exception {
         try {
             JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
-            user = SecurityUtil.getCurrentUser();
 
             loggingUtil.logAttempt(Action.RETRIEVE,
                     "Check access: user=" + user.userId()

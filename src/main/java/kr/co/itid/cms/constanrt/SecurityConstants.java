@@ -19,4 +19,6 @@ public class SecurityConstants {
 
     // 쿠키 이름 설정: 클라이언트에서 사용할 토큰 쿠키 이름
     public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";   // 액세스 토큰 쿠키 이름
+    public static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
+
 }

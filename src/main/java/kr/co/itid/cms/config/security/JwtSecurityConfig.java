@@ -1,6 +1,7 @@
 package kr.co.itid.cms.config.security;
 
 import kr.co.itid.cms.config.security.port.SiteAccessChecker;
+import kr.co.itid.cms.service.auth.SessionManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,11 +26,12 @@ public class JwtSecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final SiteAccessChecker siteAccessChecker;
+    private final SessionManager sessionManager;
     private final XssProtectionFilter xssProtectionFilter; // XSS 방어 필터 추가
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider, siteAccessChecker);
+        return new JwtAuthenticationFilter(jwtTokenProvider, siteAccessChecker, sessionManager);
     }
 
     @Bean

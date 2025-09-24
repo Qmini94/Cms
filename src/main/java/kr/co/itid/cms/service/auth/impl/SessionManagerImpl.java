@@ -7,9 +7,7 @@ import kr.co.itid.cms.enums.Action;
 import kr.co.itid.cms.service.auth.SessionManager;
 import kr.co.itid.cms.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
-import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -26,7 +24,6 @@ import static kr.co.itid.cms.constanrt.RedisConstants.SESSION_KEY_PREFIX;
  */
 @Service("sessionManager")
 @RequiredArgsConstructor
-
 public class SessionManagerImpl extends EgovAbstractServiceImpl implements SessionManager {
 
     @Qualifier("sessionRedisTemplate")
@@ -50,40 +47,13 @@ public class SessionManagerImpl extends EgovAbstractServiceImpl implements Sessi
         loggingUtil.logAttempt(Action.CREATE, "[Session] 세션 생성 시도: userId=" + member.getUserId());
 
         try {
+            // DEFAULT_CACHE_TTL 초로 만료 설정
             redisTemplate.opsForValue().set(key, sessionData, DEFAULT_CACHE_TTL);
             loggingUtil.logSuccess(Action.CREATE, "[Session] 세션 생성 완료: sid=" + sid + ", userId=" + member.getUserId());
             return sid;
         } catch (Exception e) {
             loggingUtil.logFail(Action.CREATE, "[Session] 세션 생성 실패: userId=" + member.getUserId() + ", error=" + e.getMessage());
             throw processException("세션 생성 중 오류가 발생했습니다.", e);
-        }
-    }
-
-    @Override
-    public boolean extendSession(String sid) {
-        if (!redisHealthChecker.isCachedRedisHealthy()) {
-            loggingUtil.logAttempt(Action.RETRIEVE, "[Session] Redis 장애로 세션 연장 스킵: sid={}" + sid);
-            // 장애 상황은 실패로 간주하되 예외는 던지지 않음(상위에서 JWT 전략 사용)
-            return false;
-        }
-
-        final String key = SESSION_KEY_PREFIX + sid;
-        loggingUtil.logAttempt(Action.UPDATE, "[Session] 세션 TTL 연장 시도: sid=" + sid);
-
-        try {
-            if (!Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
-                loggingUtil.logFail(Action.UPDATE, "[Session] 존재하지 않는 세션으로 연장 실패: sid=" + sid);
-                return false;
-            }
-
-            redisTemplate.expire(key, DEFAULT_CACHE_TTL);
-            loggingUtil.logSuccess(Action.UPDATE, "[Session] 세션 TTL 연장 완료: sid=" + sid);
-            return true;
-        } catch (Exception e) {
-            redisHealthChecker.forceUpdateHealthStatus(false);
-            loggingUtil.logFail(Action.UPDATE, "[Session] 세션 연장 실패: sid=" + sid + ", error=" + e.getMessage());
-            // 운영 흐름을 끊지 않기 위해 예외는 래핑하지 않고 false 반환
-            return false;
         }
     }
 
@@ -150,6 +120,40 @@ public class SessionManagerImpl extends EgovAbstractServiceImpl implements Sessi
             redisHealthChecker.forceUpdateHealthStatus(false);
             loggingUtil.logFail(Action.RETRIEVE, "[Session] 세션 TTL 조회 실패: sid=" + sid + ", error=" + e.getMessage());
             return -1;
+        }
+    }
+
+    @Override
+    public void touchSession(String sid) throws Exception {
+        // 슬라이딩 TTL: 세션 존재 시 lastActivity 갱신 + TTL 연장
+        if (!redisHealthChecker.isCachedRedisHealthy()) {
+            // 장애 상황에서는 조용히 패스 (요청 흐름 막지 않음)
+            return;
+        }
+
+        final String key = SESSION_KEY_PREFIX + sid;
+        loggingUtil.logAttempt(Action.UPDATE, "[Session] 세션 touch 시도: sid=" + sid);
+
+        try {
+            SessionData data = redisTemplate.opsForValue().get(key);
+            if (data == null) {
+                loggingUtil.logFail(Action.UPDATE, "[Session] touch 대상 세션 없음: sid=" + sid);
+                return;
+            }
+
+            // lastActivity 갱신
+            data.setLastActivity(System.currentTimeMillis());
+
+            // 값 갱신 + TTL 재설정(슬라이딩)
+            redisTemplate.opsForValue().set(key, data, DEFAULT_CACHE_TTL);
+            // 또는 expire만 갱신하려면 아래 한 줄로도 충분:
+            // redisTemplate.expire(key, DEFAULT_CACHE_TTL, TimeUnit.SECONDS);
+
+            loggingUtil.logSuccess(Action.UPDATE, "[Session] 세션 touch 완료: sid=" + sid + ", ttlSec=" + DEFAULT_CACHE_TTL);
+        } catch (Exception e) {
+            redisHealthChecker.forceUpdateHealthStatus(false);
+            loggingUtil.logFail(Action.UPDATE, "[Session] 세션 touch 실패: sid=" + sid + ", error=" + e.getMessage());
+            throw processException("세션 갱신 중 오류가 발생했습니다.", e);
         }
     }
 

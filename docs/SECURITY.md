@@ -1,4 +1,3 @@
-
 # 🔐 EGOVFrame CMS 보안 시스템
 
 ## 📋 목차
@@ -10,26 +9,30 @@
 6. [보안 유틸리티](#보안-유틸리티)
 7. [개발 환경 보안](#개발-환경-보안)
 8. [보안 모범 사례](#보안-모범-사례)
+9. [보안 체크리스트](#보안-체크리스트)
 
 ---
 
 ## 인증 시스템 개요
 
 ### 기본 정보
-- **인증 방식**: JWT (JSON Web Token) 기반 Stateless 인증
+- **인증 방식**: JWT + Redis 세션 기반 인증
 - **세션 관리**: 슬라이딩 세션 (Sliding Session) 패턴
-- **토큰 저장**: HttpOnly 쿠키 + Redis (블랙리스트만)
-- **토큰 만료 시간**: 1시간 (3600초)
+- **토큰 저장**: HttpOnly 쿠키 (ACCESS / REFRESH)
+- **토큰 만료 시간**
+    - ACCESS: 약 15분
+    - REFRESH: 약 1일
+    - Redis 장애 시 Fallback ACCESS: 더 긴 TTL
 
 ### 보안 아키텍처
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   Storage       │
-│                 │    │                 │    │                 │
-│ • HttpOnly      │◄──►│ • JWT Provider  │◄──►│ • MySQL DB      │
-│   Cookie        │    │ • Auth Filter   │    │ • Redis Cache   │
-│ • XSS 방지       │    │ • Auth Service  │    │   (블랙리스트)     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────┐ ┌──────────────────┐ ┌─────────────────┐
+│     Frontend    │ │     Backend      │ │      Storage    │
+│                 │ │                  │ │                 │
+│ • HttpOnly     │◄─►│ • JWT Provider │◄─►│ • Redis        │
+│ • Cookie        │ │ • Auth Filter    │ │  • MySQL DB     │
+│ • XSRF-TOKEN    │ │ • Auth Service   │ │                 │
+└─────────────────┘ └──────────────────┘ └─────────────────┘
 ```
 
 ---
@@ -39,19 +42,14 @@
 ### 토큰 구조
 ```json
 {
-  "header": {
-    "alg": "HS256",
-    "typ": "JWT"
-  },
-  "payload": {
-    "sub": "user123",           // 사용자 ID
-    "userLevel": 1,             // 사용자 레벨
-    "userName": "홍길동",        // 사용자 이름
-    "idx": 123,                 // 사용자 인덱스
-    "jti": "uuid-1234",         // JWT ID (블랙리스트용)
-    "iat": 1640995200,          // 발급 시간
-    "exp": 1640998800           // 만료 시간 (1시간 후)
-  }
+  "sub": "user123",         // 사용자 ID
+  "userLevel": 1,
+  "userName": "홍길동",
+  "idx": 123,
+  "sid": "session-uuid",    // Redis 세션 ID
+  "jti": "uuid-1234",       // JWT ID
+  "iat": 1640995200,        // 발급 시간
+  "exp": 1640996100         // 만료 시간 (ACCESS: ~15분)
 }
 ```
 
@@ -176,35 +174,130 @@ ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, token)
 
 ---
 
+# 인증 및 보안 시스템
+
+## 토큰 생성
+
+### ACCESS 토큰
+* 사용자 정보(userId, userLevel, userName, idx, sid) 포함
+* TTL ≈ 15분 (Redis 정상 시)
+* Redis 장애 시 fallback TTL 사용
+
+### REFRESH 토큰
+* 최소 정보(sid) 포함
+* TTL ≈ 1일
+
+### 서명 알고리즘
+* HMAC SHA256 (HS256)
+
+## 쿠키 저장 정책
+
+### ACCESS 쿠키
+* HttpOnly, Secure(운영), Path=/, SameSite=None
+* TTL ≈ 15분
+
+### REFRESH 쿠키
+* HttpOnly, Secure(운영), Path=/, SameSite=Strict
+* TTL ≈ 1일
+
+### 개발 환경
+* HTTPS 미사용 시 Secure=false 허용
+
+## 토큰 검증
+
+1. 서명 검증 (HS256)
+2. 만료 시간 확인 (60초 clock skew 허용)
+3. `sid`로 Redis 세션 존재 여부 확인
+4. 세션 존재 시 TTL 슬라이딩 (touch)
+
+## 세션 관리
+
+### Redis 기반 세션
+* 세션 생성 시: UUID 기반 sid 발급, 사용자 정보 저장
+* TTL: 기본 15분, 요청 시 touch로 연장
+* 삭제: 로그아웃 시 `deleteSession(sid)`
+
+## 장애 대응
+
+### Redis 정상
+* ACCESS + 세션 검증 필수
+* 만료 시 REFRESH + 세션 검증 후 ACCESS 재발급
+
+### Redis 장애
+* 로그인 시: fallback TTL ACCESS 발급
+* 요청 시:
+    * ACCESS 유효 → 서명만 검증, 세션 검증 스킵
+    * ACCESS 만료/부재 → 재발급 불가 (401 또는 게스트 처리)
+* 복구 시: 정상 정책으로 자동 전환
+
+## 권한 관리
+
+### 메서드 레벨 권한 체크
+* **@PreAuthorize** 기반 메서드 단위 권한 제어
+* SpEL 표현식으로 동적 권한 조건 처리
+
+### PermissionService
+* 메뉴별/기능별 세밀한 권한 제어
+* 계층형 권한 구조 지원
+* 런타임 시 권한 변경 반영 가능
+
+## 보안 메커니즘
+
+### 1. XSS 방지
+* HttpOnly 쿠키로 클라이언트 접근 차단
+* HtmlSanitizerUtil 적용
+* ValidationUtil 통한 입력값 검증
+
+### 2. CSRF 방지
+* Spring Security `CookieCsrfTokenRepository.withHttpOnlyFalse()` 사용
+* 프론트: `XSRF-TOKEN` 쿠키 읽어 `X-XSRF-TOKEN` 헤더로 전송
+* `/back-api/auth/login` 요청만 예외 처리
+* 그 외 POST/PUT/PATCH/DELETE 요청에 헤더 없으면 403
+
+### 3. 토큰 탈취 방지
+* HS256 서명 검증
+* 세션 검증으로 즉시 무효화 가능
+* 블랙리스트 미사용 (세션 철회로 대체)
+
+### 4. 보안 헤더 설정 예시
+
+```java
+ResponseCookie cookie = ResponseCookie.from("ACCESS", token)
+    .httpOnly(true)
+    .secure(true)
+    .path("/")
+    .maxAge(Duration.ofMinutes(15))
+    .sameSite("None")
+    .build();
+```
+
 ## 보안 유틸리티
 
 ### HtmlSanitizerUtil
-- **XSS 방지**: HTML 태그 및 스크립트 필터링
-- **AOP 적용**: @HtmlSanitizer 어노테이션으로 자동 처리
-- **화이트리스트 방식**: 허용된 태그만 통과
+* **XSS 방지**: HTML 태그 및 스크립트 필터링
+* **AOP 적용**: @HtmlSanitizer 어노테이션으로 자동 처리
+* **화이트리스트 방식**: 허용된 태그만 통과
 
 ### CryptoUtil
-- **데이터 암호화**: 민감한 데이터 암호화
-- **대칭키 암호화**: AES 알고리즘 사용
-- **해시 함수**: 비밀번호 해싱
+* **AES 암호화**: 대칭키 기반 데이터 암호화/복호화
+* **해시 함수**: SHA-256, bcrypt 지원
+* **솔트 적용**: 비밀번호 해싱 시 랜덤 솔트 사용
 
 ### ValidationUtil
-- **입력값 검증**: 사용자 입력 데이터 검증
-- **SQL 인젝션 방지**: 파라미터화된 쿼리 사용
-- **데이터 타입 검증**: 타입 안전성 보장
+* **SQL 인젝션 방지**: 입력값 패턴 검증
+* **데이터 타입 검증**: 형식 및 범위 체크
+* **특수문자 필터링**: 위험한 문자 이스케이프
 
 ### IpUtil
-- **IP 주소 관리**: 클라이언트 IP 추출 및 정규화
-- **IPv6 지원**: IPv6 주소를 IPv4로 변환
-- **프록시 처리**: X-Forwarded-For 헤더 처리
-
----
+* **IPv6 정규화**: IPv6 주소 표준화
+* **프록시 처리**: X-Forwarded-For 헤더 파싱
+* **IP 대역 검증**: 허용/차단 IP 범위 체크
 
 ## 개발 환경 보안
 
 ### 로컬 개발환경 자동 인증
+
 ```java
-// https://localhost:3000 접근 시 자동 관리자 권한 부여
 if ("https://localhost:3000".equalsIgnoreCase(origin)) {
     return new JwtAuthenticatedUser(
         0L, "DEV_ADMIN", "개발관리자", 1, exp, "dev-token", hostname, menuId
@@ -212,80 +305,54 @@ if ("https://localhost:3000".equalsIgnoreCase(origin)) {
 }
 ```
 
-### 개발 환경 특징
-- **자동 관리자 권한**: 로컬 개발 시 권한 문제 해결
-- **게스트 사용자**: 토큰 없는 경우 게스트로 처리
-- **디버그 로깅**: 상세한 인증 과정 로그 출력
-
-### 보안 고려사항
-- **개발/운영 환경 분리**: 환경별 보안 설정 차별화
-- **민감 정보 보호**: 개발 환경에서도 실제 비밀번호 사용 금지
-- **로그 보안**: 개발 환경에서도 민감한 정보 로깅 주의
-
----
+### 특징
+* 로컬 개발 시 자동 관리자 권한 부여
+* 토큰 없을 경우 게스트 처리
+* 상세한 인증 과정 로그 출력
 
 ## 보안 모범 사례
 
-### 1. 토큰 관리
-- **짧은 만료 시간**: 1시간 (3600초)
-- **자동 갱신**: 사용자 활동 시 토큰 갱신
-- **즉시 무효화**: 로그아웃 시 블랙리스트 추가
+### 토큰 관리
+* ACCESS TTL: 15분
+* REFRESH TTL: 1일
+* 즉시 철회는 세션 삭제로 처리
 
-### 2. 쿠키 보안
-- **HttpOnly**: 클라이언트 스크립트 접근 방지
-- **Secure**: HTTPS 전용 전송
-- **SameSite**: 크로스 도메인 요청 제어
+### 쿠키 보안
+* HttpOnly, Secure, Path=/ 적용
+* 운영 환경: REFRESH SameSite=Strict 권장
+* 로컬: HTTPS 미사용 시 Secure=false
 
-### 3. 입력값 검증
-- **서버 사이드 검증**: 클라이언트 검증과 별도로 서버에서 검증
-- **화이트리스트**: 허용된 값만 통과
-- **이스케이프 처리**: 특수문자 이스케이프
+### 입력값 검증
+* 서버 단 Validation 필수
+* 화이트리스트 기반 검증
+* 특수문자 이스케이프 처리
 
-### 4. 로깅 및 모니터링
-- **보안 이벤트 로깅**: 인증 실패, 권한 오류 등
-- **민감 정보 마스킹**: 로그에서 비밀번호, 토큰 등 마스킹
-- **실시간 모니터링**: 비정상적인 접근 패턴 감지
-
-### 5. 운영 환경 보안 설정
-```yaml
-# 운영 환경 권장 설정
-jwt:
-  secret: ${JWT_SECRET}  # 환경변수로 관리
-  access-token-validity: 1800  # 30분으로 단축 고려
-
-security:
-  cookie:
-    secure: true
-    same-site: "Strict"  # 운영환경에서는 Strict 권장
-```
-
----
+### 로깅/모니터링
+* 인증 실패, 권한 오류 로깅
+* 민감 정보 마스킹
+* 비정상 접근 패턴 탐지
 
 ## 보안 체크리스트
 
 ### 인증 보안
-- [x] JWT 토큰 기반 인증
-- [x] HttpOnly 쿠키 사용
-- [x] 토큰 서명 검증
-- [x] 블랙리스트 관리
-- [x] IP 기반 접근 제어
+* JWT 쿠키 기반 인증
+* Redis 세션 검증
+* CSRF 활성화
+* Secure/HttpOnly 쿠키
 
 ### 권한 관리
-- [x] 메서드 레벨 권한 체크
-- [x] 계층형 권한 구조
-- [x] 동적 권한 관리
-- [x] 세밀한 권한 제어
+* 메서드 단위 권한 검증
+* 메뉴별/기능별 권한 제어
+* 런타임 권한 변경 반영
 
 ### 데이터 보안
-- [x] XSS 방지
-- [x] SQL 인젝션 방지
-- [x] 입력값 검증
-- [x] 데이터 암호화
+* XSS 필터링
+* SQL 인젝션 방지
+* AES 암호화
+* 입력값 Validation
 
 ### 운영 보안
-- [x] 보안 로깅
-- [x] 환경별 설정 분리
-- [x] 민감 정보 보호
-- [x] 모니터링 체계
-
----
+* 환경별 보안 설정 분리
+* 보안 로그 관리
+* 민감 정보 보호
+* 실시간 모니터링

@@ -12,7 +12,6 @@ import kr.co.itid.cms.service.auth.SessionManager;
 import kr.co.itid.cms.util.LoggingUtil;
 import kr.co.itid.cms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -52,22 +51,31 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
                 throw processException("Wrong password", new BadCredentialsException("Invalid password"));
             }
 
-            // 1. Redis 세션 생성
-            String hostname = SecurityUtil.getCurrentUser() != null ? 
-                SecurityUtil.getCurrentUser().hostname() : "unknown";
+            // 1) Redis 세션 생성 (세션 권위)
+            String hostname = SecurityUtil.getCurrentUser() != null ?
+                    SecurityUtil.getCurrentUser().hostname() : "unknown";
             String sessionId = sessionManager.createSession(member, hostname);
-            
-            // 2. JWT 토큰 생성 (세션 ID 포함)
-            Map<String, Object> claims = jwtTokenProvider.getClaims(member, sessionId);
-            String accessToken = jwtTokenProvider.createToken(userId, claims);
 
+            // 2) ACCESS 토큰 생성 (sid 포함)
+            boolean isRedisDown = !sessionManager.isRedisHealthy();
+            Map<String, Object> claims = jwtTokenProvider.getClaims(member, sessionId);
+            String accessToken = jwtTokenProvider.createToken(userId, claims, isRedisDown); // 장애면 fallback TTL
+
+            // 3) REFRESH 토큰 생성 (sid 포함)
+            String refreshToken = jwtTokenProvider.createRefreshToken(member.getUserId(), sessionId);
+
+            // 4) 최종 처리
             member.setLastLoginDate(LocalDateTime.now());
             memberRepository.save(member);
 
             loggingUtil.logSuccess(Action.LOGIN, "Login success: " + userId);
+
+            // ★ 컨트롤러에서 Set-Cookie 헤더로 내려줄 수 있도록 토큰 반환(기존 계약 유지)
             return TokenResponse.builder()
                     .accessToken(accessToken)
+                    .refreshToken(refreshToken)
                     .build();
+
         } catch (IllegalArgumentException e) {
             loggingUtil.logFail(Action.CREATE, "입력값 오류: " + e.getMessage());
             throw processException("Invalid input detected", e);
@@ -92,7 +100,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
                         .build();
             }
 
-            // 세션 TTL 조회 (Redis 기반 idle 시간)
+            // 세션 TTL 조회 (idle 남은 시간)
             long idleRemainSec = -1;
             String sessionId = user.sessionId();
             if (sessionId != null) {
@@ -106,7 +114,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
                     .level(String.valueOf(user.userLevel()))
                     .idx(user.userIdx().intValue())
                     .exp(user.exp())
-                    .idleRemainSec(idleRemainSec)  // Redis TTL 기반 idle 시간 추가
+                    .idleRemainSec(idleRemainSec)
                     .build();
 
         } catch (Exception e) {
@@ -118,23 +126,19 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     @Override
     public void logout() throws Exception {
         JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
-        String token = user.token();
+        String token = (user != null) ? user.token() : null;
 
         loggingUtil.logAttempt(Action.LOGOUT, "Try logout: " + token);
 
         try {
-            // 1. JWT 블랙리스트 추가
-            String userJti = jwtTokenProvider.getJti(token);
-            jwtTokenProvider.addTokenToBlacklist(userJti);
-            
-            // 2. Redis 세션 삭제
-            String sessionId = user.sessionId();
+            // ★ 블랙리스트 미사용: 즉시 철회는 세션 삭제로 달성
+            String sessionId = (user != null) ? user.sessionId() : null;
             if (sessionId != null) {
-                sessionManager.deleteSession(sessionId);
+                sessionManager.deleteSession(sessionId); // 즉시 무효화
                 loggingUtil.logSuccess(Action.LOGOUT, "Session deleted: " + sessionId);
             }
-            
-            loggingUtil.logSuccess(Action.LOGOUT, "Logout success: " + user.userId());
+
+            loggingUtil.logSuccess(Action.LOGOUT, "Logout success: " + (user != null ? user.userId() : "unknown"));
         } catch (BadCredentialsException e) {
             loggingUtil.logFail(Action.LOGOUT, "Invalid token: " + token);
             throw processException("Invalid token", e);

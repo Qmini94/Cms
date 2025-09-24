@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static kr.co.itid.cms.constanrt.RedisConstants.*;
+
 /**
  * Redis 서버 상태 확인 컴포넌트
  * 장애 감지 시 JWT 만료 시간 연장 등의 대응 전략 지원
@@ -19,8 +21,7 @@ public class RedisHealthChecker {
     
     private final StringRedisTemplate redisTemplate;
     private final AtomicBoolean isRedisHealthy = new AtomicBoolean(true);
-    private static final String HEALTH_CHECK_KEY = "health:check";
-    private static final String HEALTH_CHECK_VALUE = "ok";
+
     private static final Duration HEALTH_CHECK_TIMEOUT = Duration.ofMillis(500);
     
     /**
