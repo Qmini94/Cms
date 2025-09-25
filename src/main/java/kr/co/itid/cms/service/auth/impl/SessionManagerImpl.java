@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -48,8 +49,8 @@ public class SessionManagerImpl extends EgovAbstractServiceImpl implements Sessi
         loggingUtil.logAttempt(Action.CREATE, "[Session] 세션 생성 시도: userId=" + member.getUserId());
 
         try {
-            // DEFAULT_CACHE_TTL 초로 만료 설정
-            redisTemplate.opsForValue().set(key, sessionData, jwtProperties.getSessionTtlSeconds());
+            Duration ttl = Duration.ofSeconds(jwtProperties.getSessionTtlSeconds());
+            redisTemplate.opsForValue().set(key, sessionData, ttl);
             loggingUtil.logSuccess(Action.CREATE, "[Session] 세션 생성 완료: sid=" + sid + ", userId=" + member.getUserId());
             return sid;
         } catch (Exception e) {
@@ -146,7 +147,8 @@ public class SessionManagerImpl extends EgovAbstractServiceImpl implements Sessi
             data.setLastActivity(System.currentTimeMillis());
 
             // 값 갱신 + TTL 재설정(슬라이딩)
-            redisTemplate.opsForValue().set(key, data, jwtProperties.getSessionTtlSeconds());
+            Duration ttl = Duration.ofSeconds(jwtProperties.getSessionTtlSeconds());
+            redisTemplate.opsForValue().set(key, data, ttl);
 
             loggingUtil.logSuccess(Action.UPDATE, "[Session] 세션 touch 완료: sid=" + sid + ", ttlSec=" + jwtProperties.getSessionTtlSeconds());
         } catch (Exception e) {

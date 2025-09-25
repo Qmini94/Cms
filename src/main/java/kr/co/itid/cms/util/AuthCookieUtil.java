@@ -3,6 +3,7 @@ package kr.co.itid.cms.util;
 import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.http.HttpHeaders;
@@ -94,8 +95,21 @@ public final class AuthCookieUtil {
     // -------------------- 일괄 삭제(과거 속성 포함) --------------------
     /** 기본 도메인/경로로 표준 삭제 */
     public static void clearAll(HttpServletResponse res) {
-        // COOKIE_DOMAIN 이 null일 수 있으므로 이렇게 생성
-        clearAll(res, List.of((String) null), List.of(COOKIE_PATH));
+        // COOKIE_DOMAIN이 null/빈값이면 'host-only' 삭제를 위해 null 원소를 가진 리스트를 사용
+        clearAll(res, defaultDomains(), defaultPaths());
+    }
+
+    private static List<String> defaultDomains() {
+        if (COOKIE_DOMAIN != null && !COOKIE_DOMAIN.isEmpty()) {
+            return List.of(COOKIE_DOMAIN); // null 아님: 안전
+        }
+        // null 허용 리스트: host-only 쿠키 삭제 시도
+        return Arrays.asList((String) null);
+    }
+
+    private static List<String> defaultPaths() {
+        String path = (COOKIE_PATH != null && !COOKIE_PATH.isEmpty()) ? COOKIE_PATH : "/";
+        return List.of(path);
     }
 
     /** 과거 도메인/경로까지 함께 삭제 */
