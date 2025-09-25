@@ -112,6 +112,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             if (user == null) {
+                AuthCookieUtil.clearAll(response);
                 user = createGuestUser(request, hostname, menuId);
             }
 
