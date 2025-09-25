@@ -105,6 +105,7 @@ jwt:
   access-token-validity: 900    # 15분
   fallback-token-validity: 3600 # 1시간 (Redis 장애 시 사용)
   refresh-token-validity: 86400
+  session-ttl-seconds: 3600
 
 springdoc:
   swagger-ui:

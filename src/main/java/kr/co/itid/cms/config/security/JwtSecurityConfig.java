@@ -1,5 +1,6 @@
 package kr.co.itid.cms.config.security;
 
+import kr.co.itid.cms.config.security.model.JwtProperties;
 import kr.co.itid.cms.config.security.port.SiteAccessChecker;
 import kr.co.itid.cms.service.auth.SessionManager;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +26,14 @@ import java.util.List;
 public class JwtSecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtProperties jwtProperties;
     private final SiteAccessChecker siteAccessChecker;
     private final SessionManager sessionManager;
     private final XssProtectionFilter xssProtectionFilter; // XSS 방어 필터 추가
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider, siteAccessChecker, sessionManager);
+        return new JwtAuthenticationFilter(jwtTokenProvider, jwtProperties, siteAccessChecker, sessionManager);
     }
 
     @Bean

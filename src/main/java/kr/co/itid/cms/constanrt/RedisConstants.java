@@ -12,6 +12,6 @@ public final class RedisConstants {
 
     public static final String HEALTH_CHECK_VALUE = "ok";
 
-    public static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(1); //로그인 만료시간.
+    public static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(1);
     public static final Duration PERMISSION_TTL = Duration.ofDays(1);
 }

@@ -4,13 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
+import kr.co.itid.cms.config.security.model.JwtProperties;
 import kr.co.itid.cms.config.security.model.SessionData;
 import kr.co.itid.cms.config.security.port.SiteAccessChecker;
 import kr.co.itid.cms.dto.common.ApiResponse;
 import kr.co.itid.cms.service.auth.SessionManager;
+import kr.co.itid.cms.util.AuthCookieUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -23,18 +23,16 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static kr.co.itid.cms.constanrt.RedisConstants.DEFAULT_CACHE_TTL;
-import static kr.co.itid.cms.constanrt.SecurityConstants.*;
-import static kr.co.itid.cms.constanrt.SecurityConstants.SAME_SITE_NONE;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtProperties jwtProperties;
     private final SiteAccessChecker siteAccessChecker;
     private final SessionManager sessionManager;
 
@@ -64,25 +62,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(accessToken)) {
                 try {
-                    // ACCESS 서명/만료 검증
                     jwtTokenProvider.validateToken(accessToken);
 
-                    // claims.sid로 세션 검증 + TTL touch
                     Claims claims = jwtTokenProvider.getClaimsFromToken(accessToken);
                     String sid = claims.get("sid", String.class);
                     if (!StringUtils.hasText(sid)) {
-                        writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "세션 정보가 없습니다.");
+                        unauthorizedAndClear(response, "세션 정보가 없습니다.");
                         return;
                     }
-                    if(sessionManager.isRedisHealthy()){
+
+                    Long sessionExpEpoch;
+                    if (sessionManager.isRedisHealthy()) {
                         Optional<SessionData> sessionOpt = sessionManager.getSession(sid);
                         if (sessionOpt.isEmpty()) {
-                            // Redis가 정상인데 세션이 없으면, 재로그인 강제 + 쿠키 제거
                             unauthorizedAndClear(response, "세션이 만료되었거나 철회되었습니다.");
                             return;
                         }
-                        // 세션 슬라이딩(활동 갱신)
+                        // 슬라이딩
                         sessionManager.touchSession(sid);
+                        sessionExpEpoch = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
+                                .plusSeconds(jwtProperties.getSessionTtlSeconds()) // ★ yml 기반
+                                .toEpochSecond();
+                    } else {
+                        // 폴백: 토큰 커스텀 exp
+                        sessionExpEpoch = claims.get("exp", Long.class);
+                    }
+
+                    if (sessionExpEpoch != null) {
+                        AuthCookieUtil.setSessionExpires(response, sessionExpEpoch);
                     }
 
                     user = new JwtAuthenticatedUser(
@@ -90,7 +97,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             claims.getSubject(),
                             claims.get("userName", String.class),
                             claims.get("userLevel", Integer.class),
-                            claims.get("exp", Long.class), // 커스텀 exp
+                            sessionExpEpoch,
                             accessToken,
                             hostname,
                             menuId,
@@ -98,11 +105,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
 
                 } catch (ExpiredJwtException eje) {
-                    // ACCESS 만료 → REFRESH 재발급 시도
                     user = tryReissueWithRefresh(request, response, hostname, menuId);
                 }
             } else {
-                // ACCESS 없음 → REFRESH 재발급 시도. 실패 시 게스트
                 user = tryReissueWithRefresh(request, response, hostname, menuId);
             }
 
@@ -114,7 +119,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     new UsernamePasswordAuthenticationToken(user, null, null);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // 관리자 접근 체크 (기존 유지)
+            // 관리자 접근 체크
             if (isUnauthorizedAdmin(user, uri, hostname) && !AdminByPassPaths.ALLOWED_PATHS.contains(uri)) {
                 writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "관리자 권한 필요");
                 return;
@@ -129,45 +134,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    // REFRESH로 ACCESS 재발급 플로우
     private JwtAuthenticatedUser tryReissueWithRefresh(HttpServletRequest request,
                                                        HttpServletResponse response,
                                                        String hostname,
                                                        Long menuId) {
         try {
-            // Redis 장애면 재발급 불가 (세션 검증/터치 불가능)
             if (!sessionManager.isRedisHealthy()) {
                 return null;
             }
-
             String refresh = jwtTokenProvider.extractRefreshTokenFromRequest(request);
-            if (!StringUtils.hasText(refresh)) {
-                return null; // 게스트로 처리
-            }
+            if (!StringUtils.hasText(refresh)) return null;
 
-            // REFRESH 검증 (서명/만료)
             jwtTokenProvider.validateRefreshToken(refresh);
             Claims rClaims = jwtTokenProvider.getClaimsFromRefreshToken(refresh);
 
-            // sid로 세션 존재 확인
             String sid = rClaims.get("sid", String.class);
-            if (!StringUtils.hasText(sid)) {
-                return null;
-            }
+            if (!StringUtils.hasText(sid)) return null;
 
             Optional<SessionData> sessionOpt = sessionManager.getSession(sid);
-            if (sessionOpt.isEmpty()) {
-                return null;
-            }
+            if (sessionOpt.isEmpty()) return null;
 
             SessionData s = sessionOpt.get();
 
-            // 세션 슬라이딩(활동 갱신)
+            // 슬라이딩 후 세션 만료(epoch) = now + sessionTtlSeconds
             sessionManager.touchSession(sid);
-
-            // 세션 데이터를 기반으로 새 ACCESS 생성
-            long newCustomExp = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
-                    .plus(DEFAULT_CACHE_TTL)
+            long sessionExpEpoch = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
+                    .plusSeconds(jwtProperties.getSessionTtlSeconds())     // ★ yml 기반
                     .toEpochSecond();
 
             Map<String, Object> claims = new HashMap<>();
@@ -175,31 +167,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             claims.put("userName", s.getUserName());
             claims.put("idx", s.getIdx());
             claims.put("sid", sid);
-            claims.put("exp", newCustomExp);
+            claims.put("exp", sessionExpEpoch); // 프론트 편의상 동일 값
 
             String newAccess = jwtTokenProvider.createToken(s.getUserId(), claims);
 
-            // 새 ACCESS 쿠키 세팅
-            ResponseCookie cookie = jwtTokenProvider.createAccessTokenCookie(newAccess);
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            // ACCESS 쿠키 TTL = accessTokenValidity
+            AuthCookieUtil.setAccessToken(response, newAccess, Duration.ofSeconds(jwtProperties.getAccessTokenValidity()));
+            AuthCookieUtil.setSessionExpires(response, sessionExpEpoch);
 
             return new JwtAuthenticatedUser(
-                    s.getIdx(),
-                    s.getUserId(),
-                    s.getUserName(),
-                    s.getUserLevel(),
-                    newCustomExp,
-                    newAccess,
-                    hostname,
-                    menuId,
-                    sid
+                    s.getIdx(), s.getUserId(), s.getUserName(), s.getUserLevel(),
+                    sessionExpEpoch, newAccess, hostname, menuId, sid
             );
 
         } catch (ExpiredJwtException e) {
             logger.info("[JWT] REFRESH 만료 → 게스트 처리");
             return null;
         } catch (Exception e) {
-            logger.info("[JWT] REFRESH 재발급 실패: " + e.getMessage());
+            logger.info("[JWT] ACCESS 재발급 실패: {}" + e.getMessage());
             return null;
         }
     }
@@ -236,30 +221,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return isAdminAccess(uri, hostname) && !user.isAdmin();
     }
 
-    // 공통: 쿠키 삭제 유틸
-    private void clearAuthCookies(HttpServletResponse response) {
-        // 발급할 때와 동일한 path/domain/samesite/secure/httponly를 반드시 맞춘다
-        ResponseCookie clearAccess = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, "")
-                .httpOnly(HTTP_ONLY)
-                .secure(SECURE)
-                .path("/")
-                .maxAge(0)
-                .sameSite(SAME_SITE_NONE)
-                .build();
-        ResponseCookie clearRefresh = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
-                .httpOnly(HTTP_ONLY)
-                .secure(SECURE)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Strict")
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, clearAccess.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, clearRefresh.toString());
-    }
-
     private void unauthorizedAndClear(HttpServletResponse response, String msg) throws IOException {
-        clearAuthCookies(response);
+        AuthCookieUtil.clearAll(response);
         writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, msg);
     }
 
