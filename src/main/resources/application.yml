@@ -1,18 +1,18 @@
-#json:
-#  path: /data/egovframe-cms/front/public/json
-#
-#content:
-#  files:
-#    base-path: /data/egovframe-cms/front/public/contents/cms     # 서버 절대경로
-#    public-url-prefix: /contents/cms
-
 json:
-  path: C:/Users/user/Desktop/egov/egovframe-cms-frontend-q/public/json
+  path: /data/egovframe-cms/front/public/json
 
 content:
   files:
-    base-path: C:/Users/user/Desktop/egov/egovframe-cms-frontend-q/public/contents/cms     # 서버 절대경로
+    base-path: /data/egovframe-cms/front/public/contents/cms     # 서버 절대경로
     public-url-prefix: /contents/cms
+
+#json:
+#  path: C:/Users/user/Desktop/egov/egovframe-cms-frontend-q/public/json
+#
+#content:
+#  files:
+#    base-path: C:/Users/user/Desktop/egov/egovframe-cms-frontend-q/public/contents/cms     # 서버 절대경로
+#    public-url-prefix: /contents/cms
 
 
 
@@ -45,7 +45,8 @@ spring:
       connection-test-query: SELECT 1 # 커넥션 유효성 검사 쿼리
 
   redis:
-    host: 49.254.140.62
+    host: 127.0.0.1
+#    host: 49.254.140.62
     port: 6379
     password: Yubi!!@@##5630
 
