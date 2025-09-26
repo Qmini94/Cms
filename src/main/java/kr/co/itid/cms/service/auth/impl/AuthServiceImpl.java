@@ -101,21 +101,12 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
                         .build();
             }
 
-            // 세션 TTL 조회 (idle 남은 시간)
-            long idleRemainSec = -1;
-            String sessionId = user.sessionId();
-            if (sessionId != null) {
-                idleRemainSec = sessionManager.getSessionTtl(sessionId);
-            }
-
             loggingUtil.logSuccess(Action.RETRIEVE, "User info retrieved from token");
             return UserInfoResponse.builder()
                     .userName(user.userName())
                     .userId(user.userId())
                     .level(String.valueOf(user.userLevel()))
                     .idx(user.userIdx().intValue())
-                    .exp(user.exp())
-                    .idleRemainSec(idleRemainSec)
                     .build();
 
         } catch (Exception e) {
@@ -132,10 +123,6 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
             Long   idxLong  = getLong(claims, "idx");
             String userName = getString(claims, "userName");
             Integer level   = getInt(claims, "userLevel");
-            String sid      = getString(claims, "sid");
-
-            long expEpoch       = resolveExpEpoch(claims);
-            long idleRemainSec  = safeGetSessionTtl(sid);
 
             loggingUtil.logSuccess(Action.RETRIEVE, "User info retrieved from token");
 
@@ -144,8 +131,6 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
                     .idx(idxLong != null ? idxLong.intValue() : null)
                     .userName(userName)
                     .level(level != null ? String.valueOf(level) : null) // DTO가 Integer면 level 로 교체
-                    .exp(expEpoch)
-                    .idleRemainSec(idleRemainSec)
                     .build();
 
         } catch (Exception e) {
@@ -180,30 +165,6 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     }
 
     /* ===== 안전 추출 헬퍼 ===== */
-
-    // 중첩 3항 제거: 명시적 분기
-    private long resolveExpEpoch(Claims claims) {
-        Long customExp = getLong(claims, "exp");
-        if (customExp != null) {
-            return customExp;
-        }
-        Date stdExp = claims.getExpiration();
-        if (stdExp != null) {
-            return stdExp.toInstant().getEpochSecond();
-        }
-        return 0L;
-    }
-
-    // 중첩 try 제거: 별도 메서드로 캡슐화
-    private long safeGetSessionTtl(String sid) {
-        if (sid == null) return -1;
-        try {
-            return sessionManager.getSessionTtl(sid);
-        } catch (Exception ignore) {
-            return -1;
-        }
-    }
-
     private static Long getLong(Claims claims, String key) {
         Number n = claims.get(key, Number.class);
         return n != null ? n.longValue() : null;
