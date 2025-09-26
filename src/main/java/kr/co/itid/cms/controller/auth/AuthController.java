@@ -16,7 +16,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import io.jsonwebtoken.Claims;
 import java.time.Duration;
@@ -36,11 +35,15 @@ public class AuthController {
     private final JwtProperties jwtProperties;
 
     /**
-     * 로그인: 토큰 발급 + 쿠키 세팅 + 만료 헤더 세팅
+     * 로그인
+     * 1) 서비스에 인증 위임 → 토큰 발급
+     * 2) 발급 토큰을 HttpOnly 쿠키로 세팅 (TTL은 yml 값 사용)
+     * 3) 세션 만료(=SID TTL 기준) 값을 헤더/쿠키로 내려 클라이언트 타이머와 동기화
+     * 4) ACCESS 토큰의 Claims를 서비스에 전달해 사용자 정보 DTO 생성(/auth/me와 동일 스키마)
      * (CSRF: Security에서 /back-api/auth/login 예외 처리)
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<TokenResponse>> login(@RequestBody LoginRequest request,
+    public ResponseEntity<ApiResponse<UserInfoResponse>> login(@RequestBody LoginRequest request,
                                                             HttpServletResponse response) {
         try{
             TokenResponse tokenResponse = authService.login(request.getUserId(), request.getPassword());
@@ -60,7 +63,10 @@ public class AuthController {
                     .plusSeconds(jwtProperties.getSessionTtlSeconds()).toEpochSecond();
             AuthCookieUtil.setSessionExpires(response, sessionExpEpoch);
 
-            return ResponseEntity.ok(ApiResponse.success(tokenResponse));
+            Claims claims = jwtTokenProvider.getClaimsFromToken(tokenResponse.getAccessToken());
+            UserInfoResponse info = authService.getUserInfoFromToken(claims);
+
+            return ResponseEntity.ok(ApiResponse.success(info));
         } catch (UsernameNotFoundException | BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error(401, "인증 실패: " + e.getMessage()));
@@ -74,21 +80,8 @@ public class AuthController {
      * 현재 로그인 사용자 정보 + 만료 헤더/쿠키 최신화
      */
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserInfoResponse>> me(HttpServletRequest request,
-                                                            HttpServletResponse response) throws Exception {
-        // 유저 정보
-        UserInfoResponse info = authService.getUserInfoFromToken(request);
-
-        // 만료 정보 갱신(가능하면 커스텀 exp, 없으면 표준 exp 사용)
-        String access = jwtTokenProvider.extractAccessTokenFromRequest(request);
-        if (StringUtils.hasText(access)) {
-            Claims claims = jwtTokenProvider.getClaimsFromToken(access);
-            Long customExp = claims.get("exp", Long.class);
-            long expEpoch = (customExp != null)
-                    ? customExp
-                    : claims.getExpiration().toInstant().getEpochSecond();
-            AuthCookieUtil.setSessionExpires(response, expEpoch);
-        }
+    public ResponseEntity<ApiResponse<UserInfoResponse>> me() throws Exception {
+        UserInfoResponse info = authService.getCurrentUserInfo();
 
         return ResponseEntity.ok(ApiResponse.success(info));
     }

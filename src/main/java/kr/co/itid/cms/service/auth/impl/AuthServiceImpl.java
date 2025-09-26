@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.auth.impl;
 
+import io.jsonwebtoken.Claims;
 import kr.co.itid.cms.config.security.JwtTokenProvider;
 import kr.co.itid.cms.config.security.model.JwtAuthenticatedUser;
 import kr.co.itid.cms.dto.auth.TokenResponse;
@@ -20,8 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
 
 @Service("authService")
@@ -70,7 +71,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
 
             loggingUtil.logSuccess(Action.LOGIN, "Login success: " + userId);
 
-            // ★ 컨트롤러에서 Set-Cookie 헤더로 내려줄 수 있도록 토큰 반환(기존 계약 유지)
+            // 컨트롤러에서 Set-Cookie 헤더로 내려줄 수 있도록 토큰 반환(기존 계약 유지)
             return TokenResponse.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
@@ -88,7 +89,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     }
 
     @Override
-    public UserInfoResponse getUserInfoFromToken(HttpServletRequest request) throws Exception {
+    public UserInfoResponse getCurrentUserInfo() throws Exception {
         loggingUtil.logAttempt(Action.RETRIEVE, "Try get user info from token");
 
         try {
@@ -124,6 +125,36 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
     }
 
     @Override
+    public UserInfoResponse getUserInfoFromToken(Claims claims) throws Exception {
+        loggingUtil.logAttempt(Action.RETRIEVE, "Try get user info from token");
+        try {
+            String userId   = claims.getSubject();
+            Long   idxLong  = getLong(claims, "idx");
+            String userName = getString(claims, "userName");
+            Integer level   = getInt(claims, "userLevel");
+            String sid      = getString(claims, "sid");
+
+            long expEpoch       = resolveExpEpoch(claims);
+            long idleRemainSec  = safeGetSessionTtl(sid);
+
+            loggingUtil.logSuccess(Action.RETRIEVE, "User info retrieved from token");
+
+            return UserInfoResponse.builder()
+                    .userId(userId)
+                    .idx(idxLong != null ? idxLong.intValue() : null)
+                    .userName(userName)
+                    .level(level != null ? String.valueOf(level) : null) // DTO가 Integer면 level 로 교체
+                    .exp(expEpoch)
+                    .idleRemainSec(idleRemainSec)
+                    .build();
+
+        } catch (Exception e) {
+            loggingUtil.logFail(Action.RETRIEVE, "Failed to get user info from token: " + e.getMessage());
+            throw processException("Failed to retrieve user info from token", e);
+        }
+    }
+
+    @Override
     public void logout() throws Exception {
         JwtAuthenticatedUser user = SecurityUtil.getCurrentUser();
         String token = (user != null) ? user.token() : null;
@@ -131,7 +162,7 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
         loggingUtil.logAttempt(Action.LOGOUT, "Try logout: " + token);
 
         try {
-            // ★ 블랙리스트 미사용: 즉시 철회는 세션 삭제로 달성
+            // 블랙리스트 미사용: 즉시 철회는 세션 삭제로 달성
             String sessionId = (user != null) ? user.sessionId() : null;
             if (sessionId != null) {
                 sessionManager.deleteSession(sessionId); // 즉시 무효화
@@ -146,5 +177,43 @@ public class AuthServiceImpl extends EgovAbstractServiceImpl implements AuthServ
             loggingUtil.logFail(Action.LOGOUT, "Logout error: " + e.getMessage());
             throw processException("Logout error", e);
         }
+    }
+
+    /* ===== 안전 추출 헬퍼 ===== */
+
+    // 중첩 3항 제거: 명시적 분기
+    private long resolveExpEpoch(Claims claims) {
+        Long customExp = getLong(claims, "exp");
+        if (customExp != null) {
+            return customExp;
+        }
+        Date stdExp = claims.getExpiration();
+        if (stdExp != null) {
+            return stdExp.toInstant().getEpochSecond();
+        }
+        return 0L;
+    }
+
+    // 중첩 try 제거: 별도 메서드로 캡슐화
+    private long safeGetSessionTtl(String sid) {
+        if (sid == null) return -1;
+        try {
+            return sessionManager.getSessionTtl(sid);
+        } catch (Exception ignore) {
+            return -1;
+        }
+    }
+
+    private static Long getLong(Claims claims, String key) {
+        Number n = claims.get(key, Number.class);
+        return n != null ? n.longValue() : null;
+    }
+    private static Integer getInt(Claims claims, String key) {
+        Number n = claims.get(key, Number.class);
+        return n != null ? n.intValue() : null;
+    }
+    private static String getString(Claims claims, String key) {
+        Object v = claims.get(key);
+        return v != null ? String.valueOf(v) : null;
     }
 }

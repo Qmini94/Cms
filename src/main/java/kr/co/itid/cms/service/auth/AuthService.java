@@ -1,5 +1,6 @@
 package kr.co.itid.cms.service.auth;
 
+import io.jsonwebtoken.Claims;
 import kr.co.itid.cms.dto.auth.TokenResponse;
 import kr.co.itid.cms.dto.auth.UserInfoResponse;
 
@@ -27,10 +28,16 @@ public interface AuthService {
     void logout() throws Exception;
 
     /**
-     * 토큰 기반 사용자 정보 조회 메소드
+     * 콘텍스트 기반 사용자 정보 조회 메소드
      *
-     * @param request HttpServletRequest 객체
      * @return UserInfoResponse 사용자 정보 응답
      */
-    UserInfoResponse getUserInfoFromToken(HttpServletRequest request) throws Exception;
+    UserInfoResponse getCurrentUserInfo() throws Exception;
+
+    /**
+     * 토큰 기반 사용자 정보 조회 메소드
+     *
+     * @return UserInfoResponse 사용자 정보 응답
+     */
+    UserInfoResponse getUserInfoFromToken(Claims claims) throws Exception;
 }
