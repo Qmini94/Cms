@@ -57,7 +57,7 @@ public class SiteAccessCheckerImpl extends EgovAbstractServiceImpl implements Si
                     .anyMatch(denied -> denied.equals(clientIp) || IpUtil.isInRange(clientIp, denied));
 
             if (isGlobalDeny || isDenied) {
-                loggingUtil.logSuccess(Action.RETRIEVE, "[IP 체크] deny_ip (직접 또는 CIDR) 포함 또는 전체 차단 → 차단");
+                loggingUtil.logSuccess(Action.RETRIEVE, clientIp+"[IP 체크] deny_ip (직접 또는 CIDR) 포함 또는 전체 차단 → 차단");
                 return false;
             }
 

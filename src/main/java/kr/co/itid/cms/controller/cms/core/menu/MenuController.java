@@ -1,6 +1,5 @@
 package kr.co.itid.cms.controller.cms.core.menu;
 
-import kr.co.itid.cms.dto.cms.core.menu.request.MenuRequest;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeLiteResponse;
 import kr.co.itid.cms.dto.cms.core.menu.response.MenuTreeResponse;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import java.util.List;
 

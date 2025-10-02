@@ -32,7 +32,7 @@ public class MemberController {
     private final MemberService memberService;
 
     // 목록(검색 + 페이징)
-    @PreAuthorize("@permService.hasAccess('ACCESS')")
+    @PreAuthorize("@permService.hasAccess('MANAGE')")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<MemberListResponse>>> getMembers(
             @Valid @ModelAttribute SearchOption option,
@@ -51,7 +51,7 @@ public class MemberController {
     }
 
     // 단건 조회
-    @PreAuthorize("@permService.hasAccess('ACCESS')")
+    @PreAuthorize("@permService.hasAccess('MANAGE')")
     @GetMapping("/{idx}")
     public ResponseEntity<ApiResponse<MemberResponse>> getMember(
             @PathVariable @Positive(message = "회원 IDX는 1 이상의 값이어야 합니다") Long idx) throws Exception {
@@ -61,7 +61,7 @@ public class MemberController {
     }
 
     // 생성: userId, userName만 수신. 비밀번호는 userId와 동일한 평문을 서비스에서 암호화하여 저장.
-    @PreAuthorize("@permService.hasAccess('WRITE')")
+    @PreAuthorize("@permService.hasAccess('MANAGE')")
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> createMember(
             @Valid @RequestBody MemberCreateRequest request) throws Exception {
@@ -72,7 +72,7 @@ public class MemberController {
     }
 
     // 수정: 일반 정보 전체 수정 가능(삭제 제외)
-    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @PreAuthorize("@permService.hasAccess('MANAGE')")
     @PutMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> updateMember(
             @PathVariable @Positive Long idx,
@@ -86,7 +86,7 @@ public class MemberController {
     // 자동완성 검색 API (권한 대상 추가용)
     // GET /back-api/member/search?q=keyword&size=10
     // -------------------------------------------
-    @PreAuthorize("@permService.hasAccess('ACCESS')")
+    @PreAuthorize("@permService.hasAccess('MANAGE')")
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<MemberListResponse>>> searchMembersForSuggest(
             @RequestParam(name = "q", required = false) String keyword,

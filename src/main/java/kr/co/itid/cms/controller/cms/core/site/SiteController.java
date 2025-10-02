@@ -61,7 +61,7 @@ public class SiteController {
      * @return 성공 여부 (true)
      */
     @ExecutionTime(description = "사이트 생성", unit = ExecutionTime.TimeUnit.MILLISECONDS, level = ExecutionTime.LogLevel.INFO)
-    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @PreAuthorize("@permService.hasAccess('MANAGE')")
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> createSite(
             @RequestBody @Validated SiteRequest request) throws Exception {
@@ -78,7 +78,7 @@ public class SiteController {
      * @return 성공 여부 (true)
      */
     @ExecutionTime(description = "사이트 수정", unit = ExecutionTime.TimeUnit.MILLISECONDS)
-    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @PreAuthorize("@permService.hasAccess('MANAGE')")
     @PutMapping("/{siteHostName}")
     public ResponseEntity<ApiResponse<Void>> updateSiteByHostName(
             @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String siteHostName,
@@ -94,7 +94,7 @@ public class SiteController {
      * @param siteHostName 복구할 사이트의 호스트명
      * @return 성공 여부
      */
-    @PreAuthorize("@permService.hasAccess('MODIFY')")
+    @PreAuthorize("@permService.hasAccess('MANAGE')")
     @PutMapping("/{siteHostName}/restore")
     public ResponseEntity<ApiResponse<Void>> restoreSite(
             @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String siteHostName) throws Exception {
@@ -109,7 +109,7 @@ public class SiteController {
      * @param siteHostName 삭제할 사이트의 호스트명
      * @return 성공 여부
      */
-    @PreAuthorize("@permService.hasAccess('REMOVE')")
+    @PreAuthorize("@permService.hasAccess('MANAGE')")
     @DeleteMapping("/{siteHostName}")
     public ResponseEntity<ApiResponse<Void>> softDeleteSite(
             @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String siteHostName) throws Exception {
@@ -124,7 +124,7 @@ public class SiteController {
      * @param siteHostName 삭제할 사이트의 호스트명
      * @return 성공 여부
      */
-    @PreAuthorize("@permService.hasAccess('REMOVE')")
+    @PreAuthorize("@permService.hasAccess('MANAGE')")
     @DeleteMapping("/{siteHostName}/hard")
     public ResponseEntity<ApiResponse<Void>> hardDeleteSite(
             @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,30}$") String siteHostName) throws Exception {

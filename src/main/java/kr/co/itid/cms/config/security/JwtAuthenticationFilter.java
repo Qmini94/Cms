@@ -81,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         // 슬라이딩
                         sessionManager.touchSession(sid);
                         sessionExpEpoch = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
-                                .plusSeconds(jwtProperties.getSessionTtlSeconds()) // ★ yml 기반
+                                .plusSeconds(jwtProperties.getSessionTtlSeconds()) // yml 기반
                                 .toEpochSecond();
                     } else {
                         // 폴백: 토큰 커스텀 exp
@@ -160,7 +160,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 슬라이딩 후 세션 만료(epoch) = now + sessionTtlSeconds
             sessionManager.touchSession(sid);
             long sessionExpEpoch = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
-                    .plusSeconds(jwtProperties.getSessionTtlSeconds())     // ★ yml 기반
+                    .plusSeconds(jwtProperties.getSessionTtlSeconds())     // yml 기반
                     .toEpochSecond();
 
             Map<String, Object> claims = new HashMap<>();

@@ -39,7 +39,7 @@ public interface SessionManager {
     long getSessionTtl(String sid);
 
     /**
-     * ★ 세션 슬라이딩(활동 갱신): 세션이 존재하면 TTL을 연장한다.
+     * 세션 슬라이딩(활동 갱신): 세션이 존재하면 TTL을 연장한다.
      * 구현체에서 설정된 기본 TTL만큼 expire 시간을 갱신.
      * @param sid 세션 ID
      */
