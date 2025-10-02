@@ -121,19 +121,14 @@
 # 데이터베이스 설정
 spring:
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/EGOV_CSERVER
-    username: itid
-    password: Yubi2025!
 
 # Redis 설정
   redis:
-    host: 127.0.0.1
-    port: 6379
-    password: Yubi!!@@##5630
+
 
 # JWT 설정
 jwt:
-  secret: your-super-secret-key-32bytes-or-more
+  secret: 
   access-token-validity: 900    # 15분
   fallback-token-validity: 3600 # 1시간
 
